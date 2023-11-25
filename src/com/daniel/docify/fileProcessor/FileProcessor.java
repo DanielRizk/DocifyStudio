@@ -4,6 +4,8 @@ import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.parser.clang.ClangParser;
 
 import java.io.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FileProcessor {
     public static FileNode buildFileTree(File directory, String ProjectType) throws IOException {
@@ -21,12 +23,11 @@ public class FileProcessor {
                     if (file.getName().endsWith(ProjectType)){
                         BufferedReader reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
                         childNode.setFileInfo(ClangParser.parseFile(reader));
+                        node.addChild(childNode);
                     }
-                    node.addChild(childNode);
                 }
             }
         }
-
         return node;
     }
 
@@ -61,19 +62,22 @@ public class FileProcessor {
         }
     }
 
-    public static void getNodesFileInfo(FileNode node) {
+    public static List<FileNode> getNodesFileInfo(FileNode node) {
+        List<FileNode> fileNodes = new ArrayList<>();
         if (node.isFile() && node.getFileInfo() != null) {
-            if (node.getFileInfo().getFunctionModel() != null) {
-                for (int i = 0; i < node.getFileInfo().getFunctionModel().size(); i++) {
-                    System.out.println(node.getName());
-                    System.out.println("name: " + node.getFileInfo().getFunctionModel().get(i).getName());
-                    System.out.println("Doc: " + node.getFileInfo().getFunctionModel().get(i).getDocumentation().getFunctionBrief());
-                    System.out.println("line: " + node.getFileInfo().getFunctionModel().get(i).getLineNumber() + "\n");
-                }
-            }
+            fileNodes.add(node);
+//            if (node.getFileInfo().getFunctionModel() != null) {
+//                for (int i = 0; i < node.getFileInfo().getFunctionModel().size(); i++) {
+//                    System.out.println(node.getName());
+//                    System.out.println("name: " + node.getFileInfo().getFunctionModel().get(i).getName());
+//                    System.out.println("Doc: " + node.getFileInfo().getFunctionModel().get(i).getDocumentation().getFunctionBrief());
+//                    System.out.println("line: " + node.getFileInfo().getFunctionModel().get(i).getLineNumber() + "\n");
+//                }
+//            }
         }
         for (FileNode child : node.getChildren()) {
             getNodesFileInfo(child);
         }
+        return fileNodes;
     }
 }

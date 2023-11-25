@@ -20,7 +20,8 @@ public class Main {
         if (rootDir.exists() && rootDir.isDirectory()) {
             FileNode root = buildFileTree(rootDir, CProject);
             //processNode(root);
-            getNodesFileInfo(root);
+            //getNodesFileInfo(root);
+            printFileTree(root, 0);
         } else {
             System.out.println("Root directory does not exist or is not a directory.");
         }
