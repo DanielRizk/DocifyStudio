@@ -5,8 +5,6 @@ public abstract class ComponentModel {
 
     public abstract DocumentationModel getDocumentation();
 
-    public abstract String getFileName();
-
     public abstract int getLineNumber();
 }
 

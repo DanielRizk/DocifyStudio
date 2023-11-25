@@ -4,13 +4,11 @@ public class FunctionModel extends ComponentModel {
 
     private final String name;
     private final DocumentationModel documentation;
-    private final String fileName;
     private final int lineNumber;
 
-    public FunctionModel(String name, DocumentationModel documentation, String fileName, int lineNumber) {
+    public FunctionModel(String name, DocumentationModel documentation, int lineNumber) {
         this.name = name;
         this.documentation = documentation;
-        this.fileName = fileName;
         this.lineNumber = lineNumber;
     }
 
@@ -22,11 +20,6 @@ public class FunctionModel extends ComponentModel {
     @Override
     public DocumentationModel getDocumentation() {
         return documentation;
-    }
-
-    @Override
-    public String getFileName() {
-        return fileName;
     }
 
     @Override

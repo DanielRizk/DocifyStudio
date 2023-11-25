@@ -57,6 +57,7 @@ public class ClangParser extends ParserUtils{
             currentLineNumber++;
         }
         List<StructModel> temp2 = null;
+        currentLineNumber = 1;
         return new FileInfoModel(functionModels, temp2);
     }
     private static List<FunctionModel> functionReader(BufferedReader reader) throws IOException {
@@ -116,7 +117,6 @@ public class ClangParser extends ParserUtils{
                 functionModels.add(new FunctionModel(
                         functionName,
                         doc,
-                        "filePath",
                         currentLineNumber
                 ));
                 functionName = null;
