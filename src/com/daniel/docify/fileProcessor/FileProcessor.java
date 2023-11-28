@@ -66,14 +66,6 @@ public class FileProcessor {
         List<FileNode> fileNodes = new ArrayList<>();
         if (node.isFile() && node.getFileInfo() != null) {
             fileNodes.add(node);
-//            if (node.getFileInfo().getFunctionModel() != null) {
-//                for (int i = 0; i < node.getFileInfo().getFunctionModel().size(); i++) {
-//                    System.out.println(node.getName());
-//                    System.out.println("name: " + node.getFileInfo().getFunctionModel().get(i).getName());
-//                    System.out.println("Doc: " + node.getFileInfo().getFunctionModel().get(i).getDocumentation().getFunctionBrief());
-//                    System.out.println("line: " + node.getFileInfo().getFunctionModel().get(i).getLineNumber() + "\n");
-//                }
-//            }
         }
         for (FileNode child : node.getChildren()) {
             getNodesFileInfo(child);
