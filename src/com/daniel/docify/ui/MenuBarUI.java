@@ -1,6 +1,7 @@
 package com.daniel.docify.ui;
 
-import com.daniel.docify.core.ActionStarter;
+import com.daniel.docify.core.ActionManager;
+import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
 import java.awt.*;
@@ -12,7 +13,7 @@ public class MenuBarUI extends JFrame implements ActionListener {
 
     // declare menu bar components
     private final JMenuItem openMenuItem;
-    private final JMenuItem exitMenuItem;
+    private final JMenuItem closeMenuItem;
     private final JMenuItem cProjectItem;
     private final JMenuItem javaProjectItem;
     private final JMenuItem pythonProjectItem;
@@ -20,7 +21,7 @@ public class MenuBarUI extends JFrame implements ActionListener {
     private final JMenuItem saveDociItem;
 
     // MenuBarUI constructor
-    MenuBarUI(MainWindow mainWindow){
+    MenuBarUI(@NotNull MainWindow mainWindow){
 
         // create the menu bar itself
         JMenuBar menuBar = new JMenuBar();
@@ -33,7 +34,7 @@ public class MenuBarUI extends JFrame implements ActionListener {
         JMenu newSubMenu = createMenu("New", "icons/png/new.png", 20, 20);
         JMenu saveSubMenu = createMenu("Save As", "icons/png/save.png", 20, 20);
         openMenuItem = createMenuItem("Open", "icons/png/open.png", 20, 20);
-        exitMenuItem = createMenuItem("Exit", "icons/png/close.png", 20, 20);
+        closeMenuItem = createMenuItem("Close", "icons/png/close.png", 20, 20);
 
         // create new sub-menu items
         cProjectItem = createMenuItem("C Project", "icons/png/cprog.png", 20, 20);
@@ -57,7 +58,7 @@ public class MenuBarUI extends JFrame implements ActionListener {
         fileMenu.add(newSubMenu);
         fileMenu.add(openMenuItem);
         fileMenu.add(saveSubMenu);
-        fileMenu.add(exitMenuItem);
+        fileMenu.add(closeMenuItem);
 
         // add file and help menu to the menu bar
         menuBar.add(fileMenu);
@@ -65,7 +66,7 @@ public class MenuBarUI extends JFrame implements ActionListener {
 
         // add action listener to menu items
         openMenuItem.addActionListener(this);
-        exitMenuItem.addActionListener(this);
+        closeMenuItem.addActionListener(this);
         cProjectItem.addActionListener(this);
         javaProjectItem.addActionListener(this);
         pythonProjectItem.addActionListener(this);
@@ -92,13 +93,12 @@ public class MenuBarUI extends JFrame implements ActionListener {
     // create JMenu with icon if available
     private static JMenu createMenu(String text, String iconName, int width, int height) {
         JMenu menu = new JMenu(text);
-        if (iconName == null) {
-            return menu;
+        if (iconName != null) {
+            ImageIcon icon = new ImageIcon(iconName);
+            Image scaledImage = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
+            ImageIcon scaledIcon = new ImageIcon(scaledImage);
+            menu.setIcon(scaledIcon);
         }
-        ImageIcon icon = new ImageIcon(iconName);
-        Image scaledImage = icon.getImage().getScaledInstance(width, height, Image.SCALE_SMOOTH);
-        ImageIcon scaledIcon = new ImageIcon(scaledImage);
-        menu.setIcon(scaledIcon);
         return menu;
     }
 
@@ -107,15 +107,15 @@ public class MenuBarUI extends JFrame implements ActionListener {
         if (e.getSource() == openMenuItem){
             System.out.println("this is open");
             try {
-                ActionStarter.openDociFile();
+                ActionManager.openDociFile();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
         }
-        if (e.getSource() == exitMenuItem){
+        if (e.getSource() == closeMenuItem){
             System.out.println("this is exit");
             try {
-                ActionStarter.closeFile();
+                ActionManager.closeFile();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -123,7 +123,7 @@ public class MenuBarUI extends JFrame implements ActionListener {
         if (e.getSource() == cProjectItem){
             System.out.println("this is C");
             try {
-                ActionStarter.startCLang();
+                ActionManager.startCLang();
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }
@@ -136,6 +136,11 @@ public class MenuBarUI extends JFrame implements ActionListener {
         }
         if (e.getSource() == saveDociItem){
             System.out.println("this is save doci");
+            try {
+                ActionManager.saveDocify();
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
         }
         if (e.getSource() == savePDFItem){
             System.out.println("this is save pdf");

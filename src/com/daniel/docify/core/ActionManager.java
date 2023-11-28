@@ -1,17 +1,21 @@
 package com.daniel.docify.core;
 
-import com.daniel.docify.fileProcessor.FileNode;
+import com.daniel.docify.fileProcessor.FileNodeModel;
+import com.daniel.docify.fileProcessor.UserConfiguration;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 
-import static com.daniel.docify.fileProcessor.FileProcessor.buildFileTree;
-import static com.daniel.docify.fileProcessor.FileProcessor.printFileTree;
+import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildFileTree;
+import static com.daniel.docify.fileProcessor.DirectoryProcessor.printFileTree;
+import static com.daniel.docify.ui.DocDisplayModelUI.updateDisplayModelUI;
 import static com.daniel.docify.ui.TreeModelUI.updateFileTree;
 
-public class ActionStarter {
+public class ActionManager implements Serializable {
+    public static FileNodeModel root = null;
     public final static String CProject = ".h";
     public final static String PythonProject = ".py";
     public final static String JavaProject = ".java";
@@ -38,12 +42,16 @@ public class ActionStarter {
     public static void closeFile() throws IOException{
 
         updateFileTree(null);
+        updateDisplayModelUI(null);
     }
 
-    public static void startCLang() throws IOException{
+    public static void saveDocify() throws IOException{
         JFileChooser fileChooser = new JFileChooser();
-        // Optionally, set the file chooser to allow selecting only directories
-        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        String lastSavePath = UserConfiguration.loadUserLastOpenConfig();
+        if(lastSavePath != null){
+            fileChooser.setCurrentDirectory(new File(lastSavePath));
+        }
         int result = fileChooser.showOpenDialog(null);
         if (result == JFileChooser.APPROVE_OPTION) {
             java.io.File selectedFile = fileChooser.getSelectedFile();
@@ -53,14 +61,31 @@ public class ActionStarter {
 
             // Print or use the absolute path as needed
             System.out.println("Selected File/Folder: " + absolutePath);
+            UserConfiguration.saveUserLastSaveConfig(absolutePath);
+        }
+    }
+
+    public static void startCLang() throws IOException{
+        JFileChooser fileChooser = new JFileChooser();
+        // Optionally, set the file chooser to allow selecting only directories
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+        String lastOpenPath = UserConfiguration.loadUserLastOpenConfig();
+        if(lastOpenPath != null){
+            fileChooser.setCurrentDirectory(new File(lastOpenPath));
+        }
+        int result = fileChooser.showOpenDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            java.io.File selectedFile = fileChooser.getSelectedFile();
+
+            // Get the absolute path
+            String absolutePath = selectedFile.getAbsolutePath();
+
+            // Print or use the absolute path as needed
+            System.out.println("Selected File/Folder: " + absolutePath);
+            UserConfiguration.saveUserLastOpenConfig(absolutePath);
             try {
                 File rootDir = new File(absolutePath);
-                FileNode root = null;
-
-
                 root = buildFileTree(rootDir, CProject);
-                //processNode(root);
-                //getNodesFileInfo(root);
                 printFileTree(root, 0);
                 updateFileTree(root);
             } catch (IOException ex) {

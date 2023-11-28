@@ -42,16 +42,21 @@ public class ClangParser extends ParserUtils{
                 currentLineNumber++;
 
                 line = stripBlockCommentSyntax(line);
-                switch (line) {
-                    case INCLUDES:
-                        break;
-                    case MACROS:
-                        break;
-                    case STRUCTURES:
-                        break;
-                    case FUNCTION:
-                        functionModels = functionReader(reader);
-                        break;
+                try {
+                    switch (line) {
+                        case INCLUDES:
+                            break;
+                        case MACROS:
+                            break;
+                        case STRUCTURES:
+                            break;
+                        case FUNCTION:
+                            functionModels = functionReader(reader);
+                            break;
+                    }
+                }
+                catch (NullPointerException e){
+                    System.err.println("Error occurred,  " + e.getCause());
                 }
             }
             currentLineNumber++;

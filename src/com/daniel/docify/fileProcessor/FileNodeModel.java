@@ -5,14 +5,14 @@ import com.daniel.docify.model.FileInfoModel;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileNode {
+public class FileNodeModel {
     private final String name;
     private final boolean isFile;
     private final String fullPath; // New attribute for full path
-    private final List<FileNode> children;
+    private final List<FileNodeModel> children;
     private FileInfoModel fileInfo;
 
-    public FileNode(String name, boolean isFile, String fullPath) {
+    public FileNodeModel(String name, boolean isFile, String fullPath) {
         this.name = name;
         this.isFile = isFile;
         this.fullPath = fullPath;
@@ -31,11 +31,11 @@ public class FileNode {
         return fullPath;
     }
 
-    public List<FileNode> getChildren() {
+    public List<FileNodeModel> getChildren() {
         return children;
     }
 
-    public void addChild(FileNode child) {
+    public void addChild(FileNodeModel child) {
         children.add(child);
     }
 
@@ -45,5 +45,10 @@ public class FileNode {
 
     public FileInfoModel getFileInfo () {
         return this.fileInfo;
+    }
+
+    @Override
+    public String toString() {
+        return name; // or any other representation you want to display
     }
 }

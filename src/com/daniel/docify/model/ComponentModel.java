@@ -5,6 +5,6 @@ public abstract class ComponentModel {
 
     public abstract DocumentationModel getDocumentation();
 
-    public abstract int getLineNumber();
+    public abstract Integer getLineNumber();
 }
 

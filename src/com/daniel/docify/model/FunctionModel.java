@@ -4,9 +4,9 @@ public class FunctionModel extends ComponentModel {
 
     private final String name;
     private final DocumentationModel documentation;
-    private final int lineNumber;
+    private final Integer lineNumber;
 
-    public FunctionModel(String name, DocumentationModel documentation, int lineNumber) {
+    public FunctionModel(String name, DocumentationModel documentation, Integer lineNumber) {
         this.name = name;
         this.documentation = documentation;
         this.lineNumber = lineNumber;
@@ -23,7 +23,7 @@ public class FunctionModel extends ComponentModel {
     }
 
     @Override
-    public int getLineNumber() {
+    public Integer getLineNumber() {
         return lineNumber;
     }
 }
