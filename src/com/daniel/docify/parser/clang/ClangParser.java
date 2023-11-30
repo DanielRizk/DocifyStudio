@@ -27,109 +27,93 @@ public class ClangParser extends ParserUtils{
     private static final String NOTE = "@note";
 
     private static String line;
-    private static int currentLineNumber = 1;
+    private static int currentLineNumber = 0;
 
     /** This function parses passed file according to the pre-existing comments */
     @NotNull
     public static FileInfoModel parseFile(BufferedReader reader, String fileName) throws IOException {
 
-        List<FunctionModel> functionModels = null;
-
-        while ((line = reader.readLine()) != null) {
-
-            if (line.trim().startsWith("/*===")) {
-                line = reader.readLine();
-                currentLineNumber++;
-
-                line = stripBlockCommentSyntax(line);
-                try {
-                    switch (line) {
-                        case INCLUDES:
-                            break;
-                        case MACROS:
-                            break;
-                        case STRUCTURES:
-                            break;
-                        case FUNCTION:
-                            functionModels = functionReader(reader);
-                            break;
-                    }
-                }
-                catch (NullPointerException e){
-                    System.err.println("Error occurred,  " + e.getCause());
-                }
-            }
-            currentLineNumber++;
-        }
-        List<StructModel> temp2 = null;
-        currentLineNumber = 1;
-        return new FileInfoModel(fileName, functionModels, temp2);
-    }
-    private static List<FunctionModel> functionReader(BufferedReader reader) throws IOException {
-
-        boolean isCommentBlock = false;
-        int lineNumBuff = 0;
-        String functionName = null;
-        List<String> functionParams = new ArrayList<>();
-        DocumentationModel doc = new DocumentationModel();
+        List<StructModel> structModels = new ArrayList<>();
         List<FunctionModel> functionModels = new ArrayList<>();
 
-        while((line = reader.readLine()) != null){
+        boolean isInCommentBlock = false;
+        String functionName = null;
+        StringBuilder commentBlock = new StringBuilder();
+        DocumentationModel documentation = null;
+
+        while ((line = reader.readLine()) != null) {
             currentLineNumber++;
-            if (line.trim().startsWith("/*===")){ // when it returns it won't catch the /*=== for the rest
-                reader.reset();
-                currentLineNumber = lineNumBuff;
-                break;
-            }
-            if (line.trim().startsWith("/**")){
-                isCommentBlock = true;
-            }
-            if (extractFunctionName(line) != null){
+
+            if (line.contains("/**F**")) {
+                isInCommentBlock = true;
+                commentBlock = new StringBuilder();
+                commentBlock.append(line).append("\n");
+            } else if (isInCommentBlock) {
+                commentBlock.append(line).append("\n");
+
+                if (line.contains("*/")) {
+                    isInCommentBlock = false;
+                    documentation = processCommentBlock(commentBlock.toString());
+                    commentBlock = new StringBuilder();
+                }
+            } else if (extractFunctionName(line) != null) {
                 functionName = extractFunctionName(line);
             }
-            while (isCommentBlock){
-
-                line = reader.readLine();
-                currentLineNumber++;
-
-                if (line.trim().startsWith("*") && line.contains(BRIEF)){
-                    line = stripPrefix(line, BRIEF);
-                    doc.setFunctionBrief(line);
-                }
-
-                if (line.trim().startsWith("*") && line.contains(PARAM)){
-                    line = stripPrefix(line, PARAM);
-                    functionParams.add(line);
-                }
-
-                if (line.trim().startsWith("*") && line.contains(NOTE)){
-                    line = stripPrefix(line, NOTE);
-                    doc.setNote(line);
-                }
-
-                if (line.trim().startsWith("*") && line.contains(RETURN)){
-                    line = stripPrefix(line, RETURN);
-                    doc.setReturn(line);
-                }
-
-                if (line.contains("*/")){
-                    isCommentBlock = false;
-                    doc.setFunctionParams(functionParams);
-                }
-            }
-
-            if (functionName != null) {
+            if (functionName != null){
                 functionModels.add(new FunctionModel(
                         functionName,
-                        doc,
+                        documentation,
                         currentLineNumber
                 ));
                 functionName = null;
-                doc = new DocumentationModel();
-                reader.mark(250);
-                lineNumBuff = currentLineNumber;
+                documentation = null;
             }
         }
-        return functionModels;
+
+        return new FileInfoModel(fileName, functionModels, structModels);
+    }
+    private static DocumentationModel processCommentBlock(String commentBlock){
+        DocumentationModel documentation = new DocumentationModel();
+        String[] lines = commentBlock.split("\n");
+        String brief = null;
+        List<String> params = new ArrayList<>();
+        String returnVal = null;
+        String note = null;
+        boolean isStillBrief = false;
+
+        for (String commentLine : lines){
+            if (isStillBrief && !commentLine.contains("*/")){
+                if (!stripPrefix(commentLine,null).trim().isEmpty())  {
+                    brief = brief.concat("\n").concat(stripPrefix(commentLine, null));
+                }
+            }
+            if (commentLine.contains(BRIEF)){
+                isStillBrief = true;
+                brief = stripPrefix(commentLine, BRIEF);
+            }
+            if (commentLine.contains(PARAM)){
+                isStillBrief = false;
+                params.add(stripPrefix(commentLine, PARAM));
+            }
+            if (commentLine.contains(RETURN)){
+                isStillBrief = false;
+                returnVal = stripPrefix(commentLine, RETURN);
+            }
+            if (commentLine.contains(NOTE)){
+                isStillBrief = false;
+                note = stripPrefix(commentLine, NOTE);
+            }
+        }
+
+        if (brief != null || !params.isEmpty() || returnVal != null || note != null) {
+            documentation.setFunctionBrief(brief);
+            documentation.setFunctionParams(params);
+            documentation.setReturn(returnVal);
+            documentation.setNote(note);
+        } else {
+            return null; // Discard the comment block if it doesn't contain relevant information
+        }
+
+        return documentation;
     }
 }

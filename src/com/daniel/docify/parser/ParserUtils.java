@@ -18,7 +18,11 @@ public class ParserUtils {
         }
         line = line.trim();
         if (line.startsWith("*")){
-            line = line.substring(1).trim().substring(prefix.length()).trim();
+            if (prefix != null){
+                line = line.substring(1).trim().substring(prefix.length()).trim();
+            }else {
+                line = line.substring(1).trim();
+            }
             if(line.contains("[")) {
                 while (line.contains("]")) {
                     line = line.substring(1);

@@ -9,10 +9,6 @@ public class DocumentationModel {
     private String Return;
     private String note;
 
-    public DocumentationModel() {
-
-    }
-
     public void setFunctionBrief(String functionBrief) {
         this.functionBrief = functionBrief;
     }

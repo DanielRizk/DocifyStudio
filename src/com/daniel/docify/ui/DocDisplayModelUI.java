@@ -44,10 +44,19 @@ public class DocDisplayModelUI extends JFrame {
 
                 for (FunctionModel function : fileInfo.getFunctionModel()) {
                     if (function.getName() != null)text.append("Function Name: " + function.getName() + "\n");
-                    if (function.getDocumentation().getFunctionBrief() != null)text.append("Function Brief: " + function.getDocumentation().getFunctionBrief()+ "\n");
-                    for(String params : function.getDocumentation().getFunctionParams()) if (params != null) text.append("Function Param: " + params+ "\n");
-                    if (function.getDocumentation().getReturn() != null) text.append("Function Return: " + function.getDocumentation().getReturn()+ "\n");
-                    if (function.getDocumentation().getNotes() != null) text.append("Note: " + function.getDocumentation().getNotes() + "\n");
+                    if (function.getDocumentation() != null) {
+                        if (function.getDocumentation().getFunctionBrief() != null)
+                            text.append("Function Brief: " + function.getDocumentation().getFunctionBrief() + "\n");
+                        for (String params : function.getDocumentation().getFunctionParams())
+                            if (params != null) text.append("Function Param: " + params + "\n");
+                        if (function.getDocumentation().getReturn() != null)
+                            text.append("Function Return: " + function.getDocumentation().getReturn() + "\n");
+                        if (function.getDocumentation().getNotes() != null)
+                            text.append("Note: " + function.getDocumentation().getNotes() + "\n");
+                    }
+                    else {
+                        text.append("No documentation available!\n");
+                    }
                     if (function.getLineNumber() != null) text.append("Declared on line: " + function.getLineNumber() + "\n\n");
                 }
                 mainPane.add(text);
