@@ -6,6 +6,9 @@ import com.daniel.docify.parser.clang.ClangParser;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static com.daniel.docify.core.ActionManager.CProject;
 
 public class DirectoryProcessor {
     public static FileNodeModel buildFileTree(File directory, String projectType) throws IOException {
@@ -23,12 +26,31 @@ public class DirectoryProcessor {
                         containsFileType = true; // Set to true if any child directory contains the file type
                     }
                 } else {
-                    if (file.getName().endsWith(projectType)) {
-                        BufferedReader reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
-                        FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
-                        childNode.setFileInfo(ClangParser.parseFile(reader, file.getName()));
-                        node.addChild(childNode);
-                        containsFileType = true; // Set to true if any file in the directory has the specified type
+                    if (Objects.equals(projectType, CProject)){
+                        if (file.getName().endsWith(".h")) {
+                            BufferedReader reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
+                            FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
+                            childNode.setFileInfo(ClangParser.parseFile(reader, file.getName()));
+                            node.addChild(childNode);
+                            containsFileType = true; // Set to true if any file in the directory has the specified type
+                            /*
+                             * you can switch to parse src files as well by removing the else if part
+                             * and adding the condition to the "if" part by ||
+                             */
+                        } else if (file.getName().endsWith(".c")) {
+                            FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
+                            node.addChild(childNode);
+                            containsFileType = true; // Set to true if any file in the directory has the specified type
+                        }
+                    }
+                    else {
+                        if (file.getName().endsWith(projectType)) {
+                            BufferedReader reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
+                            FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
+                            childNode.setFileInfo(ClangParser.parseFile(reader, file.getName()));
+                            node.addChild(childNode);
+                            containsFileType = true; // Set to true if any file in the directory has the specified type
+                        }
                     }
                 }
             }
