@@ -8,27 +8,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DirectoryProcessor {
-    public static FileNodeModel buildFileTree(File directory, String ProjectType) throws IOException {
+    public static FileNodeModel buildFileTree(File directory, String projectType) throws IOException {
         String fullPath = directory.getAbsolutePath();
         FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
 
         File[] files = directory.listFiles();
         if (files != null) {
+            boolean containsFileType = false;
             for (File file : files) {
                 if (file.isDirectory()) {
-                    FileNodeModel childNode = buildFileTree(file, ProjectType);
-                    node.addChild(childNode);
+                    FileNodeModel childNode = buildFileTree(file, projectType);
+                    if (childNode != null) {
+                        node.addChild(childNode);
+                        containsFileType = true; // Set to true if any child directory contains the file type
+                    }
                 } else {
-                    FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
-                    if (file.getName().endsWith(ProjectType)){
+                    if (file.getName().endsWith(projectType)) {
                         BufferedReader reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
+                        FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
                         childNode.setFileInfo(ClangParser.parseFile(reader, file.getName()));
                         node.addChild(childNode);
+                        containsFileType = true; // Set to true if any file in the directory has the specified type
                     }
                 }
             }
+
+            // If the directory or any of its subdirectories contains the file type, return the node
+            if (containsFileType) {
+                return node;
+            } else {
+                return null;
+            }
         }
-        return node;
+
+        return null;
     }
 
     public static void printFileTree(FileNodeModel node, int depth) {
