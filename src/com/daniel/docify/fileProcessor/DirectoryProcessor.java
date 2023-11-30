@@ -22,7 +22,7 @@ public class DirectoryProcessor {
                     FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
                     if (file.getName().endsWith(ProjectType)){
                         BufferedReader reader = new BufferedReader(new FileReader(file.getAbsolutePath()));
-                        childNode.setFileInfo(ClangParser.parseFile(reader));
+                        childNode.setFileInfo(ClangParser.parseFile(reader, file.getName()));
                         node.addChild(childNode);
                     }
                 }
@@ -53,7 +53,7 @@ public class DirectoryProcessor {
     public static void processNode(FileNodeModel node) throws IOException {
         if (node.isFile() && node.getFullPath().endsWith(".h")) {
             BufferedReader reader = new BufferedReader(new FileReader(node.getFullPath()));
-            FileInfoModel fileInfo = ClangParser.parseFile(reader);
+            FileInfoModel fileInfo = ClangParser.parseFile(reader, null);
             node.setFileInfo(fileInfo);
         }
 

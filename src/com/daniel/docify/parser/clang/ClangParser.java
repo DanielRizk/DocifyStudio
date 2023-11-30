@@ -31,7 +31,7 @@ public class ClangParser extends ParserUtils{
 
     /** This function parses passed file according to the pre-existing comments */
     @NotNull
-    public static FileInfoModel parseFile(BufferedReader reader) throws IOException {
+    public static FileInfoModel parseFile(BufferedReader reader, String fileName) throws IOException {
 
         List<FunctionModel> functionModels = null;
 
@@ -63,7 +63,7 @@ public class ClangParser extends ParserUtils{
         }
         List<StructModel> temp2 = null;
         currentLineNumber = 1;
-        return new FileInfoModel(functionModels, temp2);
+        return new FileInfoModel(fileName, functionModels, temp2);
     }
     private static List<FunctionModel> functionReader(BufferedReader reader) throws IOException {
 

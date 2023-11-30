@@ -6,7 +6,12 @@ import java.awt.event.*;
 
 
 public class MainWindow extends JFrame implements ActionListener {
-    public MainWindow(){
+    public MainWindow() {
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        }catch (UnsupportedLookAndFeelException | ClassNotFoundException | InstantiationException | IllegalAccessException e){
+            e.printStackTrace();
+        }
         this.setTitle("Docify Studio");
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setDefaultLookAndFeelDecorated(true);
