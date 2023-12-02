@@ -21,8 +21,7 @@ public class MainWindow extends JFrame implements ActionListener {
         new MenuBarUI(this);
         new StatusBarUI(this);
         new TreeModelUI(this);
-        new DocDisplayModelUI(this);
-        new ExplorerUI(this);
+        new ExplorerUI(this, new DocDisplayModelUI(this));
 
 
         this.setExtendedState(JFrame.MAXIMIZED_BOTH);

@@ -94,7 +94,7 @@ public class TreeModelUI extends JFrame implements TreeSelectionListener {
                     // Perform action based on the selected file node
                     System.out.println("Selected file: " + selectedFileNode.getFullPath());
                     DocDisplayModelUI.updateDisplayModelUI(selectedFileNode.getFileInfo());
-                    updateExplorer(selectedFileNode.getFileInfo().getFunctionsNames());
+                    updateExplorer(selectedFileNode.getFileInfo().getItemNames());
                 }
             }
         }

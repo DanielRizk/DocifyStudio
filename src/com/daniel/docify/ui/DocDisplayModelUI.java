@@ -14,6 +14,7 @@ import java.awt.geom.RoundRectangle2D;
 
 public class DocDisplayModelUI extends JFrame {
     static Container mainPane;
+    static JTextArea text = new JTextArea();
     DocDisplayModelUI(@NotNull MainWindow mainWindow){
 
         mainPane = getContentPane();
@@ -36,7 +37,6 @@ public class DocDisplayModelUI extends JFrame {
         if (fileInfo != null) {
 
             if (fileInfo.getFunctionModel() != null) {
-                JTextArea text = new JTextArea();
                 Font customFont = new Font("Calibri", Font.BOLD, 24); // Replace "Arial" with your desired font
                 text.setFont(customFont);
                 text.setForeground(Color.DARK_GRAY); // Replace Color.BLUE with your desired color
@@ -66,6 +66,11 @@ public class DocDisplayModelUI extends JFrame {
         mainPane.revalidate();
         mainPane.repaint();
     }
+
+    public JTextArea getTextArea(){
+        return text;
+    }
+
     static class HiddenCaret extends DefaultCaret {
         @Override
         public void paint(Graphics g) {

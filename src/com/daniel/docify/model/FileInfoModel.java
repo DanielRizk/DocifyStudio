@@ -26,14 +26,18 @@ public class FileInfoModel {
         return structModel;
     }
 
-    public List<String> getFunctionsNames(){
-        if (functionModel != null){
-            List<String> funcNames = new ArrayList<>();
-            for (FunctionModel func : functionModel){
-                funcNames.add(func.getName());
+    public List<String> getItemNames(){
+        List<String> itemNames = new ArrayList<>();
+        if (structModel != null){
+            for (StructModel struct : structModel){
+                itemNames.add(struct.getName());
             }
-            return funcNames;
         }
-        return null;
+        if (functionModel != null){
+            for (FunctionModel func : functionModel){
+                itemNames.add(func.getName());
+            }
+        }
+        return itemNames;
     }
 }
