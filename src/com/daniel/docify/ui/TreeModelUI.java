@@ -13,6 +13,8 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
+import static com.daniel.docify.ui.ExplorerUI.updateExplorer;
+
 public class TreeModelUI extends JFrame implements TreeSelectionListener {
 
     private static DefaultTreeModel treeModel;
@@ -84,17 +86,15 @@ public class TreeModelUI extends JFrame implements TreeSelectionListener {
             DefaultMutableTreeNode selectedNode = (DefaultMutableTreeNode) path.getLastPathComponent();
             Object userObject = selectedNode.getUserObject();
 
-            if (userObject instanceof DefaultMutableTreeNode) {
-                DefaultMutableTreeNode childNode = (DefaultMutableTreeNode) userObject;
+            if (userObject instanceof DefaultMutableTreeNode childNode) {
                 // Perform action based on the selected child node
                 System.out.println("Selected child node: " + childNode.getUserObject());
-            } else if (userObject instanceof FileNodeModel) {
-                FileNodeModel selectedFileNode = (FileNodeModel) userObject;
+            } else if (userObject instanceof FileNodeModel selectedFileNode) {
                 if (selectedFileNode.isFile()) {
                     // Perform action based on the selected file node
                     System.out.println("Selected file: " + selectedFileNode.getFullPath());
                     DocDisplayModelUI.updateDisplayModelUI(selectedFileNode.getFileInfo());
-
+                    updateExplorer(selectedFileNode.getFileInfo().getFunctionsNames());
                 }
             }
         }

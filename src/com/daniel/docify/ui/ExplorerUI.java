@@ -1,5 +1,6 @@
 package com.daniel.docify.ui;
 
+import com.daniel.docify.fileProcessor.FileNodeModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -9,8 +10,11 @@ import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.util.List;
 
 public class ExplorerUI {
+    private static JList<String> listView;
+    private static DefaultListModel<String> listModel;
     ExplorerUI(@NotNull MainWindow mainWindow) {
         // Create an empty root node for the initial state
         JTextArea textArea = new JTextArea();
@@ -28,8 +32,17 @@ public class ExplorerUI {
                 updateScrollPaneWidth(scrollPane, mainWindow.getWidth());
             }
         });
-
+        listModel = new DefaultListModel<>();
+        listView = new JList<>(listModel);
+        scrollPane.setViewportView(listView);
         mainWindow.add(scrollPane, BorderLayout.EAST);
+    }
+
+    public static void updateExplorer(List<String> funcNames){
+        listModel.clear();
+        for (String funcName : funcNames){
+            listModel.addElement(funcName);
+        }
     }
 
     private void updateScrollPaneWidth(JScrollPane scrollPane, int mainWindowWidth) {

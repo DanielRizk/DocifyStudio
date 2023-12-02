@@ -9,9 +9,9 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 
-import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildFileTree;
-import static com.daniel.docify.fileProcessor.DirectoryProcessor.printFileTree;
+import static com.daniel.docify.fileProcessor.DirectoryProcessor.*;
 import static com.daniel.docify.ui.DocDisplayModelUI.updateDisplayModelUI;
+import static com.daniel.docify.ui.ExplorerUI.updateExplorer;
 import static com.daniel.docify.ui.TreeModelUI.updateFileTree;
 
 public class ActionManager implements Serializable {
@@ -86,6 +86,7 @@ public class ActionManager implements Serializable {
             try {
                 File rootDir = new File(absolutePath);
                 root = buildFileTree(rootDir, CProject);
+                assert root != null;
                 printFileTree(root, 0);
                 updateFileTree(root);
             } catch (IOException ex) {

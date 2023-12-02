@@ -1,5 +1,6 @@
 package com.daniel.docify.model;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class FileInfoModel {
@@ -23,5 +24,16 @@ public class FileInfoModel {
 
     public List<StructModel> getStructModel(){
         return structModel;
+    }
+
+    public List<String> getFunctionsNames(){
+        if (functionModel != null){
+            List<String> funcNames = new ArrayList<>();
+            for (FunctionModel func : functionModel){
+                funcNames.add(func.getName());
+            }
+            return funcNames;
+        }
+        return null;
     }
 }
