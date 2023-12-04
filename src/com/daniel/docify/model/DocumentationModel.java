@@ -1,8 +1,9 @@
 package com.daniel.docify.model;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class DocumentationModel {
+public class DocumentationModel implements Serializable {
 
     private String functionBrief;
     private List<String> functionParams;

@@ -1,6 +1,8 @@
 package com.daniel.docify.model;
 
-public class StructModel extends ComponentModel{
+import java.io.Serializable;
+
+public class StructModel extends ComponentModel implements Serializable {
 
     private final String name;
     private final DocumentationModel documentation;

@@ -1,9 +1,12 @@
 package com.daniel.docify.model;
 
+import com.daniel.docify.fileProcessor.FileSerializer;
+
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileInfoModel {
+public class FileInfoModel implements Serializable{
     String fileName;
     List <FunctionModel> functionModel;
     List<StructModel> structModel;

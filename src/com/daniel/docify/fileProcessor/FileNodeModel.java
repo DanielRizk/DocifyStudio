@@ -2,10 +2,11 @@ package com.daniel.docify.fileProcessor;
 
 import com.daniel.docify.model.FileInfoModel;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FileNodeModel {
+public class FileNodeModel extends FileSerializer implements Serializable {
     private final String name;
     private final boolean isFile;
     private final String fullPath; // New attribute for full path

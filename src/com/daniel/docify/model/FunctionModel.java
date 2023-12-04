@@ -1,6 +1,8 @@
 package com.daniel.docify.model;
 
-public class FunctionModel extends ComponentModel {
+import java.io.Serializable;
+
+public class FunctionModel extends ComponentModel implements Serializable {
 
     private final String name;
     private final DocumentationModel documentation;

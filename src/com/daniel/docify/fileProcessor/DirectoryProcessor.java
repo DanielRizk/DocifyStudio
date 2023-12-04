@@ -11,7 +11,7 @@ import java.util.Objects;
 import static com.daniel.docify.core.ActionManager.CProject;
 
 public class DirectoryProcessor {
-    public static FileNodeModel buildFileTree(File directory, String projectType) throws IOException {
+    public static FileNodeModel buildDirTree(File directory, String projectType) throws IOException {
         String fullPath = directory.getAbsolutePath();
         FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
 
@@ -20,7 +20,7 @@ public class DirectoryProcessor {
             boolean containsFileType = false;
             for (File file : files) {
                 if (file.isDirectory()) {
-                    FileNodeModel childNode = buildFileTree(file, projectType);
+                    FileNodeModel childNode = buildDirTree(file, projectType);
                     if (childNode != null) {
                         node.addChild(childNode);
                         containsFileType = true; // Set to true if any child directory contains the file type
