@@ -6,6 +6,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @brief   This class represents the file in any project
+ *          it provides useful information about the file
+ */
 public class FileInfoModel implements Serializable{
     String fileName;
     List <FunctionModel> functionModel;
@@ -29,6 +33,10 @@ public class FileInfoModel implements Serializable{
         return structModel;
     }
 
+    /**
+     * @brief   This method returns all the function and struct names
+     *          in a single file
+     */
     public List<String> getItemNames(){
         List<String> itemNames = new ArrayList<>();
         if (structModel != null){

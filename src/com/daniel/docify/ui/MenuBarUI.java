@@ -121,12 +121,8 @@ public class MenuBarUI extends JFrame implements ActionListener {
             }
         }
         if (e.getSource() == cProjectItem){
-            System.out.println("this is C");
-            try {
-                ActionManager.startCLang();
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
-            }
+            System.out.println("C project is selected");
+            ActionManager.startNew(ActionManager.CProject);
         }
         if (e.getSource() == javaProjectItem){
             System.out.println("this is java");
@@ -135,7 +131,7 @@ public class MenuBarUI extends JFrame implements ActionListener {
             System.out.println("this is py");
         }
         if (e.getSource() == saveDociItem){
-            System.out.println("this is save doci");
+            System.out.println("Saving Doci file");
             try {
                 ActionManager.saveDocify();
             } catch (IOException ex) {

@@ -7,30 +7,28 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 
+/**
+ * @brief   This class enable the system to save user configurations
+ *          and preferences, and load them again when the system boots
+ */
 public class UserConfiguration {
-
-    @SerializedName("lastOpenDir")
     private String lastOpenDir;
-
-    @SerializedName("lastSaveDir")
     private String lastSaveDir;
 
-
-    public UserConfiguration(String rootDir) {
-        this.lastOpenDir = rootDir;
-        this.lastSaveDir = rootDir;
+    public String getLastOpenDir() {
+        return this.lastOpenDir;
     }
 
-    public String getLastOpenDir() {
-        return lastOpenDir;
+    public void setLastOpenDir(String rootDir) {
+        this.lastOpenDir = rootDir;
     }
 
     public String getLastSaveDir() {
-        return lastSaveDir;
+        return this.lastSaveDir;
     }
 
-    public void setRootDir(String rootDir) {
-        this.lastOpenDir = rootDir;
+    public void setLastSaveDir(String rootDir) {
+        this.lastSaveDir = rootDir;
     }
 
     // Convert the object to JSON
@@ -45,15 +43,20 @@ public class UserConfiguration {
         return gson.fromJson(json, UserConfiguration.class);
     }
 
+    /**
+     * @brief   This method saves the last opened path from the user
+     *          to the user config file
+     */
     public static void saveUserLastOpenConfig(String lastOpenDir) {
         try {
-            // Create a UserConfiguration object
-            UserConfiguration userConfiguration = new UserConfiguration(lastOpenDir);
+            // Read the existing configuration from the file
+            UserConfiguration userConfiguration = loadUserConfiguration();
 
-            // Write the object to a JSON file
-            try (FileWriter writer = new FileWriter("config/config.json")) {
-                writer.write(userConfiguration.toJson());
-            }
+            // Update the last open directory
+            userConfiguration.setLastOpenDir(lastOpenDir);
+
+            // Save the updated configuration back to the file
+            saveUserConfiguration(userConfiguration);
 
             System.out.println("UserConfiguration saved successfully.");
         } catch (IOException e) {
@@ -61,21 +64,20 @@ public class UserConfiguration {
         }
     }
 
+    /**
+     * @brief   This method loads the last opened path from the user
+     *          to the user config file
+     */
     public static String loadUserLastOpenConfig() {
         try {
-            // Read the JSON file and convert to a UserConfiguration object
-            try (FileReader reader = new FileReader("config/config.json")) {
-                Gson gson = new Gson();
-                UserConfiguration userConfiguration = gson.fromJson(reader, UserConfiguration.class);
+            // Read the existing configuration from the file
+            UserConfiguration userConfiguration = loadUserConfiguration();
 
-                // Use the userConfiguration object
-                System.out.println("Root Directory: " + userConfiguration.getLastOpenDir());
-                return userConfiguration.getLastOpenDir();
-            }
-
+            // Use the last open directory from the configuration
+            return userConfiguration.getLastOpenDir();
         } catch (FileNotFoundException e) {
             // Handle the FileNotFoundException
-            System.err.println("Configuration file not found. Using default configuration.");
+            System.out.println("Configuration file not found. Using default configuration.");
             return null; // Provide a default configuration or null
         } catch (IOException e) {
             // Handle other IOExceptions
@@ -85,15 +87,20 @@ public class UserConfiguration {
         }
     }
 
+    /**
+     * @brief   This method saves the last saved path from the user
+     *          to the user config file
+     */
     public static void saveUserLastSaveConfig(String lastSaveDir) {
         try {
-            // Create a UserConfiguration object
-            UserConfiguration userConfiguration = new UserConfiguration(lastSaveDir);
+            // Read the existing configuration from the file
+            UserConfiguration userConfiguration = loadUserConfiguration();
 
-            // Write the object to a JSON file
-            try (FileWriter writer = new FileWriter("config/config.json")) {
-                writer.write(userConfiguration.toJson());
-            }
+            // Update the last save directory
+            userConfiguration.setLastSaveDir(lastSaveDir);
+
+            // Save the updated configuration back to the file
+            saveUserConfiguration(userConfiguration);
 
             System.out.println("UserConfiguration saved successfully.");
         } catch (IOException e) {
@@ -101,27 +108,39 @@ public class UserConfiguration {
         }
     }
 
+    /**
+     * @brief   This method loads the last saved path from the user
+     *          to the user config file
+     */
     public static String loadUserLastSaveConfig() {
         try {
-            // Read the JSON file and convert to a UserConfiguration object
-            try (FileReader reader = new FileReader("config/config.json")) {
-                Gson gson = new Gson();
-                UserConfiguration userConfiguration = gson.fromJson(reader, UserConfiguration.class);
+            // Read the existing configuration from the file
+            UserConfiguration userConfiguration = loadUserConfiguration();
 
-                // Use the userConfiguration object
-                System.out.println("Root Directory: " + userConfiguration.getLastOpenDir());
-                return userConfiguration.getLastSaveDir();
-            }
-
+            // Use the last save directory from the configuration
+            return userConfiguration.getLastSaveDir();
         } catch (FileNotFoundException e) {
             // Handle the FileNotFoundException
-            System.err.println("Configuration file not found. Using default configuration.");
+            System.out.println("Configuration file not found. Using default configuration.");
             return null; // Provide a default configuration or null
         } catch (IOException e) {
             // Handle other IOExceptions
             e.printStackTrace();
             System.err.println("Error loading user configuration: " + e.getMessage());
             return null;
+        }
+    }
+
+    private static UserConfiguration loadUserConfiguration() throws IOException {
+        try (FileReader reader = new FileReader("config/config.json")) {
+            Gson gson = new Gson();
+            return gson.fromJson(reader, UserConfiguration.class);
+        }
+    }
+
+    private static void saveUserConfiguration(UserConfiguration userConfiguration) throws IOException {
+        try (FileWriter writer = new FileWriter("config/config.json")) {
+            writer.append(userConfiguration.toJson());
         }
     }
 }

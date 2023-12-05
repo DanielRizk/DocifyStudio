@@ -3,19 +3,23 @@ package com.daniel.docify.model;
 import java.io.Serializable;
 import java.util.List;
 
+/**
+ * @brief   This class have the Documentation structure and provides getters and setters
+ *          for documentation parameters
+ */
 public class DocumentationModel implements Serializable {
 
-    private String functionBrief;
-    private List<String> functionParams;
+    private String brief;
+    private List<String> params;
     private String Return;
     private String note;
 
-    public void setFunctionBrief(String functionBrief) {
-        this.functionBrief = functionBrief;
+    public void setBrief(String brief) {
+        this.brief = brief;
     }
 
-    public void setFunctionParams(List<String> functionParams) {
-        this.functionParams = functionParams;
+    public void setParams(List<String> params) {
+        this.params = params;
     }
 
     public void setReturn(String Return) {
@@ -26,12 +30,12 @@ public class DocumentationModel implements Serializable {
         this.note = note;
     }
 
-    public String getFunctionBrief() {
-        return functionBrief;
+    public String getBrief() {
+        return brief;
     }
 
-    public List<String> getFunctionParams() {
-        return functionParams;
+    public List<String> getParams() {
+        return params;
     }
 
     public String getReturn() {

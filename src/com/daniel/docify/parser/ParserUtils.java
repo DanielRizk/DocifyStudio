@@ -1,7 +1,13 @@
 package com.daniel.docify.parser;
 
+/**
+ * @brief   This class supports the parser module with some helpful methods
+ */
 public class ParserUtils {
 
+    /**
+     * @brief   This method identifies function declaration and return the function as a string
+     */
     public static String extractFunctionName(String line) {
         if (line == null){
             return null;
@@ -12,7 +18,12 @@ public class ParserUtils {
         return null;
     }
 
-    public static String stripPrefix(String line, String prefix) {
+    /**
+     * @brief   this method strips any specified prefix of a string
+     *          in a comment block, if prefix is null, strips just
+     *          the "*" and return the string
+     */
+    public static String stripPrefixInCommentBlock(String line, String prefix) {
         if (line == null){
             return null;
         }
@@ -29,18 +40,6 @@ public class ParserUtils {
                 }
                 line = line.trim();
             }
-            return line;
-        }
-        return null;
-    }
-
-    public static String stripBlockCommentSyntax(String line) {
-        if (line == null){
-            return null;
-        }
-        line = line.trim();
-        if (line.startsWith("*")){
-            line = line.substring(1).trim();
             return line;
         }
         return null;

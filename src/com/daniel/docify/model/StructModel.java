@@ -2,6 +2,10 @@ package com.daniel.docify.model;
 
 import java.io.Serializable;
 
+/**
+ * @brief   This class represents Structs in a processed file
+ *          and provides useful information about the Struct
+ */
 public class StructModel extends ComponentModel implements Serializable {
 
     private final String name;
@@ -13,6 +17,7 @@ public class StructModel extends ComponentModel implements Serializable {
         this.documentation = documentation;
         this.lineNumber = lineNumber;
     }
+
     @Override
     public String getName() {
         return name;

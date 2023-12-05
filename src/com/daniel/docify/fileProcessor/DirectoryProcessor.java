@@ -10,7 +10,17 @@ import java.util.Objects;
 
 import static com.daniel.docify.core.ActionManager.CProject;
 
+/**
+ * @brief   This class provides all necessary methods to process
+ *          projects directories and create Dir-tree structure
+ */
 public class DirectoryProcessor {
+
+    /**
+     * @brief   This method is the core of the system, it creates the fileNode tree
+     *          structure and parses each file according to the specified type, and assigns
+     *          each fileInfo to the respective fileNode
+     */
     public static FileNodeModel buildDirTree(File directory, String projectType) throws IOException {
         String fullPath = directory.getAbsolutePath();
         FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
@@ -66,34 +76,15 @@ public class DirectoryProcessor {
         return null;
     }
 
+    /**
+     * @brief   This method prints the file node structure to the console for debugging
+     */
     public static void printFileTree(FileNodeModel node, int depth) {
 
         System.out.println("  ".repeat(Math.max(0, depth)) + (node.isFile() ? "- " : "+ ") + node.getName() + " (" + node.getFullPath() + ")");
 
         for (FileNodeModel child : node.getChildren()) {
             printFileTree(child, depth + 1);
-        }
-    }
-
-    public static void printFileTree(FileNodeModel node, String fileType) {
-        if (node.isFile() && node.getFullPath().endsWith(fileType)) {
-            System.out.println(node.getFullPath());
-        }
-
-        for (FileNodeModel child : node.getChildren()) {
-            printFileTree(child, fileType);
-        }
-    }
-
-    public static void processNode(FileNodeModel node) throws IOException {
-        if (node.isFile() && node.getFullPath().endsWith(".h")) {
-            BufferedReader reader = new BufferedReader(new FileReader(node.getFullPath()));
-            FileInfoModel fileInfo = ClangParser.parseFile(reader, null);
-            node.setFileInfo(fileInfo);
-        }
-
-        for (FileNodeModel child : node.getChildren()) {
-            processNode(child);
         }
     }
 

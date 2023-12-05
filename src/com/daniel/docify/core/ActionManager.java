@@ -8,14 +8,13 @@ import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import java.io.File;
 import java.io.IOException;
-import java.io.Serializable;
 
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.*;
 import static com.daniel.docify.ui.DocDisplayModelUI.updateDisplayModelUI;
 import static com.daniel.docify.ui.TreeModelUI.updateFileTree;
 
 public class ActionManager {
-    public static FileNodeModel root = null;
+    public static FileNodeModel rootNode = null;
     public final static String CProject = ".h";
     public final static String PythonProject = ".py";
     public final static String JavaProject = ".java";
@@ -54,72 +53,99 @@ public class ActionManager {
     }
 
     public static void saveDocify() throws IOException {
-        JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-        FileNameExtensionFilter filter = new FileNameExtensionFilter("Docify Files (*.doci)", "doci");
-        fileChooser.setFileFilter(filter);
+        JFileChooser fileChooser;
+        String lastSavePath = UserConfiguration.loadUserLastSaveConfig();
 
-        String lastSavePath = UserConfiguration.loadUserLastOpenConfig();
-        if (lastSavePath != null) {
-            fileChooser.setCurrentDirectory(new File(lastSavePath));
-        }
+        if (lastSavePath != null) fileChooser = new JFileChooser(lastSavePath);
+        else fileChooser = new JFileChooser();
+
+        FileNameExtensionFilter filter = new FileNameExtensionFilter("Docify File (*.doci)","doci");
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
+        fileChooser.setFileFilter(filter);
+        //fileChooser.setSelectedFile();
 
         int result = fileChooser.showSaveDialog(null);
+        if (result == JFileChooser.APPROVE_OPTION){
+            File dociFileDir = fileChooser.getSelectedFile();
+            System.out.println("Save file to " + fileChooser.getSelectedFile());
 
-        if (result == JFileChooser.APPROVE_OPTION) {
-            java.io.File selectedFile = fileChooser.getSelectedFile();
+            UserConfiguration.saveUserLastSaveConfig(dociFileDir.getParent());
 
-            // Get the absolute path
-            String absolutePath = selectedFile.getAbsolutePath();
-
-            // Combine the user-provided file name with the directory path
-            String filePath = absolutePath + ".doci";
-
-            // Print or use the absolute path as needed
-            System.out.println("Selected File/Folder: " + filePath);
-
-            // Save the FileNodeModel using the user-provided file name
-            FileSerializer.save(root, filePath);
-
-            // Save the last save path to user configuration
-            if (!absolutePath.contains(".")) UserConfiguration.saveUserLastSaveConfig(absolutePath);
-            else{
-                absolutePath = getParentDir(absolutePath);
-                UserConfiguration.saveUserLastSaveConfig(absolutePath);
+            if (fileChooser.getSelectedFile().toString().endsWith(".doci")){
+                FileSerializer.save(rootNode, dociFileDir.getAbsolutePath());
+            }else {
+                FileSerializer.save(rootNode, dociFileDir.getAbsolutePath() + ".doci");
             }
 
         }
+
+
+
+
+
+//        JFileChooser fileChooser = new JFileChooser();
+//        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+//        FileNameExtensionFilter filter = new FileNameExtensionFilter("Docify Files (*.doci)", "doci");
+//        fileChooser.setFileFilter(filter);
+//
+//        String lastSavePath = UserConfiguration.loadUserLastSaveConfig();
+//        if (lastSavePath != null) {
+//            fileChooser.setCurrentDirectory(new File(lastSavePath));
+//        }
+//
+//        int result = fileChooser.showSaveDialog(null);
+//
+//        if (result == JFileChooser.APPROVE_OPTION) {
+//            java.io.File selectedFile = fileChooser.getSelectedFile();
+//
+//            // Get the absolute path
+//            String absolutePath = selectedFile.getAbsolutePath();
+//
+//            // Combine the user-provided file name with the directory path
+//            String filePath = absolutePath + ".doci";
+//
+//            // Print or use the absolute path as needed
+//            System.out.println("Selected File/Folder: " + filePath);
+//
+//            // Save the FileNodeModel using the user-provided file name
+//            FileSerializer.save(rootNode, filePath);
+//
+//            // Save the last save path to user configuration
+//            if (!absolutePath.contains(".")) UserConfiguration.saveUserLastSaveConfig(absolutePath);
+//            else{
+//                absolutePath = getParentDir(absolutePath);
+//                UserConfiguration.saveUserLastSaveConfig(absolutePath);
+//            }
+//
+//        }
     }
 
-    public static void startCLang() throws IOException{
-        JFileChooser fileChooser = new JFileChooser();
-        // Optionally, set the file chooser to allow selecting only directories
-        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+    public static void startNew(String fileType){
+        JFileChooser fileChooser;
         String lastOpenPath = UserConfiguration.loadUserLastOpenConfig();
-        if(lastOpenPath != null){
-            fileChooser.setCurrentDirectory(new File(lastOpenPath));
-        }
+
+        if (lastOpenPath != null) fileChooser = new JFileChooser(lastOpenPath);
+        else fileChooser = new JFileChooser();
+
+        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+
         int result = fileChooser.showOpenDialog(null);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            java.io.File selectedFile = fileChooser.getSelectedFile();
 
-            // Get the absolute path
-            String absolutePath = selectedFile.getAbsolutePath();
-
-            // Print or use the absolute path as needed
-            System.out.println("Selected File/Folder: " + absolutePath);
-            if (!absolutePath.contains(".")) UserConfiguration.saveUserLastOpenConfig(absolutePath = getParentDir(absolutePath));
+        if (result == JFileChooser.APPROVE_OPTION){
+            File selectedDir = fileChooser.getSelectedFile();
+            System.out.println("Selected Directory " + selectedDir.getAbsolutePath());
+            UserConfiguration.saveUserLastOpenConfig(selectedDir.getAbsolutePath());
 
             try {
-                File rootDir = new File(absolutePath);
-                root = buildDirTree(rootDir, CProject);
-                assert root != null;
-                printFileTree(root, 0);
-                updateFileTree(root);
-            } catch (IOException ex) {
-                throw new RuntimeException(ex);
+                rootNode = buildDirTree(selectedDir, fileType);
+                assert rootNode != null;
+                //printFileTree(rootNode, 0);
+                updateFileTree(rootNode);
+            } catch (IOException e){
+                throw new RuntimeException(e);
             }
         }
+
     }
 
     private static String getParentDir(String path){
@@ -127,8 +153,7 @@ public class ActionManager {
 
         if (lastIndex != -1) {
             // Extract the substring excluding the last directory
-            String newPath = path.substring(0, lastIndex);
-            return newPath;
+            return path.substring(0, lastIndex);
         } else {
             return null;
         }

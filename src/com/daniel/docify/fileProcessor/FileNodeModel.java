@@ -6,6 +6,10 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @brief   This class represents a node in a directory structure hierarchy
+ *          also provides useful method to create a node-tree structure
+ */
 public class FileNodeModel extends FileSerializer implements Serializable {
     private final String name;
     private final boolean isFile;

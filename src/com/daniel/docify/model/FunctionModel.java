@@ -2,6 +2,10 @@ package com.daniel.docify.model;
 
 import java.io.Serializable;
 
+/**
+ * @brief   This class represents functions in a processed file
+ *          and provides useful information about the function
+ */
 public class FunctionModel extends ComponentModel implements Serializable {
 
     private final String name;

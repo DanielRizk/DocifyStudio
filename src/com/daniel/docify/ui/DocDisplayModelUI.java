@@ -5,12 +5,10 @@ import com.daniel.docify.model.FunctionModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
-import javax.swing.border.EmptyBorder;
 import javax.swing.text.*;
 import java.awt.*;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.awt.geom.RoundRectangle2D;
 
 public class DocDisplayModelUI extends JFrame {
     static Container mainPane;
@@ -45,9 +43,9 @@ public class DocDisplayModelUI extends JFrame {
                 for (FunctionModel function : fileInfo.getFunctionModel()) {
                     if (function.getName() != null)text.append("Function Name: " + function.getName() + "\n");
                     if (function.getDocumentation() != null) {
-                        if (function.getDocumentation().getFunctionBrief() != null)
-                            text.append("Function Brief: " + function.getDocumentation().getFunctionBrief() + "\n");
-                        for (String params : function.getDocumentation().getFunctionParams())
+                        if (function.getDocumentation().getBrief() != null)
+                            text.append("Function Brief: " + function.getDocumentation().getBrief() + "\n");
+                        for (String params : function.getDocumentation().getParams())
                             if (params != null) text.append("Function Param: " + params + "\n");
                         if (function.getDocumentation().getReturn() != null)
                             text.append("Function Return: " + function.getDocumentation().getReturn() + "\n");

@@ -12,24 +12,23 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * @brief   This class provides all the necessary functionalities to parse C project files
+ */
 public class ClangParser extends ParserUtils{
 
     /** Constant search keyword */
-    private static final String INCLUDES   = "Includes";
-    private static final String MACROS     = "Macros";
-    private static final String STRUCTURES = "Structures";
-    private static final String FUNCTION   = "Function Prototypes";
-
-
     private static final String BRIEF = "@brief";
     private static final String PARAM = "@param";
     private static final String RETURN = "@return";
     private static final String NOTE = "@note";
 
-    private static String line;
+    /** Keeps track of the current line number in the document */
     private static int currentLineNumber = 0;
 
-    /** This function parses passed file according to the pre-existing comments */
+    /**
+     * @brief   This method parses passed file according to the pre-existing comments
+     */
     @NotNull
     public static FileInfoModel parseFile(BufferedReader reader, String fileName) throws IOException {
 
@@ -41,6 +40,7 @@ public class ClangParser extends ParserUtils{
         StringBuilder commentBlock = new StringBuilder();
         DocumentationModel documentation = null;
 
+        String line;
         while ((line = reader.readLine()) != null) {
             currentLineNumber++;
 
@@ -69,9 +69,13 @@ public class ClangParser extends ParserUtils{
                 documentation = null;
             }
         }
-
         return new FileInfoModel(fileName, functionModels, structModels);
     }
+
+    /**
+     * @brief   This method extracts the documentation parameters from
+     *          a document block -String- and return DocumentationModel
+     */
     private static DocumentationModel processCommentBlock(String commentBlock){
         DocumentationModel documentation = new DocumentationModel();
         String[] lines = commentBlock.split("\n");
@@ -83,31 +87,31 @@ public class ClangParser extends ParserUtils{
 
         for (String commentLine : lines){
             if (isStillBrief && !commentLine.contains("*/")){
-                if (!stripPrefix(commentLine,null).trim().isEmpty())  {
-                    brief = brief.concat("\n").concat(stripPrefix(commentLine, null));
+                if (!stripPrefixInCommentBlock(commentLine,null).trim().isEmpty())  {
+                    brief = brief.concat("\n").concat(stripPrefixInCommentBlock(commentLine, null));
                 }
             }
             if (commentLine.contains(BRIEF)){
                 isStillBrief = true;
-                brief = stripPrefix(commentLine, BRIEF);
+                brief = stripPrefixInCommentBlock(commentLine, BRIEF);
             }
             if (commentLine.contains(PARAM)){
                 isStillBrief = false;
-                params.add(stripPrefix(commentLine, PARAM));
+                params.add(stripPrefixInCommentBlock(commentLine, PARAM));
             }
             if (commentLine.contains(RETURN)){
                 isStillBrief = false;
-                returnVal = stripPrefix(commentLine, RETURN);
+                returnVal = stripPrefixInCommentBlock(commentLine, RETURN);
             }
             if (commentLine.contains(NOTE)){
                 isStillBrief = false;
-                note = stripPrefix(commentLine, NOTE);
+                note = stripPrefixInCommentBlock(commentLine, NOTE);
             }
         }
 
         if (brief != null || !params.isEmpty() || returnVal != null || note != null) {
-            documentation.setFunctionBrief(brief);
-            documentation.setFunctionParams(params);
+            documentation.setBrief(brief);
+            documentation.setParams(params);
             documentation.setReturn(returnVal);
             documentation.setNote(note);
         } else {
