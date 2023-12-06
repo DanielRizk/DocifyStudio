@@ -1,4 +1,4 @@
-package com.daniel.docify.ui2;
+package com.daniel.docify.ui;
 
 import javafx.application.Application;
 import javafx.stage.Stage;

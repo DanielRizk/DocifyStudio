@@ -10,8 +10,8 @@ import java.io.File;
 import java.io.IOException;
 
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.*;
-import static com.daniel.docify.ui.DocDisplayModelUI.updateDisplayModelUI;
-import static com.daniel.docify.ui.TreeModelUI.updateFileTree;
+import static com.daniel.docify.testingUI.DocDisplayModelUI.updateDisplayModelUI;
+import static com.daniel.docify.testingUI.TreeModelUI.updateFileTree;
 
 public class ActionManager {
     public static FileNodeModel rootNode = null;

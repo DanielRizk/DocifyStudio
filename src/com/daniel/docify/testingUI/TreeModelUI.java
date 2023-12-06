@@ -1,4 +1,4 @@
-package com.daniel.docify.ui;
+package com.daniel.docify.testingUI;
 
 import com.daniel.docify.fileProcessor.FileNodeModel;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
 
-import static com.daniel.docify.ui.ExplorerUI.updateExplorer;
+import static com.daniel.docify.testingUI.ExplorerUI.updateExplorer;
 
 public class TreeModelUI extends JFrame implements TreeSelectionListener {
 

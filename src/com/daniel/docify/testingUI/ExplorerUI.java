@@ -1,6 +1,5 @@
-package com.daniel.docify.ui;
+package com.daniel.docify.testingUI;
 
-import com.daniel.docify.fileProcessor.FileNodeModel;
 import org.jetbrains.annotations.NotNull;
 
 import javax.swing.*;
@@ -10,8 +9,6 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.DefaultCaret;
 import javax.swing.text.DefaultHighlighter;
 import javax.swing.text.Highlighter;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeModel;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;

@@ -1,4 +1,4 @@
-package com.daniel.docify.ui;
+package com.daniel.docify.testingUI;
 
 import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.model.FunctionModel;

@@ -1,4 +1,4 @@
-package com.daniel.docify.ui;
+package com.daniel.docify.testingUI;
 
 import com.daniel.docify.core.ActionManager;
 import org.jetbrains.annotations.NotNull;

@@ -1,19 +1,24 @@
 package com.daniel.docify.fileProcessor;
 import com.google.gson.Gson;
-import com.google.gson.annotations.SerializedName;
 
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @brief   This class enable the system to save user configurations
  *          and preferences, and load them again when the system boots
  */
 public class UserConfiguration {
+
+    /** JSON elements */
     private String lastOpenDir;
     private String lastSaveDir;
+
+    private static final Logger LOGGER = Logger.getLogger(UserConfiguration.class.getName());
 
     public String getLastOpenDir() {
         return this.lastOpenDir;
@@ -60,7 +65,8 @@ public class UserConfiguration {
 
             System.out.println("UserConfiguration saved successfully.");
         } catch (IOException e) {
-            e.printStackTrace();
+            // Handle other IOExceptions
+            LOGGER.log(Level.SEVERE, "Error loading user configuration.", e);
         }
     }
 
@@ -77,12 +83,11 @@ public class UserConfiguration {
             return userConfiguration.getLastOpenDir();
         } catch (FileNotFoundException e) {
             // Handle the FileNotFoundException
-            System.out.println("Configuration file not found. Using default configuration.");
+            LOGGER.log(Level.WARNING, "Configuration file not found. Using default configuration.", e);
             return null; // Provide a default configuration or null
         } catch (IOException e) {
             // Handle other IOExceptions
-            e.printStackTrace();
-            System.err.println("Error loading user configuration: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Error loading user configuration.", e);
             return null;
         }
     }
@@ -104,7 +109,8 @@ public class UserConfiguration {
 
             System.out.println("UserConfiguration saved successfully.");
         } catch (IOException e) {
-            e.printStackTrace();
+            // Handle other IOExceptions
+            LOGGER.log(Level.SEVERE, "Error loading user configuration.", e);
         }
     }
 
@@ -121,12 +127,11 @@ public class UserConfiguration {
             return userConfiguration.getLastSaveDir();
         } catch (FileNotFoundException e) {
             // Handle the FileNotFoundException
-            System.out.println("Configuration file not found. Using default configuration.");
+            LOGGER.log(Level.WARNING, "Configuration file not found. Using default configuration.", e);
             return null; // Provide a default configuration or null
         } catch (IOException e) {
             // Handle other IOExceptions
-            e.printStackTrace();
-            System.err.println("Error loading user configuration: " + e.getMessage());
+            LOGGER.log(Level.SEVERE, "Error loading user configuration.", e);
             return null;
         }
     }
