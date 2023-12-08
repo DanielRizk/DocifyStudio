@@ -17,7 +17,7 @@ import static com.daniel.docify.testingUI.ExplorerUI.updateExplorer;
 
 public class TreeModelUI extends JFrame implements TreeSelectionListener {
 
-    private static DefaultTreeModel treeModel;
+    public static DefaultTreeModel treeModel;
 
     TreeModelUI(@NotNull MainWindow mainWindow){
         // Create an empty root node for the initial state
@@ -53,8 +53,8 @@ public class TreeModelUI extends JFrame implements TreeSelectionListener {
        else {
            rootNode = convertToFileTreeNode(rootFileNode);
        }
-        treeModel.setRoot(rootNode);
-        //expandAllNodes(fileTree, 0, fileTree.getRowCount());
+       treeModel.setRoot(rootNode);
+       //expandAllNodes(fileTree, 0, fileTree.getRowCount());
     }
 
     private static DefaultMutableTreeNode convertToFileTreeNode(FileNodeModel fileNode) {
@@ -63,7 +63,6 @@ public class TreeModelUI extends JFrame implements TreeSelectionListener {
         for (FileNodeModel child : fileNode.getChildren()) {
             node.add(convertToFileTreeNode(child));
         }
-
         return node;
     }
 

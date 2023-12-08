@@ -19,32 +19,32 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.daniel.docify.ui.Controller">
+<BorderPane fx:id="MainBorderPaneLayout" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.daniel.docify.ui.Controller">
    <top>
       <VBox BorderPane.alignment="CENTER">
          <children>
-            <MenuBar>
+            <MenuBar fx:id="menuBar">
               <menus>
-                <Menu mnemonicParsing="false" text="File">
+                <Menu fx:id="fileSubMenu" mnemonicParsing="false" text="File">
                   <items>
-                        <Menu mnemonicParsing="false" text="New">
+                        <Menu fx:id="file_newSubMenu" mnemonicParsing="false" text="New">
                           <items>
-                            <MenuItem mnemonicParsing="false" text="C project" />
-                              <MenuItem mnemonicParsing="false" text="Java project" />
-                              <MenuItem mnemonicParsing="false" text="Python project" />
+                            <MenuItem fx:id="file_new_cProjectMenuItem" mnemonicParsing="false" onAction="#SearchButton" text="C project" />
+                              <MenuItem fx:id="file_new_javaProjectMenuItem" mnemonicParsing="false" text="Java project" />
+                              <MenuItem fx:id="file_new_pythonProjectMenuItem" mnemonicParsing="false" text="Python project" />
                           </items>
                         </Menu>
-                        <MenuItem mnemonicParsing="false" text="Open" />
-                        <Menu mnemonicParsing="false" text="Save as">
+                        <MenuItem fx:id="file_openMenuItem" mnemonicParsing="false" text="Open" />
+                        <Menu fx:id="file_saveAsSubMenu" mnemonicParsing="false" text="Save as">
                           <items>
-                            <MenuItem mnemonicParsing="false" text="Docify" />
-                              <MenuItem mnemonicParsing="false" text="PDF" />
+                            <MenuItem fx:id="file_save_docifyMenuItem" mnemonicParsing="false" text="Docify" />
+                              <MenuItem fx:id="file_save_pdfMenuItem" mnemonicParsing="false" text="PDF" />
                           </items>
                         </Menu>
-                    <MenuItem mnemonicParsing="false" text="Close" />
+                    <MenuItem fx:id="file_closeMenuItem" mnemonicParsing="false" text="Close" />
                   </items>
                 </Menu>
-                <Menu mnemonicParsing="false" text="Help">
+                <Menu fx:id="helpSubMenu" mnemonicParsing="false" text="Help">
                   <items>
                     <MenuItem mnemonicParsing="false" text="About" />
                   </items>
@@ -81,16 +81,16 @@
                   <Font name="Calibri Italic" size="20.0" />
                </font>
             </Label>
-            <TabPane cache="true" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
+            <TabPane fx:id="leftSide_tabbedPane" cache="true" minWidth="-Infinity" tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
               <tabs>
                 <Tab closable="false" text="Tree view">
                      <content>
-                        <TreeView prefHeight="200.0" prefWidth="200.0" />
+                        <TreeView fx:id="explorerTreeView" prefHeight="200.0" prefWidth="200.0" />
                      </content>
                   </Tab>
                 <Tab closable="false" text="List view">
                      <content>
-                        <ListView />
+                        <ListView fx:id="esplorerListView" />
                      </content>
                   </Tab>
               </tabs>

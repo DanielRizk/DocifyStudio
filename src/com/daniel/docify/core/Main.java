@@ -21,7 +21,7 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/com/daniel/docify/ui/MainWindowUI.fxml")));
-        primaryStage.setTitle("Test UI");
+        primaryStage.setTitle("Docify Studio");
         primaryStage.setScene(new Scene(root, 800, 600));
         primaryStage.show();
     }
