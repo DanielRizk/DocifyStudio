@@ -1,6 +1,7 @@
 package com.daniel.docify.core;
 
 import com.daniel.docify.testingUI.MainWindow;
+import com.daniel.docify.ui.Controller;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -20,9 +21,12 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/com/daniel/docify/ui/MainWindowUI.fxml")));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/daniel/docify/ui/MainWindowUI.fxml"));
+        Parent root = loader.load();
+        Controller controller = loader.getController();
         primaryStage.setTitle("Docify Studio");
         primaryStage.setScene(new Scene(root, 800, 600));
+        controller.setStage(primaryStage);
         primaryStage.show();
     }
 }

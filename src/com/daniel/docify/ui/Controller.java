@@ -25,6 +25,8 @@ import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildDirTree;
 
 public class Controller {
 
+    private Stage primaryStage;
+
     @FXML
     private BorderPane MainBorderPaneLayout;
 
@@ -140,7 +142,7 @@ public class Controller {
         } catch (IOException e){
                 throw new RuntimeException(e);
         }
-
+        primaryStage.setTitle("Docify Studio - "+rootNode.getName());
     }
 
     /**
@@ -242,6 +244,10 @@ public class Controller {
         }
         explorerListView.getItems().clear();
         explorerListView.getItems().addAll(filteredItems);
+    }
+
+    public void setStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
     }
 
 
