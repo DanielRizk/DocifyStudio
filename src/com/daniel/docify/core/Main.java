@@ -14,7 +14,7 @@ public class Main extends Application {
     public static void main(String[] args){
 
         /* for debugging only */
-        MainWindow mainWindow = new MainWindow();
+        //MainWindow mainWindow = new MainWindow();
         launch(args);
     }
 
