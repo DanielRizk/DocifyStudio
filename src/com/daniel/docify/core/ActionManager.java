@@ -76,48 +76,7 @@ public class ActionManager {
             }else {
                 FileSerializer.save(rootNode, dociFileDir.getAbsolutePath() + ".doci");
             }
-
         }
-
-
-
-
-
-//        JFileChooser fileChooser = new JFileChooser();
-//        fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-//        FileNameExtensionFilter filter = new FileNameExtensionFilter("Docify Files (*.doci)", "doci");
-//        fileChooser.setFileFilter(filter);
-//
-//        String lastSavePath = UserConfiguration.loadUserLastSaveConfig();
-//        if (lastSavePath != null) {
-//            fileChooser.setCurrentDirectory(new File(lastSavePath));
-//        }
-//
-//        int result = fileChooser.showSaveDialog(null);
-//
-//        if (result == JFileChooser.APPROVE_OPTION) {
-//            java.io.File selectedFile = fileChooser.getSelectedFile();
-//
-//            // Get the absolute path
-//            String absolutePath = selectedFile.getAbsolutePath();
-//
-//            // Combine the user-provided file name with the directory path
-//            String filePath = absolutePath + ".doci";
-//
-//            // Print or use the absolute path as needed
-//            System.out.println("Selected File/Folder: " + filePath);
-//
-//            // Save the FileNodeModel using the user-provided file name
-//            FileSerializer.save(rootNode, filePath);
-//
-//            // Save the last save path to user configuration
-//            if (!absolutePath.contains(".")) UserConfiguration.saveUserLastSaveConfig(absolutePath);
-//            else{
-//                absolutePath = getParentDir(absolutePath);
-//                UserConfiguration.saveUserLastSaveConfig(absolutePath);
-//            }
-//
-//        }
     }
 
     public static void startNew(String fileType){

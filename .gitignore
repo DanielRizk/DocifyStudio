@@ -27,3 +27,5 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+/icons/Untitled-1.ai
+/src/com/daniel/docify/ui/MainWindowUI2.fxml

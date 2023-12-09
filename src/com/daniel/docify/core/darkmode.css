@@ -1,0 +1,15 @@
+/* darkmode.css */
+
+.root {
+    -fx-background-color: #323232; /* Dark gray background */
+    -fx-text-fill: white; /* Text color */
+}
+
+.button {
+    -fx-background-color: #1E1E1E; /* Darker button background */
+    -fx-text-fill: white; /* Button text color */
+}
+
+.button:hover {
+    -fx-background-color: #2A2A2A; /* Darker button background on hover */
+}

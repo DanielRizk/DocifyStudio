@@ -60,11 +60,11 @@
       <HBox spacing="10.0" BorderPane.alignment="CENTER">
          <children>
             <Region maxWidth="50.0" HBox.hgrow="ALWAYS" />
-            <Label text="Label" />
+            <Label fx:id="fileNameLabel" text="Label" />
             <Region minWidth="100.0" HBox.hgrow="ALWAYS" />
             <ProgressBar prefWidth="200.0" progress="0.0" />
             <Region minWidth="100.0" HBox.hgrow="ALWAYS" />
-            <Label text="Label" />
+            <Label fx:id="versionLabel" text="Label" />
             <Region maxWidth="50.0" HBox.hgrow="ALWAYS" />
          </children>
          <padding>
@@ -147,7 +147,7 @@
                         <Insets />
                      </opaqueInsets>
                   </Label>
-                  <ListView VBox.vgrow="ALWAYS" />
+                  <ListView fx:id="fileContentListView" onMouseClicked="#scrollToLine" VBox.vgrow="ALWAYS" />
                </children>
             </VBox>
          </items>

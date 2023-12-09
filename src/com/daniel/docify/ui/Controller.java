@@ -9,6 +9,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.fxml.Initializable;
 import javafx.scene.control.*;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
@@ -18,12 +19,15 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.Objects;
+import java.util.ResourceBundle;
 
 import static com.daniel.docify.core.ActionManager.rootNode;
+import static com.daniel.docify.core.Main.VERSION;
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildDirTree;
 
-public class Controller {
+public class Controller implements Initializable {
 
     private Stage primaryStage;
 
@@ -35,6 +39,9 @@ public class Controller {
 
     @FXML
     private ListView<FileNodeModel> explorerListView = new ListView<>();
+
+    @FXML
+    private ListView<String > fileContentListView;
 
     private final ObservableList<FileNodeModel> items = FXCollections.observableArrayList();
 
@@ -84,10 +91,17 @@ public class Controller {
     private MenuBar menuBar;
 
     @FXML
+    private Label fileNameLabel;
+
+    @FXML
+    private Label versionLabel;
+
+    @FXML
     void treeViewFileSelection(MouseEvent event) {
         if(explorerTreeView.getSelectionModel().getSelectedItem() != null &&
                 explorerTreeView.getSelectionModel().getSelectedItem().isLeaf()){
             updateMainTextArea(explorerTreeView.getSelectionModel().getSelectedItem().getValue().getFileInfo());
+            updateFileContentListView(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
     }
 
@@ -95,7 +109,13 @@ public class Controller {
     void listViewFileSelection(MouseEvent event) {
         if(explorerListView.getSelectionModel().getSelectedItem() != null){
             updateMainTextArea(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
+            updateFileContentListView(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
+    }
+
+    @FXML
+    void scrollToLine(MouseEvent event) {
+        //TODO: implementation
     }
 
     @FXML
@@ -118,6 +138,13 @@ public class Controller {
         updateFilteredListView();
     }
 
+    /**
+     * @brief   This method allows the controller to access the
+     *          primary stage from main
+     */
+    public void setStage(Stage primaryStage) {
+        this.primaryStage = primaryStage;
+    }
 
     /**
      * @brief   This method is triggered when the create new option is clicked
@@ -143,6 +170,7 @@ public class Controller {
                 throw new RuntimeException(e);
         }
         primaryStage.setTitle("Docify Studio - "+rootNode.getName());
+        fileNameLabel.setText("Project name: "+rootNode.getName());
     }
 
     /**
@@ -246,14 +274,27 @@ public class Controller {
         explorerListView.getItems().addAll(filteredItems);
     }
 
-    public void setStage(Stage primaryStage) {
-        this.primaryStage = primaryStage;
+    /**
+     * @brief   This method generates a list of all items names contained
+     *          in a file, gets triggered whenever a file is selected from
+     *          the tree view or the list view
+     */
+    private void updateFileContentListView(FileInfoModel fileInfoModel){
+        ObservableList<String> fileContentList = FXCollections.observableArrayList();
+        fileContentList.clear();
+        if (fileInfoModel != null && fileInfoModel.getFunctionModel() != null){
+            for (FunctionModel func : fileInfoModel.getFunctionModel()){
+                fileContentList.add(func.getName());
+            }
+        }
+        fileContentListView.getItems().addAll(fileContentList);
     }
 
-
-    /*&& fileNode.getFileInfo() != null*/
-
-
+    @Override
+    public void initialize(URL url, ResourceBundle resourceBundle) {
+        fileNameLabel.setText("");
+        versionLabel.setText(VERSION);
+    }
 }
 
 

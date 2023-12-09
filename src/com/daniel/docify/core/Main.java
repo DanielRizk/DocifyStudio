@@ -1,17 +1,19 @@
 package com.daniel.docify.core;
 
-import com.daniel.docify.testingUI.MainWindow;
 import com.daniel.docify.ui.Controller;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import java.io.*;
-import java.util.Objects;
+import java.io.File;
+import java.net.MalformedURLException;
 
 public class Main extends Application {
+
+    public static final String VERSION = "Docify Studio v1.0";
     public static void main(String[] args){
 
         /* for debugging only */
@@ -25,7 +27,20 @@ public class Main extends Application {
         Parent root = loader.load();
         Controller controller = loader.getController();
         primaryStage.setTitle("Docify Studio");
-        primaryStage.setScene(new Scene(root, 800, 600));
+
+        try {
+            File iconFile = new File("icons/docifyStudioLogo.png");
+            String iconUrl = iconFile.toURI().toURL().toExternalForm();
+            Image icon = new Image(iconUrl);
+            primaryStage.getIcons().add(icon);
+        } catch (MalformedURLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        Scene scene = new Scene(root);
+        //scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("darkmode.css")).toExternalForm());
+        primaryStage.setScene(scene);
+        primaryStage.setMaximized(true);
         controller.setStage(primaryStage);
         primaryStage.show();
     }
