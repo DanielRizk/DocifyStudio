@@ -11,6 +11,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
@@ -19,9 +23,10 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Objects;
-import java.util.ResourceBundle;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.daniel.docify.core.ActionManager.rootNode;
 import static com.daniel.docify.core.Main.VERSION;
@@ -35,13 +40,16 @@ public class Controller implements Initializable {
     private BorderPane MainBorderPaneLayout;
 
     @FXML
-    private TextArea MainDisplayTextArea;
+    private TextArea mainDisplayTextArea;
 
     @FXML
     private ListView<FileNodeModel> explorerListView = new ListView<>();
 
     @FXML
-    private ListView<String > fileContentListView;
+    private ListView<String> fileContentListView;
+
+    @FXML
+    private ListView<String> searchResultListView;
 
     private final ObservableList<FileNodeModel> items = FXCollections.observableArrayList();
 
@@ -97,6 +105,9 @@ public class Controller implements Initializable {
     private Label versionLabel;
 
     @FXML
+    private TextField searchBar;
+
+    @FXML
     void treeViewFileSelection(MouseEvent event) {
         if(explorerTreeView.getSelectionModel().getSelectedItem() != null &&
                 explorerTreeView.getSelectionModel().getSelectedItem().isLeaf()){
@@ -115,7 +126,15 @@ public class Controller implements Initializable {
 
     @FXML
     void scrollToLine(MouseEvent event) {
-        //TODO: implementation
+        String selectedFunction = fileContentListView.getSelectionModel().getSelectedItem();
+
+        if (selectedFunction != null) {
+            int startIndex = mainDisplayTextArea.getText().indexOf(selectedFunction);
+            int endIndex = startIndex + selectedFunction.length();
+
+            // Highlight the function in the TextArea
+            mainDisplayTextArea.selectRange(startIndex, endIndex);
+        }
     }
 
     @FXML
@@ -138,6 +157,68 @@ public class Controller implements Initializable {
         updateFilteredListView();
     }
 
+    @FXML
+    void closeOpenedProject(ActionEvent event) {
+        if (rootNode != null) {
+            rootNode = null;
+            explorerTreeView.setRoot(null);
+            explorerListView.getItems().clear();
+            mainDisplayTextArea.clear();
+            fileContentListView.getItems().clear();
+            searchResultListView.getItems().clear();
+            searchResultListView.setVisible(false);
+            mainDisplayTextArea.setVisible(true);
+            primaryStage.setTitle("Docify Studio");
+            fileNameLabel.setText(null);
+        }
+    }
+    @FXML
+    void getFromSearchResult(MouseEvent event){
+        mainDisplayTextArea.clear();
+        searchResultListView.getItems().clear();
+        searchResultListView.setVisible(false);
+        mainDisplayTextArea.setVisible(true);
+    }
+
+    @FXML
+    void searchFromButton(MouseEvent event){
+        searchAndDisplay();
+    }
+
+    @FXML
+    void searchFromKey(KeyEvent event){
+        if (event.getCode() == KeyCode.ENTER){
+            searchAndDisplay();
+        }
+    }
+
+    @FXML
+    void searchAndDisplay(){
+        String searchKeyword = searchBar.getText();
+        if (searchKeyword != null) {
+            List<String> result = searchList(searchKeyword);
+            mainDisplayTextArea.clear();
+            searchResultListView.getItems().clear();
+            fileContentListView.getItems().clear();
+            mainDisplayTextArea.setVisible(false);
+            searchResultListView.getItems().addAll(result);
+            searchResultListView.setVisible(true);
+        }
+    }
+
+    private List<String> searchList(String searchWord){
+        ObservableList<FileNodeModel> allFiles = updateFilteredListView();
+        List<String> StringNames = new ArrayList<>();
+        for (FileNodeModel file : allFiles){
+            if (file.getFileInfo() != null){
+            StringNames.addAll(file.getFileInfo().getItemNames());
+            }
+        }
+        List<String> result = Arrays.asList(searchWord.trim().split(" "));
+        return StringNames.stream().filter(input -> {return result.stream().allMatch(word ->
+                input.toLowerCase().contains(word.toLowerCase()));}).collect(Collectors.toList());
+    }
+
     /**
      * @brief   This method allows the controller to access the
      *          primary stage from main
@@ -158,19 +239,21 @@ public class Controller implements Initializable {
         directoryChooser.setInitialDirectory(lastOpenPath);
         File selectedDir = directoryChooser.showDialog(new Stage());
 
-        System.out.println("Selected Directory " + selectedDir.getAbsolutePath());
-        UserConfiguration.saveUserLastOpenConfig(selectedDir.getAbsolutePath());
+        if (selectedDir != null) {
+            System.out.println("Selected Directory " + selectedDir.getAbsolutePath());
+            UserConfiguration.saveUserLastOpenConfig(selectedDir.getAbsolutePath());
 
-        try {
-            rootNode = buildDirTree(selectedDir, fileType);
-            assert rootNode != null;
-            updateTreeView(rootNode);
-            updateListView();
-        } catch (IOException e){
+            try {
+                rootNode = buildDirTree(selectedDir, fileType);
+                assert rootNode != null;
+                updateTreeView(rootNode);
+                updateListView();
+            } catch (IOException e){
                 throw new RuntimeException(e);
+            }
+            primaryStage.setTitle("Docify Studio - "+rootNode.getName());
+            fileNameLabel.setText("Project name: "+rootNode.getName());
         }
-        primaryStage.setTitle("Docify Studio - "+rootNode.getName());
-        fileNameLabel.setText("Project name: "+rootNode.getName());
     }
 
     /**
@@ -181,25 +264,25 @@ public class Controller implements Initializable {
      * @note    experimental
      */
     private void updateMainTextArea(FileInfoModel fileInfo) {
-        MainDisplayTextArea.clear();
+        mainDisplayTextArea.clear();
         if (fileInfo != null) {
             for (FunctionModel function : fileInfo.getFunctionModel()) {
                 if (function.getName() != null)
-                    MainDisplayTextArea.appendText("Function Name: " + function.getName() + "\n");
+                    mainDisplayTextArea.appendText("Function Name: " + function.getName() + "\n");
                 if (function.getDocumentation() != null) {
                     if (function.getDocumentation().getBrief() != null)
-                        MainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation().getBrief() + "\n");
+                        mainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation().getBrief() + "\n");
                     for (String params : function.getDocumentation().getParams())
-                        if (params != null) MainDisplayTextArea.appendText("Function Param: " + params + "\n");
+                        if (params != null) mainDisplayTextArea.appendText("Function Param: " + params + "\n");
                     if (function.getDocumentation().getReturn() != null)
-                        MainDisplayTextArea.appendText("Function Return: " + function.getDocumentation().getReturn() + "\n");
+                        mainDisplayTextArea.appendText("Function Return: " + function.getDocumentation().getReturn() + "\n");
                     if (function.getDocumentation().getNotes() != null)
-                        MainDisplayTextArea.appendText("Note: " + function.getDocumentation().getNotes() + "\n");
+                        mainDisplayTextArea.appendText("Note: " + function.getDocumentation().getNotes() + "\n");
                 } else {
-                    MainDisplayTextArea.appendText("No documentation available!\n");
+                    mainDisplayTextArea.appendText("No documentation available!\n");
                 }
                 if (function.getLineNumber() != null)
-                    MainDisplayTextArea.appendText("Declared on line: " + function.getLineNumber() + "\n\n");
+                    mainDisplayTextArea.appendText("Declared on line: " + function.getLineNumber() + "\n\n");
             }
         }
     }
@@ -241,7 +324,7 @@ public class Controller implements Initializable {
      */
     private void updateListView(){
         explorerListView.getItems().clear();
-        explorerListView.getItems().addAll(items);
+        updateFilteredListView();
     }
 
     /**
@@ -262,7 +345,7 @@ public class Controller implements Initializable {
      * @brief   This method generates a filtered list from the original list
      *          and updates the list view based on the filter selection
      */
-    private void updateFilteredListView(){
+    private ObservableList<FileNodeModel> updateFilteredListView(){
         ObservableList<FileNodeModel> filteredItems = FXCollections.observableArrayList();
         filteredItems.clear();
         for(FileNodeModel item : items){
@@ -272,6 +355,7 @@ public class Controller implements Initializable {
         }
         explorerListView.getItems().clear();
         explorerListView.getItems().addAll(filteredItems);
+        return filteredItems;
     }
 
     /**
@@ -280,6 +364,7 @@ public class Controller implements Initializable {
      *          the tree view or the list view
      */
     private void updateFileContentListView(FileInfoModel fileInfoModel){
+        fileContentListView.getItems().clear();
         ObservableList<String> fileContentList = FXCollections.observableArrayList();
         fileContentList.clear();
         if (fileInfoModel != null && fileInfoModel.getFunctionModel() != null){
@@ -290,13 +375,48 @@ public class Controller implements Initializable {
         fileContentListView.getItems().addAll(fileContentList);
     }
 
+    private void setIcon(MenuItem menuItem, String iconPath) throws MalformedURLException {
+        File iconFile = new File(iconPath);
+        String iconUrl = iconFile.toURI().toURL().toExternalForm();
+        ImageView imageView = new ImageView(new Image(iconUrl));
+        imageView.setFitHeight(20.0);
+        imageView.setFitWidth(20.0);
+        menuItem.setGraphic(imageView);
+    }
+
+    private void setIcon(Menu menu, String iconPath) throws MalformedURLException {
+
+        var iconFile = new File(iconPath);
+        String iconUrl = iconFile.toURI().toURL().toExternalForm();
+        ImageView imageView = new ImageView(new Image(iconUrl));
+        imageView.setFitHeight(20.0);
+        imageView.setFitWidth(20.0);
+        menu.setGraphic(imageView);
+    }
+
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
+
+        try {
+            setIcon(file_newSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\new.png");
+            setIcon(file_saveAsSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\save.png");
+            setIcon(file_openMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\open.png");
+            setIcon(file_closeMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\close.png");
+            setIcon(file_new_cProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\cprog.png");
+            setIcon(file_new_javaProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\javaprog.png");
+            setIcon(file_new_pythonProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pyprog.png");
+            setIcon(file_save_docifyMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\docifyStudioLogo.png");
+            setIcon(file_save_pdfMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pdf.png");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
+
+
+
         fileNameLabel.setText("");
         versionLabel.setText(VERSION);
     }
 }
-
 
 
 

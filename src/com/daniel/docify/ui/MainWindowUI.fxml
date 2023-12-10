@@ -18,6 +18,7 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
@@ -43,7 +44,7 @@
                               <MenuItem fx:id="file_save_pdfMenuItem" mnemonicParsing="false" text="PDF" />
                           </items>
                         </Menu>
-                    <MenuItem fx:id="file_closeMenuItem" mnemonicParsing="false" text="Close" />
+                    <MenuItem fx:id="file_closeMenuItem" mnemonicParsing="false" onAction="#closeOpenedProject" text="Close" />
                   </items>
                 </Menu>
                 <Menu fx:id="helpSubMenu" mnemonicParsing="false" text="Help">
@@ -96,7 +97,7 @@
                            <content>
                               <VBox prefHeight="200.0" prefWidth="100.0">
                                  <children>
-                                    <CheckBox fx:id="documentedFilesCheckbox" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#isDocumentedFilesCheckbox" text="Only documented files">
+                                    <CheckBox fx:id="documentedFilesCheckbox" alignment="CENTER" contentDisplay="CENTER" mnemonicParsing="false" onMouseClicked="#isDocumentedFilesCheckbox" selected="true" text="Only documented files">
                                        <padding>
                                           <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                                        </padding>
@@ -115,23 +116,28 @@
                   <HBox spacing="20.0">
                      <children>
                         <Region maxWidth="1000.0" minWidth="15.0" HBox.hgrow="ALWAYS" />
-                        <TextField maxWidth="400.0" minWidth="200.0" promptText="keyword" HBox.hgrow="ALWAYS">
+                        <TextField fx:id="searchBar" maxWidth="400.0" minWidth="200.0" onKeyPressed="#searchFromKey" promptText="keyword" HBox.hgrow="ALWAYS">
                            <font>
                               <Font name="Calibri Italic" size="13.0" />
                            </font>
                         </TextField>
-                        <Button mnemonicParsing="false" text="Search" />
+                        <Button mnemonicParsing="false" onMouseClicked="#searchFromButton" text="Search" />
                         <Region maxWidth="1000.0" minWidth="15.0" HBox.hgrow="ALWAYS" />
                      </children>
                      <VBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </VBox.margin>
                   </HBox>
-                  <TextArea fx:id="MainDisplayTextArea" editable="false" VBox.vgrow="ALWAYS">
-                     <font>
-                        <Font name="Calibri" size="12.0" />
-                     </font>
-                  </TextArea>
+                  <StackPane VBox.vgrow="ALWAYS">
+                     <children>
+                        <TextArea fx:id="mainDisplayTextArea" editable="false">
+                           <font>
+                              <Font name="Calibri" size="12.0" />
+                           </font>
+                        </TextArea>
+                        <ListView fx:id="searchResultListView" onMouseClicked="#getFromSearchResult" visible="false" />
+                     </children>
+                  </StackPane>
                </children>
             </VBox>
             <VBox maxWidth="500.0" minWidth="200.0">

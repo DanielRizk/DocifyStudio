@@ -29,7 +29,7 @@ public class Main extends Application {
         primaryStage.setTitle("Docify Studio");
 
         try {
-            File iconFile = new File("icons/docifyStudioLogo.png");
+            File iconFile = new File("icons/png/docifyStudioLogo.png");
             String iconUrl = iconFile.toURI().toURL().toExternalForm();
             Image icon = new Image(iconUrl);
             primaryStage.getIcons().add(icon);
