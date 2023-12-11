@@ -2,9 +2,12 @@ package com.daniel.docify.ui;
 
 import com.daniel.docify.core.ActionManager;
 import com.daniel.docify.fileProcessor.FileNodeModel;
+import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.fileProcessor.UserConfiguration;
 import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.model.FunctionModel;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -18,7 +21,9 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.DirectoryChooser;
+import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 
 import java.io.File;
@@ -99,7 +104,7 @@ public class Controller implements Initializable {
     private MenuBar menuBar;
 
     @FXML
-    private Label fileNameLabel;
+    private Label infoLabel;
 
     @FXML
     private Label versionLabel;
@@ -171,7 +176,7 @@ public class Controller implements Initializable {
             searchResultListView.setVisible(false);
             mainDisplayTextArea.setVisible(true);
             primaryStage.setTitle("Docify Studio");
-            fileNameLabel.setText(null);
+            infoLabel.setText(null);
         }
     }
     @FXML
@@ -202,13 +207,111 @@ public class Controller implements Initializable {
     void searchAndDisplay(){
         String searchKeyword = searchBar.getText();
         if (searchKeyword != null) {
+
             List<SearchResultModel> result = searchList(searchKeyword);
             mainDisplayTextArea.clear();
             searchResultListView.getItems().clear();
             fileContentListView.getItems().clear();
-            mainDisplayTextArea.setVisible(false);
-            searchResultListView.getItems().addAll(result);
-            searchResultListView.setVisible(true);
+            if (!result.isEmpty()){
+                mainDisplayTextArea.setVisible(false);
+                searchResultListView.getItems().addAll(result);
+                searchResultListView.setVisible(true);
+                updateInfoLabel(result.size()+" records found");
+            }
+            else{
+                mainDisplayTextArea.appendText("No results found!");
+            }
+        }
+    }
+
+    private void updateInfoLabel(String initialValue){
+        infoLabel.setText(initialValue);
+        Duration initialDuration = Duration.seconds(3);
+        Timeline timeline = new Timeline(
+                new KeyFrame(initialDuration, event -> infoLabel.setText(""))
+        );
+        timeline.play();
+    }
+    @FXML
+    void openDociFile(ActionEvent event) {
+
+        FileChooser fileChooser = new FileChooser();
+        fileChooser.setTitle("Open Docify File");
+        File lastSavePath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastSaveConfig()));
+
+        fileChooser.setInitialDirectory(lastSavePath);
+
+        // Set extension filters (optional)
+        //directoryChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Select Directory", "*"));
+        FileChooser.ExtensionFilter allFilesFilter = new FileChooser.ExtensionFilter("All Files", "*.*");
+
+        // Set extension filter for suggested file type
+        FileChooser.ExtensionFilter docifyFilter = new FileChooser.ExtensionFilter("Docify File (*.doci)", "*.doci");
+
+        // Add the filters to the file chooser
+        fileChooser.getExtensionFilters().addAll(docifyFilter, allFilesFilter);
+
+        // Show the Save File dialog
+        File selectedDir = fileChooser.showOpenDialog(null);
+
+        if (selectedDir != null) {
+            System.out.println("Selected Directory " + selectedDir.getParent());
+            UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
+
+            if (selectedDir.getAbsolutePath().endsWith(".doci")) {
+                rootNode = FileSerializer.load(selectedDir.getAbsolutePath());
+                updateTreeView(rootNode);
+                updateInfoLabel("File -"+rootNode.getName()+"- opened successfully");
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("Error opening file");
+                alert.showAndWait();
+            }
+        }
+    }
+
+    @FXML
+    void saveDociFile(ActionEvent event) {
+        if (rootNode != null) {
+            FileChooser fileChooser = new FileChooser();
+            fileChooser.setTitle("Save Docify File");
+            File lastSavePath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastSaveConfig()));
+
+            fileChooser.setInitialDirectory(lastSavePath);
+
+            // Set extension filters (optional)
+            //directoryChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Select Directory", "*"));
+            FileChooser.ExtensionFilter allFilesFilter = new FileChooser.ExtensionFilter("All Files", "*.*");
+
+            // Set extension filter for suggested file type
+            FileChooser.ExtensionFilter docifyFilter = new FileChooser.ExtensionFilter("Docify File (*.doci)", "*.doci");
+
+            // Add the filters to the file chooser
+            fileChooser.getExtensionFilters().addAll(docifyFilter, allFilesFilter);
+
+            // Show the Save File dialog
+            File selectedDir = fileChooser.showSaveDialog(null);
+
+            if (selectedDir != null) {
+                System.out.println("Selected Directory " + selectedDir.getParent());
+                UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
+
+                if (selectedDir.getAbsolutePath().endsWith(".doci")) {
+                    FileSerializer.save(rootNode, selectedDir.getAbsolutePath());
+                } else {
+                    FileSerializer.save(rootNode, selectedDir.getAbsolutePath() + ".doci");
+                }
+                updateInfoLabel("File saved successfully");
+            }
+        }else {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null); // No header text
+            alert.setContentText("No project opened");
+
+            // Show the alert dialog
+            alert.showAndWait();
         }
     }
 
@@ -250,6 +353,7 @@ public class Controller implements Initializable {
      */
     void startNew(String fileType) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
+        directoryChooser.setTitle("Create new project");
         File lastOpenPath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastOpenConfig()));
 
         directoryChooser.setInitialDirectory(lastOpenPath);
@@ -263,12 +367,11 @@ public class Controller implements Initializable {
                 rootNode = buildDirTree(selectedDir, fileType);
                 assert rootNode != null;
                 updateTreeView(rootNode);
-                updateListView();
             } catch (IOException e){
                 throw new RuntimeException(e);
             }
             primaryStage.setTitle("Docify Studio - "+rootNode.getName());
-            fileNameLabel.setText("Project name: "+rootNode.getName());
+            updateInfoLabel("Project Documentation -"+rootNode.getName()+"- created successfully");
         }
     }
 
@@ -321,6 +424,7 @@ public class Controller implements Initializable {
         assert rootFileNode != null;
         items.clear();
         generateListview(rootFileNode);
+        updateListView();
     }
 
     /**
@@ -435,8 +539,9 @@ public class Controller implements Initializable {
         //progressBar.setVisible(false);
         progressBar.setStyle("-fx-accent: green;");
 
-        fileNameLabel.setText("");
+        infoLabel.setText("");
         versionLabel.setText(VERSION);
+        updateInfoLabel("Initialization complete");
     }
 
     private record SearchResultModel(String itemName, FileNodeModel fileNodeModel) {
@@ -466,4 +571,3 @@ public class Controller implements Initializable {
 //        progressBar.setProgress(mappedValue);
 //    }
 
-//directoryChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Select Directory", "*"));

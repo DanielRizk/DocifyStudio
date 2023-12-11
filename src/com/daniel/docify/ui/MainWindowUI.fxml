@@ -37,10 +37,10 @@
                               <MenuItem fx:id="file_new_pythonProjectMenuItem" mnemonicParsing="false" onAction="#pythonProjectMenuItemStart" text="Python project" />
                           </items>
                         </Menu>
-                        <MenuItem fx:id="file_openMenuItem" mnemonicParsing="false" text="Open" />
+                        <MenuItem fx:id="file_openMenuItem" mnemonicParsing="false" onAction="#openDociFile" text="Open" />
                         <Menu fx:id="file_saveAsSubMenu" mnemonicParsing="false" text="Save as">
                           <items>
-                            <MenuItem fx:id="file_save_docifyMenuItem" mnemonicParsing="false" text="Docify" />
+                            <MenuItem fx:id="file_save_docifyMenuItem" mnemonicParsing="false" onAction="#saveDociFile" text="Docify" />
                               <MenuItem fx:id="file_save_pdfMenuItem" mnemonicParsing="false" text="PDF" />
                           </items>
                         </Menu>
@@ -60,13 +60,13 @@
    <bottom>
       <HBox spacing="10.0" BorderPane.alignment="CENTER">
          <children>
-            <Region maxWidth="50.0" HBox.hgrow="ALWAYS" />
-            <Label fx:id="fileNameLabel" text="Label" />
-            <Region minWidth="100.0" HBox.hgrow="ALWAYS" />
+            <Region maxWidth="40.0" minWidth="40.0" HBox.hgrow="ALWAYS" />
             <ProgressBar fx:id="progressBar" prefHeight="10.0" prefWidth="200.0" progress="0.0" />
+            <Region maxWidth="400.0" minWidth="50.0" HBox.hgrow="ALWAYS" />
+            <Label fx:id="infoLabel" text="Label" />
             <Region minWidth="100.0" HBox.hgrow="ALWAYS" />
             <Label fx:id="versionLabel" text="Label" />
-            <Region maxWidth="50.0" HBox.hgrow="ALWAYS" />
+            <Region maxWidth="40.0" minWidth="40.0" HBox.hgrow="ALWAYS" />
          </children>
          <padding>
             <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
