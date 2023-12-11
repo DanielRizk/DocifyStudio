@@ -1,7 +1,9 @@
 package com.daniel.docify.fileProcessor;
 
-import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.parser.clang.ClangParser;
+import com.daniel.docify.ui.Controller;
+import com.daniel.docify.ui.MainWindowUI;
+import javafx.scene.control.ProgressBar;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -15,6 +17,27 @@ import static com.daniel.docify.core.ActionManager.CProject;
  *          projects directories and create Dir-tree structure
  */
 public class DirectoryProcessor {
+    public double countFiles(File directory) {
+        double filesCount = 0;
+
+        if (directory.isDirectory()) {
+            // List all files and directories in the directory
+            File[] files = directory.listFiles();
+
+            // Check if files is not null (i.e., directory is not empty)
+            if (files != null) {
+                for (File file : files) {
+                    // Increment the count for the current file or directory
+                    filesCount++;
+                    // If it's a directory, recursively count its contents
+                    if (file.isDirectory()) {
+                        filesCount += countFiles(file);
+                    }
+                }
+            }
+        }
+        return filesCount;
+    }
 
     /**
      * @brief   This method is the core of the system, it creates the fileNode tree
@@ -22,11 +45,13 @@ public class DirectoryProcessor {
      *          each fileInfo to the respective fileNode
      */
     public static FileNodeModel buildDirTree(File directory, String projectType) throws IOException {
+        //double currentFilesCount = 0;
         String fullPath = directory.getAbsolutePath();
         FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
 
         File[] files = directory.listFiles();
         if (files != null) {
+            //currentFilesCount += (double) files.length;
             boolean containsFileType = false;
             for (File file : files) {
                 if (file.isDirectory()) {
@@ -72,7 +97,6 @@ public class DirectoryProcessor {
                 return null;
             }
         }
-
         return null;
     }
 

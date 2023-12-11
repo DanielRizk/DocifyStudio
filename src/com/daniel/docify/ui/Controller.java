@@ -26,9 +26,9 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.stream.Collectors;
 
 import static com.daniel.docify.core.ActionManager.rootNode;
+import static com.daniel.docify.core.Main.LOAD_ICONS;
 import static com.daniel.docify.core.Main.VERSION;
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildDirTree;
 
@@ -49,7 +49,7 @@ public class Controller implements Initializable {
     private ListView<String> fileContentListView;
 
     @FXML
-    private ListView<String> searchResultListView;
+    private ListView<SearchResultModel> searchResultListView;
 
     private final ObservableList<FileNodeModel> items = FXCollections.observableArrayList();
 
@@ -108,11 +108,13 @@ public class Controller implements Initializable {
     private TextField searchBar;
 
     @FXML
+    public ProgressBar progressBar;
+
+    @FXML
     void treeViewFileSelection(MouseEvent event) {
         if(explorerTreeView.getSelectionModel().getSelectedItem() != null &&
                 explorerTreeView.getSelectionModel().getSelectedItem().isLeaf()){
             updateMainTextArea(explorerTreeView.getSelectionModel().getSelectedItem().getValue().getFileInfo());
-            updateFileContentListView(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
     }
 
@@ -120,7 +122,6 @@ public class Controller implements Initializable {
     void listViewFileSelection(MouseEvent event) {
         if(explorerListView.getSelectionModel().getSelectedItem() != null){
             updateMainTextArea(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
-            updateFileContentListView(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
     }
 
@@ -163,6 +164,7 @@ public class Controller implements Initializable {
             rootNode = null;
             explorerTreeView.setRoot(null);
             explorerListView.getItems().clear();
+            items.clear();
             mainDisplayTextArea.clear();
             fileContentListView.getItems().clear();
             searchResultListView.getItems().clear();
@@ -175,9 +177,13 @@ public class Controller implements Initializable {
     @FXML
     void getFromSearchResult(MouseEvent event){
         mainDisplayTextArea.clear();
+        updateMainTextArea(
+                searchResultListView.getSelectionModel().getSelectedItem().getParentFileNode().getFileInfo()
+        );
         searchResultListView.getItems().clear();
         searchResultListView.setVisible(false);
         mainDisplayTextArea.setVisible(true);
+
     }
 
     @FXML
@@ -196,7 +202,7 @@ public class Controller implements Initializable {
     void searchAndDisplay(){
         String searchKeyword = searchBar.getText();
         if (searchKeyword != null) {
-            List<String> result = searchList(searchKeyword);
+            List<SearchResultModel> result = searchList(searchKeyword);
             mainDisplayTextArea.clear();
             searchResultListView.getItems().clear();
             fileContentListView.getItems().clear();
@@ -206,17 +212,27 @@ public class Controller implements Initializable {
         }
     }
 
-    private List<String> searchList(String searchWord){
+    private List<SearchResultModel> searchList(String searchWord){
         ObservableList<FileNodeModel> allFiles = updateFilteredListView();
-        List<String> StringNames = new ArrayList<>();
-        for (FileNodeModel file : allFiles){
-            if (file.getFileInfo() != null){
-            StringNames.addAll(file.getFileInfo().getItemNames());
+        List<SearchResultModel> searchResults = new ArrayList<>();
+
+        for (FileNodeModel file : allFiles) {
+            if (file.getFileInfo() != null) {
+                for (String itemName : file.getFileInfo().getItemNames()) {
+                    if (isMatch(itemName, searchWord)) {
+                        SearchResultModel result = new SearchResultModel(itemName, file);
+                        searchResults.add(result);
+                    }
+                }
             }
         }
+        return searchResults;
+    }
+
+    private boolean isMatch(String itemName, String searchWord) {
         List<String> result = Arrays.asList(searchWord.trim().split(" "));
-        return StringNames.stream().filter(input -> {return result.stream().allMatch(word ->
-                input.toLowerCase().contains(word.toLowerCase()));}).collect(Collectors.toList());
+        return result.stream().allMatch(word ->
+                itemName.toLowerCase().contains(word.toLowerCase()));
     }
 
     /**
@@ -259,7 +275,8 @@ public class Controller implements Initializable {
     /**
      * @brief   This method is displays and updates the main display view
      *          with the file content when the file is selected from the
-     *          tree view or the list view
+     *          tree view or the list view, and call the update file content
+     *          list method
      *
      * @note    experimental
      */
@@ -285,6 +302,7 @@ public class Controller implements Initializable {
                     mainDisplayTextArea.appendText("Declared on line: " + function.getLineNumber() + "\n\n");
             }
         }
+        updateFileContentListView(fileInfo);
     }
 
     /**
@@ -361,7 +379,8 @@ public class Controller implements Initializable {
     /**
      * @brief   This method generates a list of all items names contained
      *          in a file, gets triggered whenever a file is selected from
-     *          the tree view or the list view
+     *          the tree view or the list view, and called by update main
+     *          text display method
      */
     private void updateFileContentListView(FileInfoModel fileInfoModel){
         fileContentListView.getItems().clear();
@@ -396,28 +415,55 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-
-        try {
-            setIcon(file_newSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\new.png");
-            setIcon(file_saveAsSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\save.png");
-            setIcon(file_openMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\open.png");
-            setIcon(file_closeMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\close.png");
-            setIcon(file_new_cProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\cprog.png");
-            setIcon(file_new_javaProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\javaprog.png");
-            setIcon(file_new_pythonProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pyprog.png");
-            setIcon(file_save_docifyMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\docifyStudioLogo.png");
-            setIcon(file_save_pdfMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pdf.png");
-        } catch (MalformedURLException e) {
-            throw new RuntimeException(e);
+        if (LOAD_ICONS) {
+            try {
+                setIcon(file_newSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\new.png");
+                setIcon(file_saveAsSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\save.png");
+                setIcon(file_openMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\open.png");
+                setIcon(file_closeMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\close.png");
+                setIcon(file_new_cProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\cprog.png");
+                setIcon(file_new_javaProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\javaprog.png");
+                setIcon(file_new_pythonProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pyprog.png");
+                setIcon(file_save_docifyMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\docifyStudioLogo.png");
+                setIcon(file_save_pdfMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pdf.png");
+            } catch (MalformedURLException e) {
+                throw new RuntimeException(e);
+            }
         }
 
 
+        //progressBar.setVisible(false);
+        progressBar.setStyle("-fx-accent: green;");
 
         fileNameLabel.setText("");
         versionLabel.setText(VERSION);
     }
+
+    private record SearchResultModel(String itemName, FileNodeModel fileNodeModel) {
+        public FileNodeModel getParentFileNode() {
+                return fileNodeModel;
+            }
+            @Override
+            public String toString() {
+                return itemName;
+            }
+        }
 }
 
+//    public void updateProgressBar(double currentFilesCount) {
+//        double x = (currentFilesCount / filesCount);
+//        x = Math.max(0.0, Math.min(1.0, x));
+//        double mappedValue = (x - 0.0);
+//        // Assuming progressBar is an instance variable representing your ProgressBar
+//        progressBar.setProgress(mappedValue);
+//    }
 
+//    public static void updateProgressBar(double currentFilesCount) {
+//        double x = (currentFilesCount / filesCount);
+//        x = Math.max(0.0, Math.min(1.0, x));
+//        double mappedValue = (x - 0.0);
+//        Assuming progressBar is an instance variable representing your ProgressBar
+//        progressBar.setProgress(mappedValue);
+//    }
 
 //directoryChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Select Directory", "*"));

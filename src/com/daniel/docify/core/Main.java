@@ -14,6 +14,7 @@ import java.net.MalformedURLException;
 public class Main extends Application {
 
     public static final String VERSION = "Docify Studio v1.0";
+    public static final boolean LOAD_ICONS = true;
     public static void main(String[] args){
 
         /* for debugging only */

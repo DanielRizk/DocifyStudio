@@ -63,7 +63,7 @@
             <Region maxWidth="50.0" HBox.hgrow="ALWAYS" />
             <Label fx:id="fileNameLabel" text="Label" />
             <Region minWidth="100.0" HBox.hgrow="ALWAYS" />
-            <ProgressBar prefWidth="200.0" progress="0.0" />
+            <ProgressBar fx:id="progressBar" prefHeight="10.0" prefWidth="200.0" progress="0.0" />
             <Region minWidth="100.0" HBox.hgrow="ALWAYS" />
             <Label fx:id="versionLabel" text="Label" />
             <Region maxWidth="50.0" HBox.hgrow="ALWAYS" />
