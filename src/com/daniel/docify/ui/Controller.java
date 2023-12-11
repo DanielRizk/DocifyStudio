@@ -150,12 +150,14 @@ public class Controller implements Initializable {
 
     @FXML
     void javaProjectMenuItemStart(ActionEvent event) {
-        startNew(ActionManager.JavaProject);
+        popUpAlert(Alert.AlertType.INFORMATION, "Information",
+                "Java documentation will be available in the next release");
     }
 
     @FXML
     void pythonProjectMenuItemStart(ActionEvent event) {
-        startNew(ActionManager.PythonProject);
+        popUpAlert(Alert.AlertType.INFORMATION, "Information",
+                "Python documentation will be available in the next release");
     }
 
     @FXML
@@ -305,14 +307,19 @@ public class Controller implements Initializable {
                 updateInfoLabel("File saved successfully");
             }
         }else {
-            Alert alert = new Alert(Alert.AlertType.ERROR);
-            alert.setTitle("Error");
-            alert.setHeaderText(null); // No header text
-            alert.setContentText("No project opened");
-
-            // Show the alert dialog
-            alert.showAndWait();
+            popUpAlert(Alert.AlertType.ERROR, "Error", "No project opened");
         }
+    }
+
+    private void popUpAlert(Alert.AlertType type, String title, String message){
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null); // No header text
+        alert.setContentText(message);
+
+        // Show the alert dialog
+        alert.showAndWait();
+
     }
 
     private List<SearchResultModel> searchList(String searchWord){
@@ -354,9 +361,13 @@ public class Controller implements Initializable {
     void startNew(String fileType) {
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Create new project");
+
         File lastOpenPath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastOpenConfig()));
 
-        directoryChooser.setInitialDirectory(lastOpenPath);
+        if (lastOpenPath.exists() && !lastOpenPath.getAbsolutePath().isEmpty()) {
+            directoryChooser.setInitialDirectory(lastOpenPath);
+        }
+
         File selectedDir = directoryChooser.showDialog(new Stage());
 
         if (selectedDir != null) {
@@ -376,7 +387,7 @@ public class Controller implements Initializable {
     }
 
     /**
-     * @brief   This method is displays and updates the main display view
+     * @brief   This method displays and updates the main display view
      *          with the file content when the file is selected from the
      *          tree view or the list view, and call the update file content
      *          list method
@@ -521,15 +532,15 @@ public class Controller implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         if (LOAD_ICONS) {
             try {
-                setIcon(file_newSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\new.png");
-                setIcon(file_saveAsSubMenu, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\save.png");
-                setIcon(file_openMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\open.png");
-                setIcon(file_closeMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\close.png");
-                setIcon(file_new_cProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\cprog.png");
-                setIcon(file_new_javaProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\javaprog.png");
-                setIcon(file_new_pythonProjectMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pyprog.png");
-                setIcon(file_save_docifyMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\docifyStudioLogo.png");
-                setIcon(file_save_pdfMenuItem, "D:\\Projects\\Technical\\Programming\\DocifyStudio\\icons\\png\\pdf.png");
+                setIcon(file_newSubMenu, "assets/icons/new.png");
+                setIcon(file_saveAsSubMenu, "assets/icons/save.png");
+                setIcon(file_openMenuItem, "assets/icons/open.png");
+                setIcon(file_closeMenuItem, "assets/icons/close.png");
+                setIcon(file_new_cProjectMenuItem, "assets/icons/cprog.png");
+                setIcon(file_new_javaProjectMenuItem, "assets/icons/javaprog.png");
+                setIcon(file_new_pythonProjectMenuItem, "assets/icons/pyprog.png");
+                setIcon(file_save_docifyMenuItem, "assets/icons/doci.png");
+                setIcon(file_save_pdfMenuItem, "assets/icons/pdf.png");
             } catch (MalformedURLException e) {
                 throw new RuntimeException(e);
             }

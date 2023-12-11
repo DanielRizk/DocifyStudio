@@ -1,9 +1,6 @@
 package com.daniel.docify.fileProcessor;
 
 import com.daniel.docify.parser.clang.ClangParser;
-import com.daniel.docify.ui.Controller;
-import com.daniel.docify.ui.MainWindowUI;
-import javafx.scene.control.ProgressBar;
 
 import java.io.*;
 import java.util.ArrayList;
