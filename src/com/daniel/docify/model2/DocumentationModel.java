@@ -1,4 +1,4 @@
-package com.daniel.docify.model;
+package com.daniel.docify.model2;
 
 import java.io.Serializable;
 import java.util.List;

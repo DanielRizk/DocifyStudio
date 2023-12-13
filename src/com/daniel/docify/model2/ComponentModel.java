@@ -1,4 +1,4 @@
-package com.daniel.docify.model;
+package com.daniel.docify.model2;
 
 /**
  * @brief   This abstract class provides the outline of all the components

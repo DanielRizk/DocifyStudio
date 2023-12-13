@@ -1,6 +1,6 @@
-package com.daniel.docify.fileProcessor;
+package com.daniel.docify.model2;
 
-import com.daniel.docify.model.FileInfoModel;
+import com.daniel.docify.fileProcessor.FileSerializer;
 
 import java.io.Serializable;
 import java.util.ArrayList;

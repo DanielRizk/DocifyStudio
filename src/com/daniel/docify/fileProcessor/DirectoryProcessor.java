@@ -1,5 +1,6 @@
 package com.daniel.docify.fileProcessor;
 
+import com.daniel.docify.model2.FileNodeModel;
 import com.daniel.docify.parser.clang.ClangParser;
 
 import java.io.*;
@@ -7,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-import static com.daniel.docify.core.ActionManager.CProject;
+import static com.daniel.docify.ui.Controller.CProject;
 
 /**
  * @brief   This class provides all necessary methods to process
@@ -40,6 +41,8 @@ public class DirectoryProcessor {
      * @brief   This method is the core of the system, it creates the fileNode tree
      *          structure and parses each file according to the specified type, and assigns
      *          each fileInfo to the respective fileNode
+     *
+     * @return {@link com.daniel.docify.model2.FileNodeModel}
      */
     public static FileNodeModel buildDirTree(File directory, String projectType) throws IOException {
         //double currentFilesCount = 0;

@@ -1,9 +1,9 @@
 package com.daniel.docify.parser.clang;
 
-import com.daniel.docify.model.DocumentationModel;
-import com.daniel.docify.model.FileInfoModel;
-import com.daniel.docify.model.FunctionModel;
-import com.daniel.docify.model.StructModel;
+import com.daniel.docify.model2.DocumentationModel;
+import com.daniel.docify.model2.FileInfoModel;
+import com.daniel.docify.model2.FunctionModel;
+import com.daniel.docify.model2.StructModel;
 import com.daniel.docify.parser.ParserUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -75,6 +75,14 @@ public class ClangParser extends ParserUtils{
     /**
      * @brief   This method extracts the documentation parameters from
      *          a document block -String- and return DocumentationModel
+     *
+     * @implSpec
+     * @param commentBlock
+     * @return
+     * @param
+     * @apiNote
+     * @implNote
+     *
      */
     private static DocumentationModel processCommentBlock(String commentBlock){
         DocumentationModel documentation = new DocumentationModel();

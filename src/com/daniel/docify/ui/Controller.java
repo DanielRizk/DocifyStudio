@@ -1,11 +1,10 @@
 package com.daniel.docify.ui;
 
-import com.daniel.docify.core.ActionManager;
-import com.daniel.docify.fileProcessor.FileNodeModel;
+import com.daniel.docify.model2.FileNodeModel;
 import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.fileProcessor.UserConfiguration;
-import com.daniel.docify.model.FileInfoModel;
-import com.daniel.docify.model.FunctionModel;
+import com.daniel.docify.model2.FileInfoModel;
+import com.daniel.docify.model2.FunctionModel;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
@@ -32,12 +31,16 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
-import static com.daniel.docify.core.ActionManager.rootNode;
 import static com.daniel.docify.core.Main.LOAD_ICONS;
 import static com.daniel.docify.core.Main.VERSION;
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildDirTree;
 
 public class Controller implements Initializable {
+
+    public static FileNodeModel rootNode = null;
+    public final static String CProject = ".h";
+    public final static String PythonProject = ".py";
+    public final static String JavaProject = ".java";
 
     private Stage primaryStage;
 
@@ -145,7 +148,7 @@ public class Controller implements Initializable {
 
     @FXML
     void cProjectMenuItemStart(ActionEvent event) {
-        startNew(ActionManager.CProject);
+        startNew(CProject);
     }
 
     @FXML
@@ -183,10 +186,13 @@ public class Controller implements Initializable {
     }
     @FXML
     void getFromSearchResult(MouseEvent event){
-        mainDisplayTextArea.clear();
-        updateMainTextArea(
-                searchResultListView.getSelectionModel().getSelectedItem().getParentFileNode().getFileInfo()
-        );
+
+        if (searchResultListView.getSelectionModel().getSelectedItem() != null) {
+            mainDisplayTextArea.clear();
+            updateMainTextArea(
+                    searchResultListView.getSelectionModel().getSelectedItem().getParentFileNode().getFileInfo()
+            );
+        }
         searchResultListView.getItems().clear();
         searchResultListView.setVisible(false);
         mainDisplayTextArea.setVisible(true);
@@ -211,17 +217,19 @@ public class Controller implements Initializable {
         if (searchKeyword != null) {
 
             List<SearchResultModel> result = searchList(searchKeyword);
-            mainDisplayTextArea.clear();
-            searchResultListView.getItems().clear();
-            fileContentListView.getItems().clear();
+
             if (!result.isEmpty()){
+                mainDisplayTextArea.clear();
+                searchResultListView.getItems().clear();
+                fileContentListView.getItems().clear();
                 mainDisplayTextArea.setVisible(false);
                 searchResultListView.getItems().addAll(result);
                 searchResultListView.setVisible(true);
                 updateInfoLabel(result.size()+" records found");
             }
             else{
-                mainDisplayTextArea.appendText("No results found!");
+                //mainDisplayTextArea.appendText("No results found!");
+                updateInfoLabel("No results found!");
             }
         }
     }
@@ -395,6 +403,9 @@ public class Controller implements Initializable {
      * @note    experimental
      */
     private void updateMainTextArea(FileInfoModel fileInfo) {
+        searchResultListView.setVisible(false);
+        searchResultListView.getItems().clear();
+        mainDisplayTextArea.setVisible(true);
         mainDisplayTextArea.clear();
         if (fileInfo != null) {
             for (FunctionModel function : fileInfo.getFunctionModel()) {
@@ -547,7 +558,7 @@ public class Controller implements Initializable {
         }
 
 
-        //progressBar.setVisible(false);
+        progressBar.setVisible(false);
         progressBar.setStyle("-fx-accent: green;");
 
         infoLabel.setText("");
