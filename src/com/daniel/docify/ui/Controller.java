@@ -1,5 +1,6 @@
 package com.daniel.docify.ui;
 
+import com.daniel.docify.fileProcessor.DirectoryProcessor;
 import com.daniel.docify.model2.FileNodeModel;
 import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.fileProcessor.UserConfiguration;
@@ -33,6 +34,7 @@ import java.util.*;
 
 import static com.daniel.docify.core.Main.LOAD_ICONS;
 import static com.daniel.docify.core.Main.VERSION;
+import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcessDirectory;
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildDirTree;
 
 public class Controller implements Initializable {
@@ -383,9 +385,10 @@ public class Controller implements Initializable {
             UserConfiguration.saveUserLastOpenConfig(selectedDir.getAbsolutePath());
 
             try {
-                rootNode = buildDirTree(selectedDir, fileType);
+                rootNode = BuildAndProcessDirectory(selectedDir, fileType);
                 assert rootNode != null;
                 updateTreeView(rootNode);
+
             } catch (IOException e){
                 throw new RuntimeException(e);
             }
