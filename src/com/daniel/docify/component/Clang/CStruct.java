@@ -1,6 +1,8 @@
 package com.daniel.docify.component.Clang;
 
-import com.daniel.docify.component.Method;
+import com.daniel.docify.component.Struct;
 
-public class CStruct extends Method {
+public class CStruct extends Struct {
+    public CStruct() {
+    }
 }

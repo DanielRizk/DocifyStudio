@@ -45,13 +45,11 @@ public class DirectoryProcessor {
      * @return {@link com.daniel.docify.model2.FileNodeModel}
      */
     public static FileNodeModel buildDirTree(File directory, String projectType) throws IOException {
-        //double currentFilesCount = 0;
         String fullPath = directory.getAbsolutePath();
         FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
 
         File[] files = directory.listFiles();
         if (files != null) {
-            //currentFilesCount += (double) files.length;
             boolean containsFileType = false;
             for (File file : files) {
                 if (file.isDirectory()) {
