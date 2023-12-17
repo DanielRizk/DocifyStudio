@@ -1,11 +1,9 @@
 package com.daniel.docify.fileProcessor;
 
 import com.daniel.docify.model2.FileNodeModel;
-import com.daniel.docify.parser.clang.ClangParser;
+import com.daniel.docify.parser2.clang.ClangParser;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 import static com.daniel.docify.ui.Controller.CProject;
@@ -44,7 +42,7 @@ public class DirectoryProcessor {
      *
      * @return {@link com.daniel.docify.model2.FileNodeModel}
      */
-    public static FileNodeModel buildDirTree(File directory, String projectType) throws IOException {
+    public static FileNodeModel buildDirTree(File directory, String projectType){
         String fullPath = directory.getAbsolutePath();
         FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
 

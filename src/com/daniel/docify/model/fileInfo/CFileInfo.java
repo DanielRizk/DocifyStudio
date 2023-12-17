@@ -1,9 +1,6 @@
 package com.daniel.docify.model.fileInfo;
 
-import com.daniel.docify.component.Clang.CEnum;
-import com.daniel.docify.component.Clang.CFunction;
-import com.daniel.docify.component.Clang.CStaticVar;
-import com.daniel.docify.component.Clang.CStruct;
+import com.daniel.docify.component.Clang.*;
 import com.daniel.docify.model.FileInfoModel;
 
 import java.io.Serializable;
@@ -12,38 +9,44 @@ import java.util.List;
 
 public class CFileInfo extends FileInfoModel implements Serializable {
     private final String fileName;
+    private final List<CMacro> macros;
     private final List<CStaticVar> staticVars;
-    private final List<CStruct> structs;
     private final List<CEnum> enums;
+    private final List<CStruct> structs;
     private final List<CFunction> functions;
 
+
     public CFileInfo(String fileName,
+                     List<CMacro> macros,
                      List<CStaticVar> staticVars,
-                     List<CStruct> structs,
                      List<CEnum> enums,
+                     List<CStruct> structs,
                      List<CFunction> functions
     ) {
         this.fileName = fileName;
+        this.macros = macros;
         this.staticVars = staticVars;
-        this.structs = structs;
         this.enums = enums;
+        this.structs = structs;
         this.functions = functions;
     }
 
     public String getFileName() {
         return fileName;
     }
+    public List<CMacro> getMacros() {
+        return macros;
+    }
 
     public List<CStaticVar> getStaticVars() {
         return staticVars;
     }
+    public List<CEnum> getEnums() {
+        return enums;
+    }
 
     public List<CStruct> getStructs() {
         return structs;
-    }
-
-    public List<CEnum> getEnums() {
-        return enums;
     }
 
     public List<CFunction> getFunctions() {

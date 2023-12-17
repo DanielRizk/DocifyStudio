@@ -1,6 +1,6 @@
 package com.daniel.docify.ui;
 
-import com.daniel.docify.fileProcessor.DirectoryProcessor;
+
 import com.daniel.docify.model2.FileNodeModel;
 import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.fileProcessor.UserConfiguration;
@@ -32,10 +32,11 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 
+
 import static com.daniel.docify.core.Main.LOAD_ICONS;
 import static com.daniel.docify.core.Main.VERSION;
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcessDirectory;
-import static com.daniel.docify.fileProcessor.DirectoryProcessor.buildDirTree;
+
 
 public class Controller implements Initializable {
 
