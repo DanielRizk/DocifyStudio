@@ -4,15 +4,15 @@ import java.util.List;
 
 public abstract class Method extends Component{
     private List<String> params;
-    private String returnVal;
+    private String returnType;
     private String documentation;
 
     public void setParams(List<String> params) {
         this.params = params;
     }
 
-    public void setReturnVal(String returnVal) {
-        this.returnVal = returnVal;
+    public void setReturnType(String returnType) {
+        this.returnType = returnType;
     }
 
     public void setDocumentation(String documentation) {
@@ -23,8 +23,8 @@ public abstract class Method extends Component{
         return params;
     }
 
-    public String getReturnVal() {
-        return returnVal;
+    public String getReturnType() {
+        return returnType;
     }
 
     public String getDocumentation() {

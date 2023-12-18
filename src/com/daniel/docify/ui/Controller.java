@@ -26,11 +26,21 @@ import javafx.stage.Stage;
 import javafx.util.Duration;
 
 
+import java.util.regex.Pattern;
+
+import org.fxmisc.richtext.CodeArea;
+import org.fxmisc.richtext.LineNumberFactory;
+import org.fxmisc.flowless.Virtualized;
+import org.fxmisc.richtext.model.StyleSpans;
+import org.fxmisc.richtext.model.StyleSpansBuilder;
+
+
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
 
 
 import static com.daniel.docify.core.Main.LOAD_ICONS;
@@ -44,6 +54,26 @@ public class Controller implements Initializable {
     public final static String CProject = ".h";
     public final static String PythonProject = ".py";
     public final static String JavaProject = ".java";
+
+    private static final String[] KEYWORDS = new String[] {
+            "public", "class", "static", "void", "main", "String"
+    };
+
+    private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
+    private static final Pattern PATTERN = Pattern.compile(
+            "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
+    );
+
+
+    String code = "public class HelloWorld {\n" +
+            "    public static void main(String[] args) {\n" +
+            "        System.out.println(\"Hello, World!\");\n" +
+            "    }\n" +
+            "}";
+        //codeArea.replaceText(0, 0, code);
+
+    @FXML
+    private Tab fileTab;
 
     private Stage primaryStage;
 
@@ -120,6 +150,8 @@ public class Controller implements Initializable {
 
     @FXML
     public ProgressBar progressBar;
+
+    CodeArea codeArea = new CodeArea();
 
     @FXML
     void treeViewFileSelection(MouseEvent event) {
@@ -560,6 +592,13 @@ public class Controller implements Initializable {
                 throw new RuntimeException(e);
             }
         }
+        codeArea.replaceText(0,0, code);
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+
+        codeArea.multiPlainChanges().subscribe(change -> {
+            codeArea.setStyleSpans(0, computeHighlighting(codeArea.getText()));
+        });
+        fileTab.setContent(codeArea);
 
 
         progressBar.setVisible(false);
@@ -568,6 +607,18 @@ public class Controller implements Initializable {
         infoLabel.setText("");
         versionLabel.setText(VERSION);
         updateInfoLabel("Initialization complete");
+    }
+    private static StyleSpans<Collection<String>> computeHighlighting(String text) {
+        Matcher matcher = PATTERN.matcher(text);
+        int lastKwEnd = 0;
+        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+        while (matcher.find()) {
+            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
+            spansBuilder.add(Collections.singleton("keyword"), matcher.end() - matcher.start());
+            lastKwEnd = matcher.end();
+        }
+        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
+        return spansBuilder.create();
     }
 
     private record SearchResultModel(String itemName, FileNodeModel fileNodeModel) {

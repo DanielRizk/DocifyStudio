@@ -40,6 +40,8 @@ public class ClangParser extends ParserUtils{
         StringBuilder commentBlock = new StringBuilder();
         DocumentationModel documentation = null;
 
+
+
         String line;
         while ((line = reader.readLine()) != null) {
             currentLineNumber++;

@@ -14,14 +14,15 @@ public class CFileInfo extends FileInfoModel implements Serializable {
     private final List<CEnum> enums;
     private final List<CStruct> structs;
     private final List<CFunction> functions;
-
+    private final String fileContent;
 
     public CFileInfo(String fileName,
                      List<CMacro> macros,
                      List<CStaticVar> staticVars,
                      List<CEnum> enums,
                      List<CStruct> structs,
-                     List<CFunction> functions
+                     List<CFunction> functions,
+                     String fileContent
     ) {
         this.fileName = fileName;
         this.macros = macros;
@@ -29,6 +30,7 @@ public class CFileInfo extends FileInfoModel implements Serializable {
         this.enums = enums;
         this.structs = structs;
         this.functions = functions;
+        this.fileContent = fileContent;
     }
 
     public String getFileName() {
@@ -47,6 +49,10 @@ public class CFileInfo extends FileInfoModel implements Serializable {
 
     public List<CStruct> getStructs() {
         return structs;
+    }
+
+    public String getFileContent() {
+        return fileContent;
     }
 
     public List<CFunction> getFunctions() {

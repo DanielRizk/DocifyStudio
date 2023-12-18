@@ -130,11 +130,20 @@
                   </HBox>
                   <StackPane VBox.vgrow="ALWAYS">
                      <children>
-                        <TextArea fx:id="mainDisplayTextArea" editable="false">
-                           <font>
-                              <Font name="Calibri" size="12.0" />
-                           </font>
-                        </TextArea>
+                        <TabPane>
+                           <tabs>
+                              <Tab closable="false" text="File Content">
+                                 <content>
+                                    <TextArea fx:id="mainDisplayTextArea" editable="false">
+                                       <font>
+                                          <Font name="Calibri" size="12.0" />
+                                       </font>
+                                    </TextArea>
+                                 </content>
+                              </Tab>
+                              <Tab fx:id="fileTab" closable="false" text="File" />
+                           </tabs>
+                        </TabPane>
                         <ListView fx:id="searchResultListView" onMouseClicked="#getFromSearchResult" visible="false" />
                      </children>
                   </StackPane>
