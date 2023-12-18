@@ -13,7 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * @brief   This class provides all the necessary functionalities to parse C project files
@@ -49,6 +51,7 @@ public class ClangParser extends ParserUtils{
 
         StringBuilder chunk = new StringBuilder();
 
+        boolean commentScope = false;
         boolean enumScope = false;
         boolean structScope = false;
         boolean functionScope = false;
@@ -59,7 +62,8 @@ public class ClangParser extends ParserUtils{
         String line;
         while ((line = nextLine(reader)) != null) {
 
-            if (line.contains("/**")){
+            if (line.contains("/**") || commentScope){
+                commentScope = false;
                 while(!line.contains("*/")){
                     line = nextLine(reader);
                     chunk.append(line);
@@ -80,11 +84,19 @@ public class ClangParser extends ParserUtils{
                 do{
                     line = nextLine(reader);
                     chunk.append(line);
+                    if (line.contains("/**")){
+                        commentScope = true;
+                        chunk = new StringBuilder();
+                        break;
+                    }
                 }while(!line.contains(";"));
-                CFunction function = createFunction(chunk.toString());
-                function.setFileName(node.getName());
-                function.setDocumentation(commentBuffer);
-                functions.add(function);
+                if (!commentScope) {
+                    CFunction function = extractFunction(chunk.toString());
+                    function.setFileName(node.getName());
+                    function.setDocumentation(commentBuffer);
+                    functions.add(function);
+                }
+                chunk = new StringBuilder();
                 functionScope = false;
             }
 
@@ -103,47 +115,39 @@ public class ClangParser extends ParserUtils{
         return new CFileInfo(node.getName(), macros, staticVars, enums, structs, functions, fileContent);
     }
 
-    private static CFunction createFunction(String chunk) {
+    private static CFunction extractFunction(String chunk) {
         CFunction function = new CFunction();
 
-        String[] parts = chunk.split("\\s+");
+        int start, end;
 
-        // Extract the return type
-        StringBuilder returnTypeBuilder = new StringBuilder();
-        int index = 0;
-        while (index < parts.length && !parts[index].contains("(")) {
-            returnTypeBuilder.append(parts[index]).append(" ");
-            index++;
-        }
-        function.setReturnType(returnTypeBuilder.toString().trim());
+        /* extract params */
+        start = chunk.indexOf("(");
+        end = chunk.indexOf(")");
+        String rawParams = chunk.substring(start + 1,end);
+        String[] paramsArray = rawParams.split(",");
+        List<String> params = Arrays.stream(paramsArray)
+                .map(String::trim)
+                .collect(Collectors.toList());
+        function.setParams(params);
 
-        // Extract the function name
-        function.setName(parts[index].replace("(", ""));
+        /* extract function name */
+        start = 0;
+        end = chunk.indexOf("(");
+        chunk = chunk.substring(start, end);
+        start = chunk.lastIndexOf(" ");
+        String functionName = chunk.substring(start).trim();
+        function.setName(functionName);
 
-        // Extract parameters
-        function.setParams(extractParameters(parts, index + 1));
+        /* extract return type */
+        start = 0;
+        end = chunk.lastIndexOf(" ");
+        String returnType = chunk.substring(start,end).trim();
+        function.setReturnType(returnType);
 
+        /* set line number */
         function.setLineNumber(currentLineNumber);
 
         return function;
-    }
-    private static List<String> extractParameters(String[] parts, int startIndex) {
-        List<String> parameters = new ArrayList<>();
-
-        // Concatenate parts until the closing parenthesis is found
-        StringBuilder parameterBuilder = new StringBuilder();
-        for (int i = startIndex; i < parts.length; i++) {
-            parameterBuilder.append(parts[i]).append(" ");
-            if (parts[i].contains(")")) {
-                parameters.add(parameterBuilder.toString().trim().replace(")", ""));
-                break;
-            } else if (parts[i].contains(",")) {
-                parameters.add(parameterBuilder.toString().trim().replace(",", ""));
-                parameterBuilder = new StringBuilder();
-            }
-        }
-
-        return parameters;
     }
 
     private static String nextLine(BufferedReader reader) throws IOException {

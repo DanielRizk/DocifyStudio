@@ -36,6 +36,7 @@ public class CFileInfo extends FileInfoModel implements Serializable {
     public String getFileName() {
         return fileName;
     }
+
     public List<CMacro> getMacros() {
         return macros;
     }
@@ -43,6 +44,7 @@ public class CFileInfo extends FileInfoModel implements Serializable {
     public List<CStaticVar> getStaticVars() {
         return staticVars;
     }
+
     public List<CEnum> getEnums() {
         return enums;
     }
