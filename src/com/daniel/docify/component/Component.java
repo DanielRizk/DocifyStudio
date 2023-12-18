@@ -4,7 +4,7 @@ public abstract class Component {
 
     private String fileName;
     private String name;
-    private int lineNumber;
+    private Integer lineNumber;
 
     public void setFileName(String fileName) {
         this.fileName = fileName;
@@ -26,7 +26,7 @@ public abstract class Component {
         return name;
     }
 
-    public int getLineNumber() {
+    public Integer getLineNumber() {
         return lineNumber;
     }
 }

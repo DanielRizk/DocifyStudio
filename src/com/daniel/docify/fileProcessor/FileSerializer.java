@@ -1,6 +1,6 @@
 package com.daniel.docify.fileProcessor;
 
-import com.daniel.docify.model2.FileNodeModel;
+import com.daniel.docify.model.FileNodeModel;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;

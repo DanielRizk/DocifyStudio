@@ -1,7 +1,7 @@
 package com.daniel.docify.fileProcessor;
 
-import com.daniel.docify.model2.FileNodeModel;
-import com.daniel.docify.parser2.clang.ClangParser;
+import com.daniel.docify.model.FileNodeModel;
+import com.daniel.docify.parser.clang.ClangParser;
 
 import java.io.*;
 import java.util.Objects;
@@ -92,9 +92,8 @@ public class DirectoryProcessor {
 
     public static void processDirTree(FileNodeModel node, String projectType) throws IOException {
         if (node.isFile()) {
-            BufferedReader reader = new BufferedReader(new FileReader(node.getFullPath()));
             if (Objects.equals(projectType, CProject) && node.getName().endsWith(".h")) {
-                node.setFileInfo(ClangParser.parseFile(reader, node.getName()));
+                node.setFileInfo(ClangParser.parseFile(node));
             }
         }
         for (FileNodeModel child : node.getChildren()) {

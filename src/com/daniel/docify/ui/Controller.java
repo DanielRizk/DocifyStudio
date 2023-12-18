@@ -1,11 +1,12 @@
 package com.daniel.docify.ui;
 
 
-import com.daniel.docify.model2.FileNodeModel;
+import com.daniel.docify.component.Clang.CFunction;
+import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.fileProcessor.UserConfiguration;
-import com.daniel.docify.model2.FileInfoModel;
-import com.daniel.docify.model2.FunctionModel;
+import com.daniel.docify.model.FileInfoModel;
+import com.daniel.docify.model.fileInfo.CFileInfo;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.collections.FXCollections;
@@ -444,18 +445,17 @@ public class Controller implements Initializable {
         mainDisplayTextArea.setVisible(true);
         mainDisplayTextArea.clear();
         if (fileInfo != null) {
-            for (FunctionModel function : fileInfo.getFunctionModel()) {
+            CFileInfo cFileInfo = (CFileInfo) fileInfo;
+            for (CFunction function : cFileInfo.getFunctions()) {
                 if (function.getName() != null)
                     mainDisplayTextArea.appendText("Function Name: " + function.getName() + "\n");
                 if (function.getDocumentation() != null) {
-                    if (function.getDocumentation().getBrief() != null)
-                        mainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation().getBrief() + "\n");
-                    for (String params : function.getDocumentation().getParams())
+                    if (function.getDocumentation() != null)
+                        mainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation() + "\n");
+                    for (String params : function.getParams())
                         if (params != null) mainDisplayTextArea.appendText("Function Param: " + params + "\n");
-                    if (function.getDocumentation().getReturn() != null)
-                        mainDisplayTextArea.appendText("Function Return: " + function.getDocumentation().getReturn() + "\n");
-                    if (function.getDocumentation().getNotes() != null)
-                        mainDisplayTextArea.appendText("Note: " + function.getDocumentation().getNotes() + "\n");
+                    if (function.getReturnType() != null)
+                        mainDisplayTextArea.appendText("Function Return: " + function.getReturnType() + "\n");
                 } else {
                     mainDisplayTextArea.appendText("No documentation available!\n");
                 }
@@ -548,8 +548,9 @@ public class Controller implements Initializable {
         fileContentListView.getItems().clear();
         ObservableList<String> fileContentList = FXCollections.observableArrayList();
         fileContentList.clear();
-        if (fileInfoModel != null && fileInfoModel.getFunctionModel() != null){
-            for (FunctionModel func : fileInfoModel.getFunctionModel()){
+        CFileInfo cFileInfo = (CFileInfo) fileInfoModel;
+        if (cFileInfo != null && cFileInfo.getFunctions() != null){
+            for (CFunction func : cFileInfo.getFunctions()){
                 fileContentList.add(func.getName());
             }
         }
