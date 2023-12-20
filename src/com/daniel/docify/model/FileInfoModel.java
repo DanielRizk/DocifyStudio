@@ -1,7 +1,5 @@
 package com.daniel.docify.model;
 
-import com.daniel.docify.model2.FunctionModel;
-import com.daniel.docify.model2.StructModel;
 
 import java.io.Serializable;
 import java.util.ArrayList;

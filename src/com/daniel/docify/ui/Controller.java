@@ -29,6 +29,7 @@ import javafx.util.Duration;
 
 import java.util.regex.Pattern;
 
+import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
 import org.fxmisc.flowless.Virtualized;
@@ -65,13 +66,6 @@ public class Controller implements Initializable {
             "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
     );
 
-
-    String code = "public class HelloWorld {\n" +
-            "    public static void main(String[] args) {\n" +
-            "        System.out.println(\"Hello, World!\");\n" +
-            "    }\n" +
-            "}";
-        //codeArea.replaceText(0, 0, code);
 
     @FXML
     private Tab fileTab;
@@ -153,6 +147,7 @@ public class Controller implements Initializable {
     public ProgressBar progressBar;
 
     CodeArea codeArea = new CodeArea();
+    VirtualizedScrollPane<CodeArea> codeAreaScrollPane = new VirtualizedScrollPane<>(codeArea);
 
     @FXML
     void treeViewFileSelection(MouseEvent event) {
@@ -168,14 +163,17 @@ public class Controller implements Initializable {
             updateMainTextArea(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
     }
-
     @FXML
-    void scrollToLine(MouseEvent event) {
-        String selectedFunction = fileContentListView.getSelectionModel().getSelectedItem();
+    void fileContentListSelection(MouseEvent event) {
+        String selectedItem = fileContentListView.getSelectionModel().getSelectedItem();
+        scrollToLine(selectedItem);
+    }
 
-        if (selectedFunction != null) {
-            int startIndex = mainDisplayTextArea.getText().indexOf(selectedFunction);
-            int endIndex = startIndex + selectedFunction.length();
+    void scrollToLine(String selectedItem) {
+
+        if (selectedItem != null) {
+            int startIndex = mainDisplayTextArea.getText().indexOf(selectedItem);
+            int endIndex = startIndex + selectedItem.length();
 
             // Highlight the function in the TextArea
             mainDisplayTextArea.selectRange(startIndex, endIndex);
@@ -222,16 +220,17 @@ public class Controller implements Initializable {
     }
     @FXML
     void getFromSearchResult(MouseEvent event){
+        SearchResultModel selectedItem = searchResultListView.getSelectionModel().getSelectedItem();
 
         if (searchResultListView.getSelectionModel().getSelectedItem() != null) {
             mainDisplayTextArea.clear();
-            updateMainTextArea(
-                    searchResultListView.getSelectionModel().getSelectedItem().getParentFileNode().getFileInfo()
-            );
+            updateMainTextArea(selectedItem.getParentFileNode().getFileInfo());
         }
         searchResultListView.getItems().clear();
         searchResultListView.setVisible(false);
         mainDisplayTextArea.setVisible(true);
+
+        scrollToLine(selectedItem.toString());
 
     }
 
@@ -374,8 +373,7 @@ public class Controller implements Initializable {
             if (file.getFileInfo() != null) {
                 for (String itemName : file.getFileInfo().getItemNames()) {
                     if (isMatch(itemName, searchWord)) {
-                        SearchResultModel result = new SearchResultModel(itemName, file);
-                        searchResults.add(result);
+                        searchResults.add(new SearchResultModel(itemName, file));
                     }
                 }
             }
@@ -440,12 +438,15 @@ public class Controller implements Initializable {
      * @note    experimental
      */
     private void updateMainTextArea(FileInfoModel fileInfo) {
+
         searchResultListView.setVisible(false);
         searchResultListView.getItems().clear();
         mainDisplayTextArea.setVisible(true);
         mainDisplayTextArea.clear();
         if (fileInfo != null) {
             CFileInfo cFileInfo = (CFileInfo) fileInfo;
+            codeArea.clear();
+            codeArea.replaceText(0,0, cFileInfo.getFileContent());
             for (CFunction function : cFileInfo.getFunctions()) {
                 if (function.getName() != null)
                     mainDisplayTextArea.appendText("Function Name: " + function.getName() + "\n");
@@ -548,12 +549,7 @@ public class Controller implements Initializable {
         fileContentListView.getItems().clear();
         ObservableList<String> fileContentList = FXCollections.observableArrayList();
         fileContentList.clear();
-        CFileInfo cFileInfo = (CFileInfo) fileInfoModel;
-        if (cFileInfo != null && cFileInfo.getFunctions() != null){
-            for (CFunction func : cFileInfo.getFunctions()){
-                fileContentList.add(func.getName());
-            }
-        }
+        fileContentList.addAll(fileInfoModel.getItemNames());
         fileContentListView.getItems().addAll(fileContentList);
     }
 
@@ -578,48 +574,34 @@ public class Controller implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle resourceBundle) {
-        if (LOAD_ICONS) {
-            try {
-                setIcon(file_newSubMenu, "assets/icons/new.png");
-                setIcon(file_saveAsSubMenu, "assets/icons/save.png");
-                setIcon(file_openMenuItem, "assets/icons/open.png");
-                setIcon(file_closeMenuItem, "assets/icons/close.png");
-                setIcon(file_new_cProjectMenuItem, "assets/icons/cprog.png");
-                setIcon(file_new_javaProjectMenuItem, "assets/icons/javaprog.png");
-                setIcon(file_new_pythonProjectMenuItem, "assets/icons/pyprog.png");
-                setIcon(file_save_docifyMenuItem, "assets/icons/doci.png");
-                setIcon(file_save_pdfMenuItem, "assets/icons/pdf.png");
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        codeArea.replaceText(0,0, code);
+        if (LOAD_ICONS) loadSystemIcons();
+
+        codeArea.setEditable(false);
         codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
-
-        codeArea.multiPlainChanges().subscribe(change -> {
-            codeArea.setStyleSpans(0, computeHighlighting(codeArea.getText()));
-        });
-        fileTab.setContent(codeArea);
-
+        fileTab.setContent(codeAreaScrollPane);
 
         progressBar.setVisible(false);
         progressBar.setStyle("-fx-accent: green;");
 
         infoLabel.setText("");
         versionLabel.setText(VERSION);
-        updateInfoLabel("Initialization complete");
+        updateInfoLabel("Initialization complete!");
     }
-    private static StyleSpans<Collection<String>> computeHighlighting(String text) {
-        Matcher matcher = PATTERN.matcher(text);
-        int lastKwEnd = 0;
-        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
-        while (matcher.find()) {
-            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
-            spansBuilder.add(Collections.singleton("keyword"), matcher.end() - matcher.start());
-            lastKwEnd = matcher.end();
+
+    private void loadSystemIcons(){
+        try {
+            setIcon(file_newSubMenu, "assets/icons/new.png");
+            setIcon(file_saveAsSubMenu, "assets/icons/save.png");
+            setIcon(file_openMenuItem, "assets/icons/open.png");
+            setIcon(file_closeMenuItem, "assets/icons/close.png");
+            setIcon(file_new_cProjectMenuItem, "assets/icons/cprog.png");
+            setIcon(file_new_javaProjectMenuItem, "assets/icons/javaprog.png");
+            setIcon(file_new_pythonProjectMenuItem, "assets/icons/pyprog.png");
+            setIcon(file_save_docifyMenuItem, "assets/icons/doci.png");
+            setIcon(file_save_pdfMenuItem, "assets/icons/pdf.png");
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
         }
-        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
-        return spansBuilder.create();
     }
 
     private record SearchResultModel(String itemName, FileNodeModel fileNodeModel) {

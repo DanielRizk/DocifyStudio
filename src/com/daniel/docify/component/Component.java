@@ -1,6 +1,8 @@
 package com.daniel.docify.component;
 
-public abstract class Component {
+import java.io.Serializable;
+
+public abstract class Component implements Serializable {
 
     private String fileName;
     private String name;

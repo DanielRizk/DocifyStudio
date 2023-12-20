@@ -132,7 +132,7 @@
                      <children>
                         <TabPane>
                            <tabs>
-                              <Tab closable="false" text="File Content">
+                              <Tab closable="false" text="File documentation">
                                  <content>
                                     <TextArea fx:id="mainDisplayTextArea" editable="false">
                                        <font>
@@ -141,7 +141,7 @@
                                     </TextArea>
                                  </content>
                               </Tab>
-                              <Tab fx:id="fileTab" closable="false" text="File" />
+                              <Tab fx:id="fileTab" closable="false" text="File content" />
                            </tabs>
                         </TabPane>
                         <ListView fx:id="searchResultListView" onMouseClicked="#getFromSearchResult" visible="false" />
@@ -162,7 +162,7 @@
                         <Insets />
                      </opaqueInsets>
                   </Label>
-                  <ListView fx:id="fileContentListView" onMouseClicked="#scrollToLine" VBox.vgrow="ALWAYS" />
+                  <ListView fx:id="fileContentListView" onMouseClicked="#fileContentListSelection" VBox.vgrow="ALWAYS" />
                </children>
             </VBox>
          </items>
