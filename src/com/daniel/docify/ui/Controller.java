@@ -1,7 +1,9 @@
 package com.daniel.docify.ui;
 
 
+import com.daniel.docify.component.Clang.CEnum;
 import com.daniel.docify.component.Clang.CFunction;
+import com.daniel.docify.component.Clang.CStruct;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.fileProcessor.UserConfiguration;
@@ -447,23 +449,71 @@ public class Controller implements Initializable {
             CFileInfo cFileInfo = (CFileInfo) fileInfo;
             codeArea.clear();
             codeArea.replaceText(0,0, cFileInfo.getFileContent());
+
+
+
+
+            for (CEnum en : cFileInfo.getEnums()) {
+                if (en.getName() != null)
+                    mainDisplayTextArea.appendText("Enum Name: " + en.getName() + "\n");
+                if (en.getDocumentation() != null) {
+                    mainDisplayTextArea.appendText("Enum Brief: " + en.getDocumentation() + "\n");
+                } else {
+                    mainDisplayTextArea.appendText("No documentation available!\n");
+                }
+                for (String params : en.getMembers())
+                    if (params != null) mainDisplayTextArea.appendText("Enum member: " + params + "\n");
+                if (en.getEnumType() != null)
+                    mainDisplayTextArea.appendText("Enum type: " + en.getEnumType() + "\n");
+                if (en.getLineNumber() != null)
+                    mainDisplayTextArea.appendText("Declared on line: " + en.getLineNumber() + "\n\n");
+            }
+
+
+            mainDisplayTextArea.appendText("\n\n\n--------------------------------------------------\n\n\n");
+
+
+            for (CStruct st : cFileInfo.getStructs()) {
+                if (st.getName() != null)
+                    mainDisplayTextArea.appendText("Struct Name: " + st.getName() + "\n");
+                if (st.getDocumentation() != null) {
+                    mainDisplayTextArea.appendText("Struct Brief: " + st.getDocumentation() + "\n");
+                } else {
+                    mainDisplayTextArea.appendText("No documentation available!\n");
+                }
+                for (String params : st.getMembers())
+                    if (params != null) mainDisplayTextArea.appendText("Struct member: " + params + "\n");
+                if (st.getStructType() != null)
+                    mainDisplayTextArea.appendText("Struct type: " + st.getStructType() + "\n");
+                if (st.getLineNumber() != null)
+                    mainDisplayTextArea.appendText("Declared on line: " + st.getLineNumber() + "\n\n");
+            }
+
+
+            mainDisplayTextArea.appendText("\n\n\n--------------------------------------------------\n\n\n");
+
+
             for (CFunction function : cFileInfo.getFunctions()) {
                 if (function.getName() != null)
                     mainDisplayTextArea.appendText("Function Name: " + function.getName() + "\n");
                 if (function.getDocumentation() != null) {
-                    if (function.getDocumentation() != null)
-                        mainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation() + "\n");
-                    for (String params : function.getParams())
-                        if (params != null) mainDisplayTextArea.appendText("Function Param: " + params + "\n");
-                    if (function.getReturnType() != null)
-                        mainDisplayTextArea.appendText("Function Return: " + function.getReturnType() + "\n");
+                    mainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation() + "\n");
                 } else {
                     mainDisplayTextArea.appendText("No documentation available!\n");
                 }
+                for (String params : function.getParams())
+                    if (params != null) mainDisplayTextArea.appendText("Function Param: " + params + "\n");
+                if (function.getReturnType() != null)
+                    mainDisplayTextArea.appendText("Function Return: " + function.getReturnType() + "\n");
                 if (function.getLineNumber() != null)
                     mainDisplayTextArea.appendText("Declared on line: " + function.getLineNumber() + "\n\n");
             }
+
+
+
+
         }
+        assert fileInfo != null;
         updateFileContentListView(fileInfo);
     }
 

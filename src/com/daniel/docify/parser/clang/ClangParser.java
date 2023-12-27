@@ -377,12 +377,13 @@ public class ClangParser extends ParserUtils{
     }
 
     private static Integer identifyCommentBlock(String chunk){
-
-        if (chunk.contains("This enum")){
+        String buff = chunk;
+        buff = buff.toLowerCase();
+        if (buff.contains("this enum")){
             return 1;
-        } else if (chunk.contains("This struct")){
+        } else if (buff.contains("this struct")){
             return 2;
-        }else if (chunk.contains("This function")){
+        }else if (buff.contains("this function")){
             return 3;
         }
         return 0;
