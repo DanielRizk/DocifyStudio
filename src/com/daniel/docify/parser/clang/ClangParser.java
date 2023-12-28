@@ -42,6 +42,7 @@ public class ClangParser extends ParserUtils{
             e.printStackTrace();
         }
 
+        List<CExtern> externs = new ArrayList<>();
         List<CMacro> macros = new ArrayList<>();
         List<CStaticVar> staticVars = new ArrayList<>();
         List<CEnum> enums = new ArrayList<>();
@@ -50,6 +51,7 @@ public class ClangParser extends ParserUtils{
 
         StringBuilder chunk = new StringBuilder();
 
+        boolean macroScope = false;
         boolean commentScope = false;
         boolean enumScope = false;
         boolean structScope = false;
@@ -99,6 +101,31 @@ public class ClangParser extends ParserUtils{
                 staticVar.setFileName(node.getName());
                 staticVar.setLineNumber(currentLineNumber);
                 staticVars.add(staticVar);
+            }
+            else if (line.contains("#define")){
+                macroScope = true;
+            }
+            else if (line.contains("extern")){
+                CExtern extern = extractExtern(line);
+                extern.setFileName(node.getName());
+                externs.add(extern);
+            }
+
+            if (macroScope){
+                chunk.append(line);
+                if (line.contains("\\")){
+                    do{
+                        line = nextLine(reader);
+                        chunk.append(line);
+                    }while (line.contains("\\"));
+                }
+                CMacro macro = extractMacro(chunk.toString());
+                if (macro != null) {
+                    macro.setFileName(node.getName());
+                    macros.add(macro);
+                }
+                chunk = new StringBuilder();
+                macroScope = false;
             }
 
             if (enumScope){
@@ -168,50 +195,55 @@ public class ClangParser extends ParserUtils{
                 chunk = new StringBuilder();
                 functionScope = false;
             }
+        }
+        return new CFileInfo(node.getName(), externs, macros, staticVars, enums, structs, functions, fileContent);
+    }
 
+    private static CExtern extractExtern(String line) {
+        CExtern extern = new CExtern();
 
+        line = line.trim();
 
+        /* extract extern name*/
+        extern.setName(line);
+        extern.setLineNumber(currentLineNumber);
+
+        return extern;
+    }
+
+    private static CMacro extractMacro(String chunk) {
+        CMacro macro = new CMacro();
+
+        int start;
+
+        chunk = chunk.trim();
+
+        /* extract macro name */
+        start = chunk.indexOf("#define ") + "#define ".length();
+        chunk = chunk.substring(start);
+        if (chunk.contains(" ")) {
+            String name = chunk.substring(0, chunk.indexOf(" "));
+            macro.setName(name);
+
+            /* extract macro value */
+            chunk = chunk.substring(name.length());
+            chunk = chunk.trim();
+            String value = chunk;
+            value = value.replaceAll("\\\\(?!n)", "\n");
+
+            String[] lines = value.split("\\n");
+            for (int i = 0; i < lines.length; i++) {
+                lines[i] = lines[i].trim();
+            }
+
+            value = String.join("\n", lines);
+            macro.setValue(value);
+
+            macro.setLineNumber(currentLineNumber);
+
+            return macro;
         }
-        System.out.println("------------------------------------------------");
-        for (CStaticVar st : staticVars){
-            System.out.println("file name: "+st.getFileName());
-            System.out.println("static var name: "+st.getName());
-            System.out.println("value: "+st.getValue());
-            System.out.println("line: "+st.getLineNumber());
-            System.out.println("\n");
-        }
-        System.out.println("------------------------------------------------");
-        for (CEnum en : enums){
-            System.out.println("file name: "+en.getFileName());
-            System.out.println("enum name: "+en.getName());
-            System.out.println("doc: "+en.getDocumentation());
-            System.out.println("members: "+en.getMembers());
-            System.out.println("return: "+en.getEnumType());
-            System.out.println("line: "+en.getLineNumber());
-            System.out.println("\n");
-        }
-        System.out.println("------------------------------------------------");
-        for (CStruct st : structs){
-            System.out.println("file name: "+st.getFileName());
-            System.out.println("struct name: "+st.getName());
-            System.out.println("doc: "+st.getDocumentation());
-            System.out.println("members: "+st.getMembers());
-            System.out.println("return: "+st.getStructType());
-            System.out.println("line: "+st.getLineNumber());
-            System.out.println("\n");
-        }
-        System.out.println("------------------------------------------------");
-        for (CFunction fun : functions){
-            System.out.println("file name: "+fun.getFileName());
-            System.out.println("function name: "+fun.getName());
-            System.out.println("doc: "+fun.getDocumentation());
-            System.out.println("params: "+fun.getParams());
-            System.out.println("return: "+fun.getReturnType());
-            System.out.println("line: "+fun.getLineNumber());
-            System.out.println("\n");
-        }
-        System.out.println("------------------------------------------------");
-        return new CFileInfo(node.getName(), macros, staticVars, enums, structs, functions, fileContent);
+        return null;
     }
 
     private static CStaticVar extractStaticVar(String line) {

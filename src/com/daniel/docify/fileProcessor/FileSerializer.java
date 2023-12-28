@@ -26,7 +26,7 @@ public class FileSerializer {
     /**
      * @brief   This method serializes the FileNodeModel object, encrypts it, and saves it
      */
-    public static void save(FileNodeModel fileNodeModel, String filePath) {
+    public void save(FileNodeModel fileNodeModel, String filePath) {
         try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
                 new CipherOutputStream(new FileOutputStream(filePath), createCipher(Cipher.ENCRYPT_MODE)))) {
             objectOutputStream.writeObject(fileNodeModel);
@@ -39,7 +39,7 @@ public class FileSerializer {
     /**
      * @brief   This method loads the encrypted FileNodeModel object, decrypts it, and returns the object
      */
-    public static FileNodeModel load(String filePath) {
+    public FileNodeModel load(String filePath) {
         FileNodeModel fileNodeModel = null;
         try (ObjectInputStream objectInputStream = new ObjectInputStream(
                 new CipherInputStream(new FileInputStream(filePath), createCipher(Cipher.DECRYPT_MODE)))) {
@@ -51,13 +51,13 @@ public class FileSerializer {
         return fileNodeModel;
     }
 
-    private static Cipher createCipher(int mode) throws GeneralSecurityException {
+    private Cipher createCipher(int mode) throws GeneralSecurityException {
         Cipher cipher = Cipher.getInstance(ENCRYPTION_ALGORITHM);
         cipher.init(mode, generateSecretKey());
         return cipher;
     }
 
-    private static SecretKeySpec generateSecretKey() {
+    private SecretKeySpec generateSecretKey() {
         byte[] key = SECRET_KEY.getBytes();
         return new SecretKeySpec(key, ENCRYPTION_ALGORITHM);
     }

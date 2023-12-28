@@ -306,7 +306,8 @@ public class Controller implements Initializable {
             UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
 
             if (selectedDir.getAbsolutePath().endsWith(".doci")) {
-                rootNode = FileSerializer.load(selectedDir.getAbsolutePath());
+                rootNode = new FileNodeModel(null,false,null);
+                rootNode = rootNode.load(selectedDir.getAbsolutePath());
                 updateTreeView(rootNode);
                 updateInfoLabel("File -"+rootNode.getName()+"- opened successfully");
             } else {
@@ -345,9 +346,9 @@ public class Controller implements Initializable {
                 UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
 
                 if (selectedDir.getAbsolutePath().endsWith(".doci")) {
-                    FileSerializer.save(rootNode, selectedDir.getAbsolutePath());
+                    rootNode.save(rootNode, selectedDir.getAbsolutePath());
                 } else {
-                    FileSerializer.save(rootNode, selectedDir.getAbsolutePath() + ".doci");
+                    rootNode.save(rootNode, selectedDir.getAbsolutePath() + ".doci");
                 }
                 updateInfoLabel("File saved successfully");
             }

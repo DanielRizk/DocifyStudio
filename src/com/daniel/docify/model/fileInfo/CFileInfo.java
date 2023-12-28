@@ -9,6 +9,7 @@ import java.util.List;
 
 public class CFileInfo extends FileInfoModel implements Serializable {
     private final String fileName;
+    private final List<CExtern> externs;
     private final List<CMacro> macros;
     private final List<CStaticVar> staticVars;
     private final List<CEnum> enums;
@@ -17,6 +18,7 @@ public class CFileInfo extends FileInfoModel implements Serializable {
     private final String fileContent;
 
     public CFileInfo(String fileName,
+                     List<CExtern> externs,
                      List<CMacro> macros,
                      List<CStaticVar> staticVars,
                      List<CEnum> enums,
@@ -25,6 +27,7 @@ public class CFileInfo extends FileInfoModel implements Serializable {
                      String fileContent
     ) {
         this.fileName = fileName;
+        this.externs = externs;
         this.macros = macros;
         this.staticVars = staticVars;
         this.enums = enums;
@@ -35,6 +38,10 @@ public class CFileInfo extends FileInfoModel implements Serializable {
 
     public String getFileName() {
         return fileName;
+    }
+
+    public List<CExtern> getExterns() {
+        return externs;
     }
 
     public List<CMacro> getMacros() {
@@ -64,6 +71,16 @@ public class CFileInfo extends FileInfoModel implements Serializable {
     @Override
     public List<String> getItemNames() {
         List<String> itemNames = new ArrayList<>();
+        if (externs != null){
+            for (CExtern extern : externs){
+                itemNames.add(extern.getName());
+            }
+        }
+        if (macros != null){
+            for (CMacro macro : macros){
+                itemNames.add(macro.getName());
+            }
+        }
         if (staticVars != null){
             for (CStaticVar staticVar : staticVars){
                 itemNames.add(staticVar.getName());
