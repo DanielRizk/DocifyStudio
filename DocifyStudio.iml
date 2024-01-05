@@ -19,10 +19,10 @@
     <orderEntry type="library" name="Java EE 6-Java EE 6" level="project" />
     <orderEntry type="library" name="google.code.gson" level="project" />
     <orderEntry type="library" name="lib" level="project" />
-    <orderEntry type="module-library" exported="">
+    <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://C:/Program Files/Java/richtextfx/richtextfx-fat-0.10.5.jar!/" />
+          <root url="jar://C:/Program Files/Java/richtextfx/richtextfx-fat-0.11.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

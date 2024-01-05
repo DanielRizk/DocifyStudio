@@ -1,6 +1,7 @@
 package com.daniel.docify.parser.clang;
 
 import com.daniel.docify.component.Clang.*;
+import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.fileInfo.CFileInfo;
 import com.daniel.docify.parser.ParserUtils;
@@ -15,6 +16,8 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 /**
@@ -22,8 +25,9 @@ import java.util.stream.Collectors;
  */
 public class ClangParser extends ParserUtils{
 
+    private static final Logger LOGGER = Logger.getLogger(FileSerializer.class.getName());
 
-    /** Keeps track of the current line number in the document */
+    /* Keeps track of the current line number in the document */
     private static int currentLineNumber = 0;
 
     /**
@@ -39,7 +43,7 @@ public class ClangParser extends ParserUtils{
         try {
             fileContent = readFromFile(node.getFullPath());
         } catch (IOException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, "Error opening file: "+node.getName(), e);
         }
 
         List<CExtern> externs = new ArrayList<>();

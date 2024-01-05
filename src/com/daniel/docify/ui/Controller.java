@@ -34,11 +34,13 @@ import java.util.regex.Pattern;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.flowless.Virtualized;
+import org.fxmisc.richtext.StyledTextArea;
+import org.fxmisc.richtext.model.*;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
 
 
+import javax.swing.border.EmptyBorder;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -68,14 +70,17 @@ public class Controller implements Initializable {
             "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
     );
 
+    private Stage primaryStage;
+
+    private final ObservableList<FileNodeModel> items = FXCollections.observableArrayList();
+
+    CodeArea codeArea = new CodeArea();
+
+    VirtualizedScrollPane<CodeArea> codeAreaScrollPane = new VirtualizedScrollPane<>(codeArea);
+
 
     @FXML
     private Tab fileTab;
-
-    private Stage primaryStage;
-
-    @FXML
-    private BorderPane MainBorderPaneLayout;
 
     @FXML
     private TextArea mainDisplayTextArea;
@@ -89,16 +94,11 @@ public class Controller implements Initializable {
     @FXML
     private ListView<SearchResultModel> searchResultListView;
 
-    private final ObservableList<FileNodeModel> items = FXCollections.observableArrayList();
-
     @FXML
     private CheckBox documentedFilesCheckbox;
 
     @FXML
     private TreeView<FileNodeModel> explorerTreeView;
-
-    @FXML
-    private Menu fileSubMenu;
 
     @FXML
     private MenuItem file_closeMenuItem;
@@ -128,15 +128,6 @@ public class Controller implements Initializable {
     private MenuItem file_save_pdfMenuItem;
 
     @FXML
-    private Menu helpSubMenu;
-
-    @FXML
-    private TabPane leftSide_tabbedPane;
-
-    @FXML
-    private MenuBar menuBar;
-
-    @FXML
     private Label infoLabel;
 
     @FXML
@@ -148,8 +139,170 @@ public class Controller implements Initializable {
     @FXML
     public ProgressBar progressBar;
 
-    CodeArea codeArea = new CodeArea();
-    VirtualizedScrollPane<CodeArea> codeAreaScrollPane = new VirtualizedScrollPane<>(codeArea);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * @brief   This method displays and updates the main display view
+     *          with the file content when the file is selected from the
+     *          tree view or the list view, and call the update file content
+     *          list method
+     *
+     * @note    experimental
+     */
+    private void updateMainTextArea(FileInfoModel fileInfo) {
+
+        searchResultListView.setVisible(false);
+        searchResultListView.getItems().clear();
+        mainDisplayTextArea.setVisible(true);
+        mainDisplayTextArea.clear();
+        if (fileInfo != null) {
+            CFileInfo cFileInfo = (CFileInfo) fileInfo;
+            codeArea.clear();
+            codeArea.replaceText(0,0, cFileInfo.getFileContent());
+
+
+
+            for (CEnum en : cFileInfo.getEnums()) {
+                if (en.getName() != null)
+                    mainDisplayTextArea.appendText("Enum Name: " + en.getName() + "\n");
+                if (en.getDocumentation() != null) {
+                    mainDisplayTextArea.appendText("Enum Brief: " + en.getDocumentation() + "\n");
+                } else {
+                    mainDisplayTextArea.appendText("No documentation available!\n");
+                }
+                for (String params : en.getMembers())
+                    if (params != null) mainDisplayTextArea.appendText("Enum member: " + params + "\n");
+                if (en.getEnumType() != null)
+                    mainDisplayTextArea.appendText("Enum type: " + en.getEnumType() + "\n");
+                if (en.getLineNumber() != null)
+                    mainDisplayTextArea.appendText("Declared on line: " + en.getLineNumber() + "\n\n");
+            }
+
+            mainDisplayTextArea.appendText("\n\n\n--------------------------------------------------\n\n\n");
+
+
+            for (CStruct st : cFileInfo.getStructs()) {
+                if (st.getName() != null)
+                    mainDisplayTextArea.appendText("Struct Name: " + st.getName() + "\n");
+                if (st.getDocumentation() != null) {
+                    mainDisplayTextArea.appendText("Struct Brief: " + st.getDocumentation() + "\n");
+                } else {
+                    mainDisplayTextArea.appendText("No documentation available!\n");
+                }
+                for (String params : st.getMembers())
+                    if (params != null) mainDisplayTextArea.appendText("Struct member: " + params + "\n");
+                if (st.getStructType() != null)
+                    mainDisplayTextArea.appendText("Struct type: " + st.getStructType() + "\n");
+                if (st.getLineNumber() != null)
+                    mainDisplayTextArea.appendText("Declared on line: " + st.getLineNumber() + "\n\n");
+            }
+
+
+            mainDisplayTextArea.appendText("\n\n\n--------------------------------------------------\n\n\n");
+
+
+            for (CFunction function : cFileInfo.getFunctions()) {
+                if (function.getName() != null)
+                    mainDisplayTextArea.appendText("Function Name: " + function.getName() + "\n");
+                if (function.getDocumentation() != null) {
+                    mainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation() + "\n");
+                } else {
+                    mainDisplayTextArea.appendText("No documentation available!\n");
+                }
+                for (String params : function.getParams())
+                    if (params != null) mainDisplayTextArea.appendText("Function Param: " + params + "\n");
+                if (function.getReturnType() != null)
+                    mainDisplayTextArea.appendText("Function Return: " + function.getReturnType() + "\n");
+                if (function.getLineNumber() != null)
+                    mainDisplayTextArea.appendText("Declared on line: " + function.getLineNumber() + "\n\n");
+            }
+
+
+
+
+        }
+        assert fileInfo != null;
+        updateFileContentListView(fileInfo);
+    }
+
+
+
+
+    private List<SearchResultModel> searchList(String searchWord){
+        ObservableList<FileNodeModel> allFiles = updateFilteredListView();
+        List<SearchResultModel> searchResults = new ArrayList<>();
+
+        for (FileNodeModel file : allFiles) {
+            if (file.getFileInfo() != null) {
+                for (String itemName : file.getFileInfo().getItemNames()) {
+                    if (isMatch(itemName, searchWord)) {
+                        searchResults.add(new SearchResultModel(itemName, file));
+                    }
+                }
+            }
+        }
+        return searchResults;
+    }
+
+    private boolean isMatch(String itemName, String searchWord) {
+        List<String> result = Arrays.asList(searchWord.trim().split(" "));
+        return result.stream().allMatch(word ->
+                itemName.toLowerCase().contains(word.toLowerCase()));
+    }
+
+
+
+    void scrollToLine(String selectedItem) {
+
+        if (selectedItem != null) {
+            int startIndex = mainDisplayTextArea.getText().indexOf(selectedItem);
+            int endIndex = startIndex + selectedItem.length();
+
+            // Highlight the function in the TextArea
+            mainDisplayTextArea.selectRange(startIndex, endIndex);
+        }
+    }
+
+
+
+
+    @FXML
+    void getFromSearchResult(MouseEvent event){
+        SearchResultModel selectedItem = searchResultListView.getSelectionModel().getSelectedItem();
+
+        if (searchResultListView.getSelectionModel().getSelectedItem() != null) {
+            mainDisplayTextArea.clear();
+            updateMainTextArea(selectedItem.getParentFileNode().getFileInfo());
+        }
+        searchResultListView.getItems().clear();
+        searchResultListView.setVisible(false);
+        mainDisplayTextArea.setVisible(true);
+
+        scrollToLine(selectedItem.toString());
+
+    }
+
+
+
+
+
+
+
+
+
+
 
     @FXML
     void treeViewFileSelection(MouseEvent event) {
@@ -165,22 +318,13 @@ public class Controller implements Initializable {
             updateMainTextArea(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
     }
+
     @FXML
     void fileContentListSelection(MouseEvent event) {
         String selectedItem = fileContentListView.getSelectionModel().getSelectedItem();
         scrollToLine(selectedItem);
     }
 
-    void scrollToLine(String selectedItem) {
-
-        if (selectedItem != null) {
-            int startIndex = mainDisplayTextArea.getText().indexOf(selectedItem);
-            int endIndex = startIndex + selectedItem.length();
-
-            // Highlight the function in the TextArea
-            mainDisplayTextArea.selectRange(startIndex, endIndex);
-        }
-    }
 
     @FXML
     void cProjectMenuItemStart(ActionEvent event) {
@@ -220,21 +364,7 @@ public class Controller implements Initializable {
             infoLabel.setText(null);
         }
     }
-    @FXML
-    void getFromSearchResult(MouseEvent event){
-        SearchResultModel selectedItem = searchResultListView.getSelectionModel().getSelectedItem();
 
-        if (searchResultListView.getSelectionModel().getSelectedItem() != null) {
-            mainDisplayTextArea.clear();
-            updateMainTextArea(selectedItem.getParentFileNode().getFileInfo());
-        }
-        searchResultListView.getItems().clear();
-        searchResultListView.setVisible(false);
-        mainDisplayTextArea.setVisible(true);
-
-        scrollToLine(selectedItem.toString());
-
-    }
 
     @FXML
     void searchFromButton(MouseEvent event){
@@ -248,7 +378,6 @@ public class Controller implements Initializable {
         }
     }
 
-    @FXML
     void searchAndDisplay(){
         String searchKeyword = searchBar.getText();
         if (searchKeyword != null) {
@@ -328,8 +457,6 @@ public class Controller implements Initializable {
 
             fileChooser.setInitialDirectory(lastSavePath);
 
-            // Set extension filters (optional)
-            //directoryChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Select Directory", "*"));
             FileChooser.ExtensionFilter allFilesFilter = new FileChooser.ExtensionFilter("All Files", "*.*");
 
             // Set extension filter for suggested file type
@@ -368,27 +495,6 @@ public class Controller implements Initializable {
 
     }
 
-    private List<SearchResultModel> searchList(String searchWord){
-        ObservableList<FileNodeModel> allFiles = updateFilteredListView();
-        List<SearchResultModel> searchResults = new ArrayList<>();
-
-        for (FileNodeModel file : allFiles) {
-            if (file.getFileInfo() != null) {
-                for (String itemName : file.getFileInfo().getItemNames()) {
-                    if (isMatch(itemName, searchWord)) {
-                        searchResults.add(new SearchResultModel(itemName, file));
-                    }
-                }
-            }
-        }
-        return searchResults;
-    }
-
-    private boolean isMatch(String itemName, String searchWord) {
-        List<String> result = Arrays.asList(searchWord.trim().split(" "));
-        return result.stream().allMatch(word ->
-                itemName.toLowerCase().contains(word.toLowerCase()));
-    }
 
     /**
      * @brief   This method allows the controller to access the
@@ -429,94 +535,10 @@ public class Controller implements Initializable {
             }
             primaryStage.setTitle("Docify Studio - "+rootNode.getName());
             updateInfoLabel("Project Documentation -"+rootNode.getName()+"- created successfully");
+            getStyleSheet();
         }
     }
 
-    /**
-     * @brief   This method displays and updates the main display view
-     *          with the file content when the file is selected from the
-     *          tree view or the list view, and call the update file content
-     *          list method
-     *
-     * @note    experimental
-     */
-    private void updateMainTextArea(FileInfoModel fileInfo) {
-
-        searchResultListView.setVisible(false);
-        searchResultListView.getItems().clear();
-        mainDisplayTextArea.setVisible(true);
-        mainDisplayTextArea.clear();
-        if (fileInfo != null) {
-            CFileInfo cFileInfo = (CFileInfo) fileInfo;
-            codeArea.clear();
-            codeArea.replaceText(0,0, cFileInfo.getFileContent());
-
-
-
-
-            for (CEnum en : cFileInfo.getEnums()) {
-                if (en.getName() != null)
-                    mainDisplayTextArea.appendText("Enum Name: " + en.getName() + "\n");
-                if (en.getDocumentation() != null) {
-                    mainDisplayTextArea.appendText("Enum Brief: " + en.getDocumentation() + "\n");
-                } else {
-                    mainDisplayTextArea.appendText("No documentation available!\n");
-                }
-                for (String params : en.getMembers())
-                    if (params != null) mainDisplayTextArea.appendText("Enum member: " + params + "\n");
-                if (en.getEnumType() != null)
-                    mainDisplayTextArea.appendText("Enum type: " + en.getEnumType() + "\n");
-                if (en.getLineNumber() != null)
-                    mainDisplayTextArea.appendText("Declared on line: " + en.getLineNumber() + "\n\n");
-            }
-
-
-            mainDisplayTextArea.appendText("\n\n\n--------------------------------------------------\n\n\n");
-
-
-            for (CStruct st : cFileInfo.getStructs()) {
-                if (st.getName() != null)
-                    mainDisplayTextArea.appendText("Struct Name: " + st.getName() + "\n");
-                if (st.getDocumentation() != null) {
-                    mainDisplayTextArea.appendText("Struct Brief: " + st.getDocumentation() + "\n");
-                } else {
-                    mainDisplayTextArea.appendText("No documentation available!\n");
-                }
-                for (String params : st.getMembers())
-                    if (params != null) mainDisplayTextArea.appendText("Struct member: " + params + "\n");
-                if (st.getStructType() != null)
-                    mainDisplayTextArea.appendText("Struct type: " + st.getStructType() + "\n");
-                if (st.getLineNumber() != null)
-                    mainDisplayTextArea.appendText("Declared on line: " + st.getLineNumber() + "\n\n");
-            }
-
-
-            mainDisplayTextArea.appendText("\n\n\n--------------------------------------------------\n\n\n");
-
-
-            for (CFunction function : cFileInfo.getFunctions()) {
-                if (function.getName() != null)
-                    mainDisplayTextArea.appendText("Function Name: " + function.getName() + "\n");
-                if (function.getDocumentation() != null) {
-                    mainDisplayTextArea.appendText("Function Brief: " + function.getDocumentation() + "\n");
-                } else {
-                    mainDisplayTextArea.appendText("No documentation available!\n");
-                }
-                for (String params : function.getParams())
-                    if (params != null) mainDisplayTextArea.appendText("Function Param: " + params + "\n");
-                if (function.getReturnType() != null)
-                    mainDisplayTextArea.appendText("Function Return: " + function.getReturnType() + "\n");
-                if (function.getLineNumber() != null)
-                    mainDisplayTextArea.appendText("Declared on line: " + function.getLineNumber() + "\n\n");
-            }
-
-
-
-
-        }
-        assert fileInfo != null;
-        updateFileContentListView(fileInfo);
-    }
 
     /**
      * @brief   This method populates and updates the Tree view, and calls
@@ -639,6 +661,10 @@ public class Controller implements Initializable {
         updateInfoLabel("Initialization complete!");
     }
 
+    private void getStyleSheet() {
+        primaryStage.getScene().getStylesheets().add(Objects.requireNonNull(getClass().getResource("stylesheet.css")).toExternalForm());
+    }
+
     private void loadSystemIcons(){
         try {
             setIcon(file_newSubMenu, "assets/icons/new.png");
@@ -665,20 +691,3 @@ public class Controller implements Initializable {
             }
         }
 }
-
-//    public void updateProgressBar(double currentFilesCount) {
-//        double x = (currentFilesCount / filesCount);
-//        x = Math.max(0.0, Math.min(1.0, x));
-//        double mappedValue = (x - 0.0);
-//        // Assuming progressBar is an instance variable representing your ProgressBar
-//        progressBar.setProgress(mappedValue);
-//    }
-
-//    public static void updateProgressBar(double currentFilesCount) {
-//        double x = (currentFilesCount / filesCount);
-//        x = Math.max(0.0, Math.min(1.0, x));
-//        double mappedValue = (x - 0.0);
-//        Assuming progressBar is an instance variable representing your ProgressBar
-//        progressBar.setProgress(mappedValue);
-//    }
-
