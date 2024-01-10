@@ -69,38 +69,40 @@ public class CFileInfo extends FileInfoModel implements Serializable {
     }
 
     @Override
-    public List<String> getItemNames() {
-        List<String> itemNames = new ArrayList<>();
+    public List<ItemNameAndProperty> getItemNames() {
+        List<ItemNameAndProperty> itemNames = new ArrayList<>();
         if (externs != null){
             for (CExtern extern : externs){
-                itemNames.add(extern.getName());
+                itemNames.add(new ItemNameAndProperty(extern.getName(), ObjectType.EXTREN));
             }
         }
         if (macros != null){
             for (CMacro macro : macros){
-                itemNames.add(macro.getName());
+                itemNames.add(new ItemNameAndProperty(macro.getName(), ObjectType.MACRO));
             }
         }
         if (staticVars != null){
             for (CStaticVar staticVar : staticVars){
-                itemNames.add(staticVar.getName());
+                itemNames.add(new ItemNameAndProperty(staticVar.getName(), ObjectType.STATIC));
             }
         }
         if (structs != null){
             for (CStruct struct : structs){
-                itemNames.add(struct.getName());
+                itemNames.add(new ItemNameAndProperty(struct.getName(), ObjectType.STRUCT));
             }
         }
         if (enums != null){
             for (CEnum cEnum  : enums){
-                itemNames.add(cEnum.getName());
+                itemNames.add(new ItemNameAndProperty(cEnum.getName(), ObjectType.ENUM));
             }
         }
         if (functions != null){
             for (CFunction function  : functions){
-                itemNames.add(function.getName());
+                itemNames.add(new ItemNameAndProperty(function.getName(), ObjectType.FUNCTION));
             }
         }
         return itemNames;
     }
+
+
 }

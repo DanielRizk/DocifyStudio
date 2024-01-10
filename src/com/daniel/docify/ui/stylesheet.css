@@ -1,0 +1,125 @@
+body {
+    font-family: 'Calibri', sans-serif;
+}
+
+.groupCollapse {
+    width: 100%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+    cursor: pointer;
+    padding: 10px;
+    color: #ffffff;
+    margin-bottom: 5px;
+    font-size: 20px;
+}
+
+.groupCollapse.extern {
+    background-color: #422f17;
+}
+
+.groupCollapse.macro {
+    background-color: #092f46;
+}
+
+.groupCollapse.staticVar {
+    background-color: #865401;
+}
+
+.groupCollapse.enums {
+    background-color: #154127;
+}
+
+.groupCollapse.struct {
+    background-color: #7a2619;
+}
+
+.groupCollapse.function {
+    background-color: #6e2f8a;
+}
+
+.collapsible {
+    width: 98%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+    cursor: pointer;
+    padding: 10px;
+    color: #2C2C2CFF;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+
+.collapsible.expanded {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    margin-bottom: 0;
+}
+
+.collapsible.extern {
+    background-color: #aba38f;
+}
+
+.collapsible.macro {
+    background-color: #AED6F1;
+}
+
+.collapsible.staticVar {
+    background-color: #FAD7A0;
+}
+
+.collapsible.enums {
+    background-color: #A9DFBF;
+}
+
+.collapsible.struct {
+    background-color: #F5B7B1;
+}
+
+.collapsible.function {
+    background-color: #D7BDE2;
+}
+
+.content {
+    width: 98%;
+    box-sizing: border-box;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 10px;
+    display: none;
+    overflow: hidden;
+    background-color: #b0b4bb;
+    border-bottom-right-radius: 8px;
+    border-bottom-left-radius: 8px;
+    margin-bottom: 10px;
+}
+
+.content.macro {
+    background-color: #c9dae7;
+}
+
+.content.staticVar {
+    background-color: #ecdfcf;
+}
+
+.content.enums {
+    background-color: #c4dcce;
+}
+
+.content.struct {
+    background-color: #ecdad8;
+}
+
+.content.function {
+    background-color: #e1ddec;
+}
+
+.attr {
+    margin-bottom: 5px;
+    font-size: 14px;
+}
+
+.highlighted {
+    background-color: yellow;
+}

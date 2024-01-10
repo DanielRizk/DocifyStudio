@@ -12,7 +12,6 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
-<?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.layout.BorderPane?>
@@ -132,16 +131,8 @@
                      <children>
                         <TabPane>
                            <tabs>
-                              <Tab closable="false" text="File documentation">
-                                 <content>
-                                    <TextArea fx:id="mainDisplayTextArea" editable="false">
-                                       <font>
-                                          <Font name="Calibri" size="12.0" />
-                                       </font>
-                                    </TextArea>
-                                 </content>
-                              </Tab>
-                              <Tab fx:id="fileTab" closable="false" text="File content" />
+                              <Tab fx:id="fileDocumentationTab" closable="false" text="File documentation" />
+                              <Tab fx:id="fileContentTab" closable="false" text="File content" />
                            </tabs>
                         </TabPane>
                         <ListView fx:id="searchResultListView" onMouseClicked="#getFromSearchResult" visible="false" />

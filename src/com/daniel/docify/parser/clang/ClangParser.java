@@ -18,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -117,11 +119,14 @@ public class ClangParser extends ParserUtils{
 
             if (macroScope){
                 chunk.append(line);
+                Pattern pattern = Pattern.compile("\\\\(?!n)");
+                Matcher matcher = pattern.matcher(line);
                 if (line.contains("\\")){
                     do{
                         line = nextLine(reader);
+                        matcher = pattern.matcher(line);
                         chunk.append(line);
-                    }while (line.contains("\\"));
+                    }while (matcher.find());
                 }
                 CMacro macro = extractMacro(chunk.toString());
                 if (macro != null) {

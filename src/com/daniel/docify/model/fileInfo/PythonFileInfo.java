@@ -6,7 +6,7 @@ import java.util.List;
 
 public class PythonFileInfo extends FileInfoModel {
     @Override
-    public List<String> getItemNames() {
+    public List<ItemNameAndProperty> getItemNames() {
         return null;
     }
 }
