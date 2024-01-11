@@ -599,6 +599,7 @@ public class Controller implements Initializable {
             webViewDisplay.getEngine().loadContent("");
             fileContentListView.getItems().clear();
             searchResultListView.getItems().clear();
+            codeArea.clear();
             searchResultListView.setVisible(false);
             webViewDisplay.setVisible(true);
             primaryStage.setTitle("Docify Studio");
