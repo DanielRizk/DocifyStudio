@@ -38,6 +38,8 @@ public class ClangParser extends ParserUtils{
     @NotNull
     public static CFileInfo parseFile(FileNodeModel node) throws IOException {
 
+        currentLineNumber = 0;
+
         BufferedReader reader = new BufferedReader(new FileReader(node.getFullPath()));
 
         String fileContent = null;

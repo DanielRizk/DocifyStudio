@@ -1,0 +1,8 @@
+.keyword { -fx-fill: blue; }
+.preprocessor { -fx-fill: #6c5642; }
+.paren { -fx-fill: #336699; }
+.brace { -fx-fill: #336699; }
+.bracket { -fx-fill: #336699; }
+.semicolon { -fx-fill: #336699; }
+.string { -fx-fill: #f39e57; }
+.comment { -fx-fill: #008000; }

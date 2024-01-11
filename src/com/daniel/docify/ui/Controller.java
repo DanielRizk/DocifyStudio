@@ -1,9 +1,7 @@
 package com.daniel.docify.ui;
 
-
 import com.daniel.docify.component.Clang.*;
 import com.daniel.docify.model.FileNodeModel;
-import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.fileProcessor.UserConfiguration;
 import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.model.FileInfoModel.ItemNameAndProperty;
@@ -23,7 +21,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -37,33 +34,28 @@ import javafx.util.Duration;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import netscape.javascript.JSException;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
-import org.fxmisc.richtext.StyledTextArea;
-import org.fxmisc.richtext.model.*;
 import org.fxmisc.richtext.model.StyleSpans;
 import org.fxmisc.richtext.model.StyleSpansBuilder;
+import org.jetbrains.annotations.NotNull;
 
 
-import javax.swing.border.EmptyBorder;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 import static com.daniel.docify.core.Main.LOAD_ICONS;
 import static com.daniel.docify.core.Main.VERSION;
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcessDirectory;
-
 
 public class Controller implements Initializable {
 
@@ -85,13 +77,79 @@ public class Controller implements Initializable {
     VirtualizedScrollPane<CodeArea> codeAreaScrollPane = new VirtualizedScrollPane<>(codeArea);
 
 
+    private static final String[] KEYWORDS = new String[] {
+            "abstract", "assert", "boolean", "break", "byte",
+            "case", "catch", "char", "class", "const", "int",
+            "uint8_t","uint16_t","uint32_t","uin64_t","bool",
+            "float","struct","typedef", "static", "while",
+            "transient", "try", "void", "volatile",
+            "do", "double", "for", "if", "else",
+            "size_t", "switch", "case", "default"
+    };
+
+    private static final String[] PREPROCESSORS = new String[] {
+            "#define", "#include", "#ifdef", "#ifndef", "#else", "#if defined"
+    };
+
+    private static final String KEYWORD_PATTERN = "\\b(" + String.join("|", KEYWORDS) + ")\\b";
+    private static final String PREPROCESSOR_PATTERN = "(" + String.join("|", PREPROCESSORS) + ")\\b";
+    private static final String PAREN_PATTERN = "\\(\\)";
+    private static final String BRACE_PATTERN = "\\{\\}";
+    private static final String BRACKET_PATTERN = "\\[\\]";
+    private static final String SEMICOLON_PATTERN = "\\;";
+    private static final String STRING_PATTERN = "\"([^\"\\\\]|\\\\.)*\"";
+    private static final String COMMENT_PATTERN = "//[^\n]*" + "|" + "/\\*(.|\\R)*?\\*/";
+
+    private static final Pattern PATTERN = Pattern.compile(
+            "(?<KEYWORD>" + KEYWORD_PATTERN + ")"
+                    + "|(?<PREPROCESSOR>" + PREPROCESSOR_PATTERN + ")"
+                    + "|(?<PAREN>" + PAREN_PATTERN + ")"
+                    + "|(?<BRACE>" + BRACE_PATTERN + ")"
+                    + "|(?<BRACKET>" + BRACKET_PATTERN + ")"
+                    + "|(?<SEMICOLON>" + SEMICOLON_PATTERN + ")"
+                    + "|(?<STRING>" + STRING_PATTERN + ")"
+                    + "|(?<COMMENT>" + COMMENT_PATTERN + ")"
+    );
+
+    private static StyleSpans<Collection<String>> computeHighlighting(String text) {
+        Matcher matcher = PATTERN.matcher(text);
+        int lastKwEnd = 0;
+        StyleSpansBuilder<Collection<String>> spansBuilder = new StyleSpansBuilder<>();
+
+        while (matcher.find()) {
+            String styleClass = getStyleClass(matcher);
+            spansBuilder.add(Collections.emptyList(), matcher.start() - lastKwEnd);
+            spansBuilder.add(Collections.singleton(styleClass), matcher.end() - matcher.start());
+            lastKwEnd = matcher.end();
+        }
+        spansBuilder.add(Collections.emptyList(), text.length() - lastKwEnd);
+        return spansBuilder.create();
+    }
+
+    @NotNull
+    private static String getStyleClass(Matcher matcher) {
+        String styleClass =
+                matcher.group("KEYWORD") != null ? "keyword" :
+                        matcher.group("PREPROCESSOR") != null ? "preprocessor" :
+                            matcher.group("PAREN") != null ? "paren" :
+                                    matcher.group("BRACE") != null ? "brace" :
+                                            matcher.group("BRACKET") != null ? "bracket" :
+                                                    matcher.group("SEMICOLON") != null ? "semicolon" :
+                                                            matcher.group("STRING") != null ? "string" :
+                                                                    matcher.group("COMMENT") != null ? "comment" :
+                                                                            null; /* never happens */
+        assert styleClass != null;
+        return styleClass;
+    }
+
+
     @FXML
     private Tab fileContentTab;
 
     @FXML
     private Tab fileDocumentationTab;
 
-    private final WebView mainDisplayTextArea = new WebView();
+    private final WebView webViewDisplay = new WebView();
 
     @FXML
     private ListView<FileNodeModel> explorerListView = new ListView<>();
@@ -168,18 +226,18 @@ public class Controller implements Initializable {
      *          list method
      *
      */
-    private void updateMainTextArea(FileInfoModel fileInfo) {
+    private void compileWebViewDisplay(FileInfoModel fileInfo) {
 
         searchResultListView.setVisible(false);
         searchResultListView.getItems().clear();
-        mainDisplayTextArea.setVisible(true);
+        webViewDisplay.setVisible(true);
 
         String pageHtmlStyling = htmlContent.toString();
         StringBuilder dynamicHtmlContent = new StringBuilder();
 
 
 
-        mainDisplayTextArea.getEngine().loadContent("");
+        webViewDisplay.getEngine().loadContent("");
 
         int id = 0;
 
@@ -187,6 +245,9 @@ public class Controller implements Initializable {
             CFileInfo cFileInfo = (CFileInfo) fileInfo;
             codeArea.clear();
             codeArea.replaceText(0, 0, cFileInfo.getFileContent());
+            codeArea.showParagraphAtTop(0);
+
+            primaryStage.setTitle("Docify Studio - " + rootNode.getName() + " - " + ((CFileInfo) fileInfo).getFileName());
 
             StringBuilder externContent = new StringBuilder();
             String externsContainerId = "externs-container";
@@ -196,8 +257,8 @@ public class Controller implements Initializable {
                 hasExterns = true;
                 String contentID = "content-"+ (id++);
                 if (extern.getName() != null)
-                    externContent.append("<div class='collapsible extern' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>Extern Name:</b> ")
-                            .append(extern.getName()).append("</div>");
+                    externContent.append("<div class='collapsible extern' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>")
+                            .append(extern.getName()).append("</b>").append("</div>");
                 externContent.append("<div class='content extern' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
                 if (extern.getValue() != null) {
                     externContent.append("<div class='attr'><b>Extern value:</b> ").append(extern.getValue()).append("</div>");
@@ -223,8 +284,8 @@ public class Controller implements Initializable {
                 hasMacros = true;
                 String contentID = "content-"+ (id++);
                 if (macro.getName() != null)
-                    macroContent.append("<div class='collapsible macro' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>Macro Name:</b> ")
-                            .append(macro.getName()).append("</div>");
+                    macroContent.append("<div class='collapsible macro' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>")
+                            .append(macro.getName()).append("</b>").append("</div>");
                 macroContent.append("<div class='content macro' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
                 if (macro.getValue() != null) {
                     macroContent.append("<div class='attr'><b>Macro value:</b> ").append(macro.getValue()).append("</div>");
@@ -254,8 +315,8 @@ public class Controller implements Initializable {
                 hasStatics = true;
                 String contentID = "content-"+ (id++);
                 if (var.getName() != null)
-                    staticVarContent.append("<div class='collapsible staticVar' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>Static variable Name:</b> ")
-                            .append(var.getName()).append("</div>");
+                    staticVarContent.append("<div class='collapsible staticVar' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>")
+                            .append(var.getName()).append("</b>").append("</div>");
                 staticVarContent.append("<div class='content staticVar' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
                 if (var.getValue() != null) {
                     staticVarContent.append("<div class='attr'><b>Static variable value:</b> ").append(var.getValue()).append("</div>");
@@ -293,8 +354,8 @@ public class Controller implements Initializable {
                 hasEnums = true;
                 String contentID = "content-"+ (id++);
                 if (en.getName() != null)
-                    enumContent.append("<div class='collapsible enums' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>Enum Name:</b> ")
-                            .append(en.getName()).append("</div>");
+                    enumContent.append("<div class='collapsible enums' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>")
+                            .append(en.getName()).append("</b>").append("</div>");
                 enumContent.append("<div class='content enums' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
                 if (en.getDocumentation() != null) {
                     enumContent.append("<div class='attr'><b>Enum Brief:</b> ").append(en.getDocumentation()).append("</div>");
@@ -336,8 +397,8 @@ public class Controller implements Initializable {
                 hasStructs = true;
                 String contentID = "content-"+ (id++);
                 if (st.getName() != null)
-                    structContent.append("<div class='collapsible struct' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>Struct Name:</b> ")
-                            .append(st.getName()).append("</div>");
+                    structContent.append("<div class='collapsible struct' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>")
+                            .append(st.getName()).append("</b>").append("</div>");
                 structContent.append("<div class='content struct' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
                 if (st.getDocumentation() != null) {
                     structContent.append("<div class='attr'><b>Struct Brief:</b> ").append(st.getDocumentation()).append("</div>");
@@ -376,8 +437,8 @@ public class Controller implements Initializable {
                 hasFunctions = true;
                 String contentID = "content-"+ (id++);
                 if (fun.getName() != null)
-                    functionsContent.append("<div class='collapsible function' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>Function Name:</b> ")
-                            .append(fun.getName()).append("</div>");
+                    functionsContent.append("<div class='collapsible function' onclick=\"toggleCollapse('").append(contentID).append("')\"><b>")
+                            .append(fun.getName()).append("</b>").append("</div>");
                 functionsContent.append("<div class='content function' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
                 if (fun.getDocumentation() != null) {
                     functionsContent.append("<div class='attr'><b>Function Brief:</b> ").append(fun.getDocumentation()).append("</div>");
@@ -400,10 +461,13 @@ public class Controller implements Initializable {
                         .append("</div>");
             }
         }
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            codeArea.setStyleSpans(0, computeHighlighting(newText));
+        });
 
-        String finalPage = pageHtmlStyling.replace("<!-- Your dynamic HTML content will be appended here -->", dynamicHtmlContent.toString());
+        String finalPage = pageHtmlStyling.replace("<!-- dynamic HTML content placeholder -->", dynamicHtmlContent.toString());
 
-        mainDisplayTextArea.getEngine().loadContent(finalPage);
+        webViewDisplay.getEngine().loadContent(finalPage);
         assert fileInfo != null;
         updateFileContentListView(fileInfo);
     }
@@ -438,7 +502,7 @@ public class Controller implements Initializable {
     void scrollToLine(String selectedItem) {
         if (selectedItem != null && !selectedItem.isEmpty()) {
             try {
-                mainDisplayTextArea.getEngine().executeScript("highlightSearch('" + escapeJavaScriptString(selectedItem) + "')");
+                webViewDisplay.getEngine().executeScript("highlightSearch('" + escapeJavaScriptString(selectedItem) + "')");
             } catch (JSException e) {
                 LOGGER.log(Level.SEVERE, "Error executing highlightSearch script", e);
             }
@@ -457,14 +521,14 @@ public class Controller implements Initializable {
         SearchResultModel selectedItem = searchResultListView.getSelectionModel().getSelectedItem();
 
         if (searchResultListView.getSelectionModel().getSelectedItem() != null) {
-            mainDisplayTextArea.getEngine().loadContent("");
-            updateMainTextArea(selectedItem.getParentFileNode().getFileInfo());
+            webViewDisplay.getEngine().loadContent("");
+            compileWebViewDisplay(selectedItem.getParentFileNode().getFileInfo());
         }
         searchResultListView.getItems().clear();
         searchResultListView.setVisible(false);
-        mainDisplayTextArea.setVisible(true);
+        webViewDisplay.setVisible(true);
 
-        mainDisplayTextArea.getEngine().getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
+        webViewDisplay.getEngine().getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
                 // Now that the page has loaded, we can highlight the search term
                 if (selectedItem != null) scrollToLine(selectedItem.toString());
@@ -481,14 +545,14 @@ public class Controller implements Initializable {
     void treeViewFileSelection(MouseEvent event) {
         if(explorerTreeView.getSelectionModel().getSelectedItem() != null &&
                 explorerTreeView.getSelectionModel().getSelectedItem().isLeaf()){
-            updateMainTextArea(explorerTreeView.getSelectionModel().getSelectedItem().getValue().getFileInfo());
+            compileWebViewDisplay(explorerTreeView.getSelectionModel().getSelectedItem().getValue().getFileInfo());
         }
     }
 
     @FXML
     void listViewFileSelection(MouseEvent event) {
         if(explorerListView.getSelectionModel().getSelectedItem() != null){
-            updateMainTextArea(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
+            compileWebViewDisplay(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
     }
 
@@ -523,16 +587,20 @@ public class Controller implements Initializable {
 
     @FXML
     void closeOpenedProject(ActionEvent event) {
+        closeRoutine();
+    }
+
+    private void closeRoutine(){
         if (rootNode != null) {
             rootNode = null;
             explorerTreeView.setRoot(null);
             explorerListView.getItems().clear();
             items.clear();
-            mainDisplayTextArea.getEngine().loadContent("");
+            webViewDisplay.getEngine().loadContent("");
             fileContentListView.getItems().clear();
             searchResultListView.getItems().clear();
             searchResultListView.setVisible(false);
-            mainDisplayTextArea.setVisible(true);
+            webViewDisplay.setVisible(true);
             primaryStage.setTitle("Docify Studio");
             infoLabel.setText(null);
         }
@@ -558,10 +626,10 @@ public class Controller implements Initializable {
             List<SearchResultModel> result = searchList(searchKeyword);
 
             if (!result.isEmpty()){
-                mainDisplayTextArea.getEngine().loadContent("");
+                webViewDisplay.getEngine().loadContent("");
                 searchResultListView.getItems().clear();
                 fileContentListView.getItems().clear();
-                mainDisplayTextArea.setVisible(false);
+                webViewDisplay.setVisible(false);
                 searchResultListView.getItems().addAll(result);
                 searchResultListView.setVisible(true);
                 updateInfoLabel(result.size()+" records found");
@@ -604,6 +672,7 @@ public class Controller implements Initializable {
         File selectedDir = fileChooser.showOpenDialog(null);
 
         if (selectedDir != null) {
+            closeRoutine();
             System.out.println("Selected Directory " + selectedDir.getParent());
             UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
 
@@ -618,6 +687,8 @@ public class Controller implements Initializable {
                 alert.setContentText("Error opening file");
                 alert.showAndWait();
             }
+            primaryStage.setTitle("Docify Studio - "+rootNode.getName());
+            updateInfoLabel("Project Documentation -"+rootNode.getName()+"- loaded successfully");
         }
     }
 
@@ -695,6 +766,9 @@ public class Controller implements Initializable {
         File selectedDir = directoryChooser.showDialog(new Stage());
 
         if (selectedDir != null) {
+
+            closeRoutine();
+
             System.out.println("Selected Directory " + selectedDir.getAbsolutePath());
             UserConfiguration.saveUserLastOpenConfig(selectedDir.getAbsolutePath());
 
@@ -708,7 +782,6 @@ public class Controller implements Initializable {
             }
             primaryStage.setTitle("Docify Studio - "+rootNode.getName());
             updateInfoLabel("Project Documentation -"+rootNode.getName()+"- created successfully");
-            //getStyleSheet();
         }
     }
 
@@ -739,8 +812,17 @@ public class Controller implements Initializable {
     private TreeItem<FileNodeModel> convertToTreeItem(FileNodeModel fileNode) throws MalformedURLException {
 
         TreeItem<FileNodeModel> treeItem = new TreeItem<>(fileNode);
+        treeItem.setExpanded(true);
         if (fileNode.isFile()){
-            treeItem.setGraphic(setIcon("assets/icons/file.png"));
+            if (fileNode.getName().endsWith(CProject)) {
+                treeItem.setGraphic(setIcon("assets/icons/c_header.png")); // path to your file icon
+            } else if (fileNode.getName().endsWith(".c") || fileNode.getName().endsWith(".cpp")){
+                treeItem.setGraphic(setIcon("assets/icons/c_src.png")); // path to your folder icon
+            } else if (fileNode.getName().endsWith(JavaProject)) {
+                treeItem.setGraphic(setIcon("assets/icons/java_file.png")); // path to your folder icon
+            } else if (fileNode.getName().endsWith(PythonProject)) {
+                treeItem.setGraphic(setIcon("assets/icons/py_file.png")); // path to your folder icon
+            }
         }
         else{
             treeItem.setGraphic(setIcon("assets/icons/open.png"));
@@ -761,9 +843,9 @@ public class Controller implements Initializable {
     }
 
     /**
-     * @brief   This method generates a list of FileNodeModel
-     *          from the root node and adds it to the global
-     *          list container
+     * This method generates a list of FileNodeModel
+     * from the root node and adds it to the global
+     * list container
      */
     private void generateListview(FileNodeModel fileNode){
         if (fileNode.isFile()) {
@@ -775,8 +857,8 @@ public class Controller implements Initializable {
     }
 
     /**
-     * @brief   This method generates a filtered list from the original list
-     *          and updates the list view based on the filter selection
+     * This method generates a filtered list from the original list
+     * and updates the list view based on the filter selection
      */
     private ObservableList<FileNodeModel> updateFilteredListView(){
         ObservableList<FileNodeModel> filteredItems = FXCollections.observableArrayList();
@@ -792,10 +874,10 @@ public class Controller implements Initializable {
     }
 
     /**
-     * @brief   This method generates a list of all items names contained
-     *          in a file, gets triggered whenever a file is selected from
-     *          the tree view or the list view, and called by update main
-     *          text display method
+     * This method generates a list of all items names contained
+     * in a file, gets triggered whenever a file is selected from
+     * the tree view or the list view, and called by update main
+     * text display method
      */
     private void updateFileContentListView(FileInfoModel fileInfoModel){
         fileContentListView.getItems().clear();
@@ -806,6 +888,7 @@ public class Controller implements Initializable {
         }
         else {
             updateInfoLabel("File has no documentation!");
+            primaryStage.setTitle("Docify Studio - " + rootNode.getName());
         }
         fileContentListView.getItems().addAll(fileContentList);
     }
@@ -844,24 +927,44 @@ public class Controller implements Initializable {
     public void initialize(URL url, ResourceBundle resourceBundle) {
         if (LOAD_ICONS) loadSystemIcons();
 
-        codeArea.setEditable(false);
-        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
         fileContentTab.setContent(codeAreaScrollPane);
+        fileDocumentationTab.setContent(webViewDisplay);
 
-        fileDocumentationTab.setContent(mainDisplayTextArea);
-        mainDisplayTextArea.getEngine().setJavaScriptEnabled(true);
+        initializeCodeArea();
+        initializeFileContentListView();
+        initializeExplorerListView();
+        loadWebViewStyling();
 
         progressBar.setVisible(false);
         progressBar.setStyle("-fx-accent: green;");
-
-        loadWebViewStyling();
-
-        initializeListView();
 
         infoLabel.setText("");
         versionLabel.setText(VERSION);
         updateInfoLabel("Initialization complete!");
     }
+
+    private void initializeCodeArea(){
+        codeArea.setEditable(false);
+        codeArea.setParagraphGraphicFactory(LineNumberFactory.get(codeArea));
+        try {
+            loadCodeAreaStylesheet();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        codeArea.textProperty().addListener((obs, oldText, newText) -> {
+            codeArea.setStyleSpans(0, computeHighlighting(newText));
+        });
+    }
+
+    private void loadCodeAreaStylesheet() throws IOException {
+        File file = new File("src/com/daniel/docify/ui/syntax.css");
+        if (!file.exists()) {
+            throw new FileNotFoundException("File not found: " + "src/com/daniel/docify/ui/syntax.css");
+        }
+        String stylesheet = file.toURI().toURL().toExternalForm();
+        codeArea.getStylesheets().add(stylesheet);
+    }
+
 
     private String readFileToString(String path) throws IOException {
         try (InputStream is = getClass().getClassLoader().getResourceAsStream(path)) {
@@ -874,6 +977,7 @@ public class Controller implements Initializable {
 
     private void loadWebViewStyling() {
         try {
+            webViewDisplay.getEngine().setJavaScriptEnabled(true);
             String cssContent = readFileToString("com/daniel/docify/ui/stylesheet.css");
             String jsContent = readFileToString("com/daniel/docify/ui/script.js");
             String htmlTemplate = readFileToString("com/daniel/docify/ui/index.html");
@@ -889,11 +993,21 @@ public class Controller implements Initializable {
     }
 
 
-    private void initializeListView(){
+    private void initializeFileContentListView(){
         fileContentListView.setCellFactory(new Callback<ListView<ItemNameAndProperty>, ListCell<ItemNameAndProperty>>() {
             @Override
             public ListCell<ItemNameAndProperty> call(ListView<ItemNameAndProperty> listView) {
-                return new ItemCell();
+                return new FileContentItemCell();
+            }
+        });
+
+    }
+
+    private void initializeExplorerListView(){
+        explorerListView.setCellFactory(new Callback<ListView<FileNodeModel>, ListCell<FileNodeModel>>() {
+            @Override
+            public ListCell<FileNodeModel> call(ListView<FileNodeModel> listView) {
+                return new ExplorerItemCell();
             }
         });
 
@@ -925,9 +1039,9 @@ public class Controller implements Initializable {
             }
         }
 
-    public class ItemCell extends ListCell<ItemNameAndProperty> {
-        private ImageView imageView = new ImageView();
-        private Text text = new Text();
+    public static class FileContentItemCell extends ListCell<ItemNameAndProperty> {
+        private final ImageView imageView = new ImageView();
+        private final Text text = new Text();
 
         @Override
         protected void updateItem(ItemNameAndProperty item, boolean empty) {
@@ -986,7 +1100,6 @@ public class Controller implements Initializable {
                         }
                         text.setFill(Color.web("#541f80"));
                         break;
-                    // Add more cases as needed for other types
                     default:
                         try {
                             imageView.setImage(setIconForList("assets/icons/cprog.png"));
@@ -997,9 +1110,55 @@ public class Controller implements Initializable {
                         break;
                 }
 
-                // Create an HBox to hold the icon and text if you need to display both
                 imageView.setFitHeight(20.0);
                 imageView.setFitWidth(20.0);
+                HBox cellBox = new HBox(imageView, text);
+                cellBox.setSpacing(10); // Set spacing as needed
+                setGraphic(cellBox);
+            }
+        }
+
+        private Image setIconForList(String iconPath) throws FileNotFoundException {
+            FileInputStream input = new FileInputStream(iconPath);
+            return new Image(input);
+        }
+    }
+
+    public static class ExplorerItemCell extends ListCell<FileNodeModel> {
+        private final ImageView imageView = new ImageView();
+        private final Text text = new Text();
+
+        @Override
+        protected void updateItem(FileNodeModel node, boolean empty) {
+            super.updateItem(node, empty);
+
+            if (empty || node == null) {
+                text.setText(null);
+                imageView.setImage(null);
+                setGraphic(null);
+            } else {
+                text.setText(node.getName()); // Use your actual getter method for the name
+
+                try {
+                    if (node.getName().endsWith(CProject)) {
+                        imageView.setImage(setIconForList("assets/icons/c_header.png")); // path to your file icon
+                        text.setFill(Color.web("#28725f"));
+                    } else if (node.getName().endsWith(".c") || node.getName().endsWith(".cpp")){
+                        imageView.setImage(setIconForList("assets/icons/c_src.png")); // path to your folder icon
+                        text.setFill(Color.web("#4b245b"));
+                    } else if (node.getName().endsWith(JavaProject)) {
+                        imageView.setImage(setIconForList("assets/icons/java_file.png")); // path to your folder icon
+                        text.setFill(Color.web("#824d00"));
+                    } else if (node.getName().endsWith(PythonProject)) {
+                    imageView.setImage(setIconForList("assets/icons/py_file.png")); // path to your folder icon
+                    text.setFill(Color.web("#62664d"));
+                    }
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                }
+
+                imageView.setFitHeight(30.0);
+                imageView.setFitWidth(30.0);
                 HBox cellBox = new HBox(imageView, text);
                 cellBox.setSpacing(10); // Set spacing as needed
                 setGraphic(cellBox);
