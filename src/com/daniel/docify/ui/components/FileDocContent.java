@@ -13,13 +13,14 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
-
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 
+/**
+ * This Class represents the right pane of the UI, and it contains file specific info
+ * such as the names of all components contained within the file.*/
+
 public class FileDocContent extends ControllerUtils {
-
-
 
     public FileDocContent(Controller controller){
         super(controller);
@@ -28,25 +29,25 @@ public class FileDocContent extends ControllerUtils {
     /**
      * This method generates a list of all items names contained
      * in a file, gets triggered whenever a file is selected from
-     * the tree view or the list view, and called by update main
-     * text display method
+     * the tree view or the list view.
      */
     public void updateFileContentListView(FileInfoModel fileInfoModel){
-        controller.fileContentListView.getItems().clear();
+        controller.getFileContentListView().getItems().clear();
         ObservableList<FileInfoModel.ItemNameAndProperty> fileContentList = FXCollections.observableArrayList();
         fileContentList.clear();
         if(fileInfoModel != null){
             fileContentList.addAll(fileInfoModel.getItemNames());
         }
-        else {
-            updateInfoLabel("File has no documentation!");
-            controller.primaryStage.setTitle("Docify Studio - " + Controller.rootNode.getName());
-        }
-        controller.fileContentListView.getItems().addAll(fileContentList);
+        controller.getFileContentListView().getItems().addAll(fileContentList);
     }
 
+    /**
+     * This method initializes the fileContentListView and assigns cell factory
+     * in order to stylize the text and add an icon to each entry according to
+     * certain rules.
+     */
     public void initializeFileContentListView(){
-        controller.fileContentListView.setCellFactory(new Callback<ListView<FileInfoModel.ItemNameAndProperty>, ListCell<FileInfoModel.ItemNameAndProperty>>() {
+        controller.getFileContentListView().setCellFactory(new Callback<ListView<FileInfoModel.ItemNameAndProperty>, ListCell<FileInfoModel.ItemNameAndProperty>>() {
             @Override
             public ListCell<FileInfoModel.ItemNameAndProperty> call(ListView<FileInfoModel.ItemNameAndProperty> listView) {
                 return new FileDocContent.FileContentItemCell();
@@ -54,7 +55,11 @@ public class FileDocContent extends ControllerUtils {
         });
     }
 
-    public static class FileContentItemCell extends ListCell<FileInfoModel.ItemNameAndProperty> {
+    /**
+     * This subclass assists the cell factory of the fileContentListView, and it contains the
+     * logic behind styling the cells.
+     */
+    private static class FileContentItemCell extends ListCell<FileInfoModel.ItemNameAndProperty> {
         private final ImageView imageView = new ImageView();
         private final Text text = new Text();
 
@@ -128,11 +133,15 @@ public class FileDocContent extends ControllerUtils {
                 imageView.setFitHeight(20.0);
                 imageView.setFitWidth(20.0);
                 HBox cellBox = new HBox(imageView, text);
-                cellBox.setSpacing(10); // Set spacing as needed
+                cellBox.setSpacing(10);
                 setGraphic(cellBox);
             }
         }
 
+        /**
+         * This method is a helper method used to load an icon and returns
+         * an Image object.
+         */
         private Image setIconForList(String iconPath) throws FileNotFoundException {
             FileInputStream input = new FileInputStream(iconPath);
             return new Image(input);

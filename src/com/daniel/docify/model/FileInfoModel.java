@@ -11,6 +11,16 @@ import java.util.List;
  */
 public abstract class FileInfoModel implements Serializable{
 
+    private String htmlContent = null;
+
+    public String getHtmlContent(){
+        return htmlContent;
+    }
+
+    public void setHtmlContent(String htmlContent){
+        this.htmlContent = htmlContent;
+    }
+
 
     /**
      * @brief   This method returns all the function and struct names

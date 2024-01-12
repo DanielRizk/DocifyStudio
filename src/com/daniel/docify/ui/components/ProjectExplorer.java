@@ -19,18 +19,27 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
 
+/**
+ * This class represents the left pane of the UI, and it contains the TreeView structure
+ * and the ListView of all the file within the project.
+ */
 public class ProjectExplorer extends ControllerUtils{
 
 
-    public final ObservableList<FileNodeModel> projectNodesList = FXCollections.observableArrayList();
+    private final ObservableList<FileNodeModel> projectNodesList = FXCollections.observableArrayList();
 
     public ProjectExplorer(Controller controller){
         super(controller);
     }
 
+    /* getter methods for private variables */
+    public ObservableList<FileNodeModel> getProjectNodesList(){
+        return projectNodesList;
+    }
+
     /**
-     * @brief   This method populates and updates the Tree view, and calls
-     *          the generateListView method
+     * This method populates and updates the TreeView of the UI with the current {@link FileNodeModel} object selected,
+     * and it calls the methods to update the ListView.
      */
     public void updateTreeView(FileNodeModel rootFileNode) throws MalformedURLException {
         TreeItem<FileNodeModel> treeItem;
@@ -40,7 +49,7 @@ public class ProjectExplorer extends ControllerUtils{
         else {
             treeItem = convertToTreeItem(rootFileNode);
         }
-        controller.explorerTreeView.setRoot(treeItem);
+        controller.getExplorerTreeView().setRoot(treeItem);
         assert rootFileNode != null;
         projectNodesList.clear();
         generateExplorerListview(rootFileNode);
@@ -48,8 +57,9 @@ public class ProjectExplorer extends ControllerUtils{
     }
 
     /**
-     * @brief   This method converts FileNodeModel instances to TreeItem model
-     *          to be compatible with TreeView model
+     * This method converts FileNodeModel instances to TreeItem model
+     * to be compatible with TreeView model, and it is also responsible for
+     * assigning icon to the directories and files in the tree.
      */
     private TreeItem<FileNodeModel> convertToTreeItem(FileNodeModel fileNode) throws MalformedURLException {
 
@@ -76,9 +86,8 @@ public class ProjectExplorer extends ControllerUtils{
     }
 
     /**
-     * This method generates a list of FileNodeModel
-     * from the root node and adds it to the global
-     * list container
+     * This method generates a list of FileNodeModel from the current RootNode and adds it to the project nodes
+     * list container.
      */
     private void generateExplorerListview(FileNodeModel fileNode){
         if (fileNode.isFile()) {
@@ -90,33 +99,30 @@ public class ProjectExplorer extends ControllerUtils{
     }
 
     /**
-     * @brief   This method sets and updates the list view
-     *          whenever a new project is created
+     * This method generates a filtered list of the projectNodesList
+     * based on user inputs and updates the ListView in the UI.
      */
-    private void updateExplorerListView(){
-        controller.explorerListView.getItems().clear();
-        updateFilteredListView();
-    }
-
-    /**
-     * This method generates a filtered list from the original list
-     * and updates the list view based on the filter selection
-     */
-    public ObservableList<FileNodeModel> updateFilteredListView(){
+    public ObservableList<FileNodeModel> updateExplorerListView(){
+        controller.getExplorerListView().getItems().clear();
         ObservableList<FileNodeModel> filteredItems = FXCollections.observableArrayList();
         filteredItems.clear();
         for(FileNodeModel fileNode : projectNodesList){
-            if (fileNode.getFileInfo() != null || !controller.documentedFilesCheckbox.isSelected()){
+            if (fileNode.getFileInfo() != null || !controller.getDocumentedFilesCheckbox().isSelected()){
                 filteredItems.add(fileNode);
             }
         }
-        controller.explorerListView.getItems().clear();
-        controller.explorerListView.getItems().addAll(filteredItems);
+        controller.getExplorerListView().getItems().clear();
+        controller.getExplorerListView().getItems().addAll(filteredItems);
         return filteredItems;
     }
 
+    /**
+     * This method initializes the explorerListView and assigns cell factory
+     * in order to stylize the text and add an icon to each entry according to
+     * certain rules.
+     */
     public void initializeExplorerListView(){
-        controller.explorerListView.setCellFactory(new Callback<ListView<FileNodeModel>, ListCell<FileNodeModel>>() {
+        controller.getExplorerListView().setCellFactory(new Callback<ListView<FileNodeModel>, ListCell<FileNodeModel>>() {
             @Override
             public ListCell<FileNodeModel> call(ListView<FileNodeModel> listView) {
                 return new ProjectExplorer.ExplorerItemCell();
@@ -125,6 +131,10 @@ public class ProjectExplorer extends ControllerUtils{
 
     }
 
+    /**
+     * This subclass assists the cell factory of the explorerListView, and it contains the
+     * logic behind styling the cells.
+     */
     public static class ExplorerItemCell extends ListCell<FileNodeModel> {
         private final ImageView imageView = new ImageView();
         private final Text text = new Text();
@@ -138,20 +148,20 @@ public class ProjectExplorer extends ControllerUtils{
                 imageView.setImage(null);
                 setGraphic(null);
             } else {
-                text.setText(node.getName()); // Use your actual getter method for the name
+                text.setText(node.getName());
 
                 try {
                     if (node.getName().endsWith(Controller.CProject)) {
-                        imageView.setImage(setIconForList("assets/icons/c_header.png")); // path to your file icon
+                        imageView.setImage(setIconForList("assets/icons/c_header.png"));
                         text.setFill(Color.web("#28725f"));
                     } else if (node.getName().endsWith(".c") || node.getName().endsWith(".cpp")){
-                        imageView.setImage(setIconForList("assets/icons/c_src.png")); // path to your folder icon
+                        imageView.setImage(setIconForList("assets/icons/c_src.png"));
                         text.setFill(Color.web("#4b245b"));
                     } else if (node.getName().endsWith(Controller.JavaProject)) {
-                        imageView.setImage(setIconForList("assets/icons/java_file.png")); // path to your folder icon
+                        imageView.setImage(setIconForList("assets/icons/java_file.png"));
                         text.setFill(Color.web("#824d00"));
                     } else if (node.getName().endsWith(Controller.PythonProject)) {
-                        imageView.setImage(setIconForList("assets/icons/py_file.png")); // path to your folder icon
+                        imageView.setImage(setIconForList("assets/icons/py_file.png"));
                         text.setFill(Color.web("#62664d"));
                     }
                 } catch (FileNotFoundException e) {
@@ -161,11 +171,15 @@ public class ProjectExplorer extends ControllerUtils{
                 imageView.setFitHeight(30.0);
                 imageView.setFitWidth(30.0);
                 HBox cellBox = new HBox(imageView, text);
-                cellBox.setSpacing(10); // Set spacing as needed
+                cellBox.setSpacing(10);
                 setGraphic(cellBox);
             }
         }
 
+        /**
+         * This method is a helper method used to load an icon and returns
+         * an Image object.
+         */
         private Image setIconForList(String iconPath) throws FileNotFoundException {
             FileInputStream input = new FileInputStream(iconPath);
             return new Image(input);

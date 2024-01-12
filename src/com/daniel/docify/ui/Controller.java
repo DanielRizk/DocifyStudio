@@ -27,15 +27,19 @@ import static com.daniel.docify.core.Main.LOAD_ICONS;
 import static com.daniel.docify.core.Main.VERSION;
 import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcessDirectory;
 
+/**
+ * This class is the controller for JavaFX SceneBuilder, It manages all the actions
+ * from the user in the UI
+ */
 public class Controller implements Initializable {
 
     /* Core variables */
-    public static FileNodeModel rootNode = null;
-    public Stage primaryStage;
+    private FileNodeModel rootNode = null;
+    private Stage primaryStage;
 
     /* UI components objects */
     public final ControllerUtils utils = new ControllerUtils(this);
-    private final MenuBarActions menuActions = new MenuBarActions(this);
+    public final MenuBarActions menuActions = new MenuBarActions(this);
     public final ProjectExplorer explorer = new ProjectExplorer(this);
     public final FileDocContent docContent = new FileDocContent(this);
     public final MainWindow mainWindow = new MainWindow(this);
@@ -49,18 +53,28 @@ public class Controller implements Initializable {
     public final static String PythonProject    = ".py";
     public final static String JavaProject      = ".java";
 
-    /* getters and setter for private Variables */
+    /* getters and setters for private Variables */
+    public FileNodeModel getRootNode(){
+        return rootNode;
+    }
 
+    public Stage getPrimaryStage(){
+        return primaryStage;
+    }
+
+    public void setRootNode(FileNodeModel node){
+        this.rootNode = node;
+    }
 
     /* JavaFX SceneBuilder specific variables */
     @FXML
-    public TreeView<FileNodeModel> explorerTreeView;
+    private TreeView<FileNodeModel> explorerTreeView;
     @FXML
-    public ListView<FileNodeModel> explorerListView = new ListView<>();
+    private ListView<FileNodeModel> explorerListView = new ListView<>();
     @FXML
-    public ListView<ItemNameAndProperty> fileContentListView;
+    private ListView<ItemNameAndProperty> fileContentListView;
     @FXML
-    public ListView<ControllerUtils.SearchResultModel> searchResultListView;
+    private ListView<ControllerUtils.SearchResultModel> searchResultListView;
     @FXML
     private Menu file_saveAsSubMenu;
     @FXML
@@ -84,17 +98,53 @@ public class Controller implements Initializable {
     @FXML
     private Tab fileDocumentationTab;
     @FXML
-    public CheckBox documentedFilesCheckbox;
+    private CheckBox documentedFilesCheckbox;
     @FXML
-    public Label infoLabel;
+    private Label infoLabel;
     @FXML
     private Label versionLabel;
     @FXML
-    public TextField searchBar;
+    private TextField searchBar;
     @FXML
-    public ProgressBar progressBar;
+    private ProgressBar progressBar;
+
+    /* getters for JavaFX objects Variables */
+
+    public TreeView<FileNodeModel> getExplorerTreeView(){
+        return explorerTreeView;
+    }
+
+    public ListView<FileNodeModel> getExplorerListView(){
+        return explorerListView;
+    }
+
+    public ListView<ItemNameAndProperty> getFileContentListView(){
+        return fileContentListView;
+    }
+
+    public ListView<ControllerUtils.SearchResultModel> getSearchResultListView(){
+        return searchResultListView;
+    }
+
+    public CheckBox getDocumentedFilesCheckbox(){
+        return documentedFilesCheckbox;
+    }
+
+    public Label getInfoLabel(){
+        return infoLabel;
+    }
+
+    public TextField getSearchBar(){
+        return searchBar;
+    }
+
+    public ProgressBar getProgressBar(){
+        return progressBar;
+    }
+
 
     /* JavaFX SceneBuilder specific methods */
+
     @FXML
     void cProjectMenuItemStart(ActionEvent event) {
         menuActions.startNew(CProject);
@@ -168,7 +218,7 @@ public class Controller implements Initializable {
 
     @FXML
     void isDocumentedFilesCheckbox(MouseEvent event) {
-        explorer.updateFilteredListView();
+        explorer.updateExplorerListView();
     }
 
 
@@ -183,7 +233,7 @@ public class Controller implements Initializable {
         if (LOAD_ICONS) loadSystemIcons();
 
         fileContentTab.setContent(fileRawCode.codeAreaScrollPane);
-        fileDocumentationTab.setContent(mainWindow.documentationView);
+        fileDocumentationTab.setContent(mainWindow.getDocumentationView());
 
         fileRawCode.initializeCodeArea();
         docContent.initializeFileContentListView();

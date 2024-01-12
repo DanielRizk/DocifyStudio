@@ -66,10 +66,10 @@ public class ControllerUtils {
     }
 
     public void updateInfoLabel(String initialValue){
-        controller.infoLabel.setText(initialValue);
+        controller.getInfoLabel().setText(initialValue);
         Duration initialDuration = Duration.seconds(3);
         Timeline timeline = new Timeline(
-                new KeyFrame(initialDuration, event -> controller.infoLabel.setText(""))
+                new KeyFrame(initialDuration, event -> controller.getInfoLabel().setText(""))
         );
         timeline.play();
     }
@@ -84,7 +84,7 @@ public class ControllerUtils {
     }
 
     private List<SearchResultModel> searchList(String searchWord){
-        ObservableList<FileNodeModel> allFiles = controller.explorer.updateFilteredListView();
+        ObservableList<FileNodeModel> allFiles = controller.explorer.updateExplorerListView();
         List<SearchResultModel> searchResults = new ArrayList<>();
 
         for (FileNodeModel file : allFiles) {
@@ -110,7 +110,7 @@ public class ControllerUtils {
     public void scrollToLine(String selectedItem) {
         if (selectedItem != null && !selectedItem.isEmpty()) {
             try {
-                controller.mainWindow.documentationView.getEngine().executeScript("highlightSearch('" + escapeJavaScriptString(selectedItem) + "')");
+                controller.mainWindow.getDocumentationView().getEngine().executeScript("highlightSearch('" + escapeJavaScriptString(selectedItem) + "')");
             } catch (JSException e) {
                 Controller.LOGGER.log(Level.SEVERE, "Error executing highlightSearch script", e);
             }
@@ -121,18 +121,18 @@ public class ControllerUtils {
         return str.replace("'", "\\'").replace("\n", "\\n").replace("\r", "\\r").replace("\"", "\\\"");
     }
     public void searchAndDisplay(){
-        String searchKeyword = controller.searchBar.getText();
+        String searchKeyword = controller.getSearchBar().getText();
         if (searchKeyword != null) {
 
             List<SearchResultModel> result = searchList(searchKeyword);
 
             if (!result.isEmpty()){
-                controller.mainWindow.documentationView.getEngine().loadContent("");
-                controller.searchResultListView.getItems().clear();
-                controller.fileContentListView.getItems().clear();
-                controller.mainWindow.documentationView.setVisible(false);
-                controller.searchResultListView.getItems().addAll(result);
-                controller.searchResultListView.setVisible(true);
+                controller.mainWindow.getDocumentationView().getEngine().loadContent("");
+                controller.getSearchResultListView().getItems().clear();
+                controller.getFileContentListView().getItems().clear();
+                controller.mainWindow.getDocumentationView().setVisible(false);
+                controller.getSearchResultListView().getItems().addAll(result);
+                controller.getSearchResultListView().setVisible(true);
                 updateInfoLabel(result.size()+" records found");
             }
             else{
@@ -153,17 +153,17 @@ public class ControllerUtils {
     }
 
     public void getFromSearchResult(){
-        ControllerUtils.SearchResultModel selectedItem = controller.searchResultListView.getSelectionModel().getSelectedItem();
+        ControllerUtils.SearchResultModel selectedItem = controller.getSearchResultListView().getSelectionModel().getSelectedItem();
 
-        if (controller.searchResultListView.getSelectionModel().getSelectedItem() != null) {
-            controller.mainWindow.documentationView.getEngine().loadContent("");
+        if (controller.getSearchResultListView().getSelectionModel().getSelectedItem() != null) {
+            controller.mainWindow.getDocumentationView().getEngine().loadContent("");
             controller.mainWindow.compileWebViewDisplay(selectedItem.getParentFileNode().getFileInfo());
         }
-        controller.searchResultListView.getItems().clear();
-        controller.searchResultListView.setVisible(false);
-        controller.mainWindow.documentationView.setVisible(true);
+        controller.getSearchResultListView().getItems().clear();
+        controller.getSearchResultListView().setVisible(false);
+        controller.mainWindow.getDocumentationView().setVisible(true);
 
-        controller.mainWindow.documentationView.getEngine().getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
+        controller.mainWindow.getDocumentationView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
                 // Now that the page has loaded, we can highlight the search term
                 if (selectedItem != null) scrollToLine(selectedItem.toString());

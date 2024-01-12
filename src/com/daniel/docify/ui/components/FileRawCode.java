@@ -19,7 +19,11 @@ import java.util.regex.Pattern;
 
 public class FileRawCode extends ControllerUtils {
 
-    public final CodeArea codeView = new CodeArea();
+    private final CodeArea codeView = new CodeArea();
+
+    public CodeArea getCodeView(){
+        return codeView;
+    }
 
 
     public VirtualizedScrollPane<CodeArea> codeAreaScrollPane = new VirtualizedScrollPane<>(codeView);
@@ -107,7 +111,7 @@ public class FileRawCode extends ControllerUtils {
     }
 
     private void loadCodeAreaStylesheet() throws IOException {
-        File file = new File("src/com/daniel/docify/ui/syntax.css");
+        File file = new File("src/com/daniel/docify/ui/styling/syntax.css");
         if (!file.exists()) {
             throw new FileNotFoundException("File not found: " + "src/com/daniel/docify/ui/syntax.css");
         }
