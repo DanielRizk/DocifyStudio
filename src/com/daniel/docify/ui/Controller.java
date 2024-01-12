@@ -152,14 +152,12 @@ public class Controller implements Initializable {
 
     @FXML
     void javaProjectMenuItemStart(ActionEvent event) {
-        utils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
-                "Java documentation will be available in the next release");
+        menuActions.startNew(JavaProject);
     }
 
     @FXML
     void pythonProjectMenuItemStart(ActionEvent event) {
-        utils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
-                "Python documentation will be available in the next release");
+        menuActions.startNew(PythonProject);
     }
 
     @FXML
