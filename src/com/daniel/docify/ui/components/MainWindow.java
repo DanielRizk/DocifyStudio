@@ -50,7 +50,7 @@ public class MainWindow extends ControllerUtils {
             controller.fileRawCode.getCodeView().replaceText(0, 0, cFileInfo.getFileContent());
             controller.fileRawCode.getCodeView().showParagraphAtTop(0);
 
-            controller.getPrimaryStage().setTitle("Docify Studio - " + controller.getRootNode().getName() + " - " + ((CFileInfo) fileInfo).getFileName());
+            controller.getPrimaryStage().setTitle("Docify Studio - " + controller.menuActions.getFileFormatModel().getRootNode().getName() + " - " + ((CFileInfo) fileInfo).getFileName());
 
             if (fileInfo.getHtmlContent() == null){
 
@@ -240,6 +240,10 @@ public class MainWindow extends ControllerUtils {
                             .append("</div>");
                 }
 
+                if (dynamicHtmlContent.isEmpty()){
+                    dynamicHtmlContent.append("<div class='noContentFound'><b>No documentation was detected for this file<b></div>");
+                }
+
                 String finalPage = pageHtmlStyling.replace("<!-- dynamic HTML content placeholder -->", dynamicHtmlContent.toString());
                 fileInfo.setHtmlContent(finalPage);
             }
@@ -248,7 +252,9 @@ public class MainWindow extends ControllerUtils {
             documentationView.getEngine().loadContent(fileInfo.getHtmlContent());
             controller.docContent.updateFileContentListView(fileInfo);
         }else {
-            controller.getPrimaryStage().setTitle("Docify Studio - " + controller.getRootNode().getName());
+            controller.getPrimaryStage().setTitle("Docify Studio - " + controller.menuActions.getFileFormatModel().getRootNode().getName());
+            controller.fileRawCode.getCodeView().clear();
+            controller.getFileContentListView().getItems().clear();
             updateInfoLabel("File has no documentation!");
         }
     }

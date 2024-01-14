@@ -15,6 +15,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
 import netscape.javascript.JSException;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -22,9 +23,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 
 public class ControllerUtils {
@@ -83,9 +82,9 @@ public class ControllerUtils {
         }
     }
 
-    private List<SearchResultModel> searchList(String searchWord){
+    private Set<SearchResultModel> searchList(String searchWord){
         ObservableList<FileNodeModel> allFiles = controller.explorer.updateExplorerListView();
-        List<SearchResultModel> searchResults = new ArrayList<>();
+        Set<SearchResultModel> searchResults = new TreeSet<>();
 
         for (FileNodeModel file : allFiles) {
             if (file.getFileInfo() != null) {
@@ -124,7 +123,7 @@ public class ControllerUtils {
         String searchKeyword = controller.getSearchBar().getText();
         if (searchKeyword != null) {
 
-            List<SearchResultModel> result = searchList(searchKeyword);
+            Set<SearchResultModel> result = searchList(searchKeyword);
 
             if (!result.isEmpty()){
                 controller.mainWindow.getDocumentationView().getEngine().loadContent("");
@@ -146,7 +145,6 @@ public class ControllerUtils {
         alert.setTitle(title);
         alert.setHeaderText(null); // No header text
         alert.setContentText(message);
-
         // Show the alert dialog
         alert.showAndWait();
 
@@ -171,13 +169,22 @@ public class ControllerUtils {
         });
     }
 
-    public record SearchResultModel(String itemName, FileNodeModel fileNodeModel) {
+    public record SearchResultModel(String itemName, FileNodeModel fileNodeModel) implements Comparable<SearchResultModel>{
         public FileNodeModel getParentFileNode() {
             return fileNodeModel;
         }
         @Override
         public String toString() {
             return itemName;
+        }
+
+        @Override
+        public int compareTo(@NotNull ControllerUtils.SearchResultModel o) {
+            if (o instanceof SearchResultModel other) {
+                return this.itemName.compareTo(other.itemName);
+                // You could also add more sophisticated comparison logic here if needed
+            }
+            return -1; // or throw an exception if comparing with a non-SearchResultModel object
         }
     }
 }

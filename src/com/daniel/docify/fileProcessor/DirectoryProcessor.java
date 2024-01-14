@@ -91,7 +91,7 @@ public class DirectoryProcessor {
 
     public static void processDirTree(FileNodeModel node, String projectType) throws IOException {
         if (node.isFile()) {
-            if (Objects.equals(projectType, CProject) && node.getName().endsWith(".h")) {
+            if (Objects.equals(projectType, CProject)){// && node.getName().endsWith(".h")) {
                 node.setFileInfo(ClangParser.parseFile(node));
             }
         }

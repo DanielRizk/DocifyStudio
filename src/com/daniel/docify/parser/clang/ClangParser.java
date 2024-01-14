@@ -69,17 +69,15 @@ public class ClangParser extends ParserUtils{
         boolean structFoundWithNoComment = false;
 
         String commentBuffer = null;
-
-
         String line;
+
         while ((line = nextLine(reader)) != null) {
 
-            if (line.contains("/**") || commentScope){
+            if (line.contains("/*") || commentScope){
                 if (commentScope){
                     chunk.append(line);
                     commentScope = false;
                 }
-                /* fix one line documentation detection */
                 if (line.contains("*/")){
                     chunk.append(line);
                 }else {
@@ -89,31 +87,33 @@ public class ClangParser extends ParserUtils{
                     }
                 }
                 switch (identifyCommentBlock(chunk.toString())){
-                    case 1:     enumScope = true;break;
-                    case 2:     structScope = true;break;
-                    case 3:     functionScope = true;break;
-                    default:    System.out.println("undefined");
-                                chunk = new StringBuilder();
+                    case 1:     enumScope = true;
+                                break;
+                    case 2:     structScope = true;
+                                break;
+                    case 3:     functionScope = true;
+                                break;
+                    default:    chunk = new StringBuilder();
                                 break;
                 }
                 commentBuffer = extractFromComment(chunk.toString());
                 chunk = new StringBuilder();
-            } else if (line.contains("typedef enum") || line.contains("enum")) {
+            } else if (line.matches("\\s*//.*")) {
+                chunk = new StringBuilder();
+            } else if (line.contains("static") && line.contains(";")) {
+                CStaticVar staticVar = extractStaticVar(line);
+                staticVar.setFileName(node.getName());
+                staticVar.setLineNumber(currentLineNumber);
+                staticVars.add(staticVar);
+            }else if (line.contains("typedef enum") || line.contains("enum")) {
                 enumScope = true;
                 enumFoundWithNoComment = true;
             }else if (line.contains("typedef struct") || line.contains("struct")) {
                 structScope = true;
                 structFoundWithNoComment = true;
-            }else if (line.contains("static") && line.contains(";")) {
-                CStaticVar staticVar = extractStaticVar(line);
-                staticVar.setFileName(node.getName());
-                staticVar.setLineNumber(currentLineNumber);
-                staticVars.add(staticVar);
-            }
-            else if (line.contains("#define")){
+            } else if (line.contains("#define")){
                 macroScope = true;
-            }
-            else if (line.contains("extern")){
+            } else if (line.contains("extern")){
                 CExtern extern = extractExtern(line);
                 extern.setFileName(node.getName());
                 externs.add(extern);
@@ -144,20 +144,22 @@ public class ClangParser extends ParserUtils{
                     enumFoundWithNoComment = false;
                     chunk.append(line);
                 }
-                do{
-                    line = nextLine(reader);
-                    chunk.append(line);
-                    if (line.contains("/**")){
-                        commentScope = true;
-                        break;
+                if (!(chunk.toString().contains("enum") && chunk.toString().contains(";"))) {
+                    do {
+                        line = nextLine(reader);
+                        chunk.append(line);
+                        if (line.contains("/**")) {
+                            commentScope = true;
+                            break;
+                        }
+                    } while (!(line.contains("}") && line.contains(";")));
+                    if (!commentScope) {
+                        CEnum cEnum = extractEnum(chunk.toString());
+                        cEnum.setFileName(node.getName());
+                        cEnum.setDocumentation(commentBuffer);
+                        commentBuffer = null;
+                        enums.add(cEnum);
                     }
-                }while(!(line.contains("}") && line.contains(";")));
-                if (!commentScope) {
-                    CEnum cEnum = extractEnum(chunk.toString());
-                    cEnum.setFileName(node.getName());
-                    cEnum.setDocumentation(commentBuffer);
-                    commentBuffer = null;
-                    enums.add(cEnum);
                 }
                 chunk = new StringBuilder();
                 enumScope = false;
@@ -168,20 +170,22 @@ public class ClangParser extends ParserUtils{
                     structFoundWithNoComment = false;
                     chunk.append(line);
                 }
-                do{
-                    line = nextLine(reader);
-                    chunk.append(line);
-                    if (line.contains("/**")){
-                        commentScope = true;
-                        break;
+                if (!(chunk.toString().contains("struct") && chunk.toString().contains(";"))) {
+                    do {
+                        line = nextLine(reader);
+                        chunk.append(line);
+                        if (line.contains("/**")) {
+                            commentScope = true;
+                            break;
+                        }
+                    } while (!(line.contains("}") && line.contains(";")));
+                    if (!commentScope) {
+                        CStruct struct = extractStruct(chunk.toString());
+                        struct.setFileName(node.getName());
+                        struct.setDocumentation(commentBuffer);
+                        commentBuffer = null;
+                        structs.add(struct);
                     }
-                }while(!(line.contains("}") && line.contains(";")));
-                if (!commentScope) {
-                    CStruct struct = extractStruct(chunk.toString());
-                    struct.setFileName(node.getName());
-                    struct.setDocumentation(commentBuffer);
-                    commentBuffer = null;
-                    structs.add(struct);
                 }
                 chunk = new StringBuilder();
                 structScope = false;
@@ -195,7 +199,7 @@ public class ClangParser extends ParserUtils{
                         commentScope = true;
                         break;
                     }
-                }while(!line.contains(";"));
+                }while(!(line.contains(";") || line.contains("{")));
                 if (!commentScope) {
                     CFunction function = extractFunction(chunk.toString());
                     function.setFileName(node.getName());
@@ -299,6 +303,11 @@ public class ClangParser extends ParserUtils{
         start = chunk.indexOf("}");
         end = chunk.lastIndexOf(";");
         String enumName = chunk.substring(start + 1, end).trim();
+        if (enumName.isEmpty()){
+            start = chunk.indexOf("enum") + "enum".length();
+            end = chunk.indexOf("{");
+            enumName = chunk.substring(start, end).trim();
+        }
         cEnum.setName(enumName);
 
         /* extract struct type */
@@ -331,6 +340,11 @@ public class ClangParser extends ParserUtils{
         start = chunk.indexOf("}");
         end = chunk.lastIndexOf(";");
         String structName = chunk.substring(start + 1, end).trim();
+        if (structName.isEmpty()){
+            start = chunk.indexOf("struct") + "struct".length();
+            end = chunk.indexOf("{");
+            structName = chunk.substring(start, end).trim();
+        }
         struct.setName(structName);
 
         /* extract struct type */
@@ -422,7 +436,9 @@ public class ClangParser extends ParserUtils{
     private static Integer identifyCommentBlock(String chunk){
         String buff = chunk;
         buff = buff.toLowerCase();
-        if (buff.contains("this enum")){
+        if (!buff.contains("/**")){
+            return 0;
+        } else if (buff.contains("this enum")){
             return 1;
         } else if (buff.contains("this struct")){
             return 2;

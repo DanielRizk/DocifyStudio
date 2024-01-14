@@ -1,16 +1,18 @@
 package com.daniel.docify.model;
 
+import com.daniel.docify.fileProcessor.FileSerializer;
+
 import java.io.Serializable;
 import java.util.Date;
 
-public class FileFormatModel implements Serializable {
+public class FileFormatModel extends FileSerializer implements Serializable {
 
-    static final String FILE_FORMAT_VERSION = "1.0";
+    public static final String FILE_FORMAT_VERSION = "1.0";
 
     /* Metadata objects */
     private String authorName;
-    private Date creationDate;
-    private String fileFormatVersion = FILE_FORMAT_VERSION;
+    private String creationDate;
+    private String fileFormatVersion;
     private String softwareVersion;
 
     private FileNodeModel rootNode;
@@ -35,11 +37,11 @@ public class FileFormatModel implements Serializable {
         this.authorName = authorName;
     }
 
-    public Date getCreationDate() {
+    public String getCreationDate() {
         return creationDate;
     }
 
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(String creationDate) {
         this.creationDate = creationDate;
     }
 

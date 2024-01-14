@@ -1,6 +1,9 @@
 package com.daniel.docify.fileProcessor;
 
+import com.daniel.docify.core.Main;
+import com.daniel.docify.model.FileFormatModel;
 import com.daniel.docify.model.FileNodeModel;
+import com.daniel.docify.ui.utils.ControllerUtils;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -8,6 +11,8 @@ import javax.crypto.CipherOutputStream;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.GeneralSecurityException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -26,10 +31,15 @@ public class FileSerializer {
     /**
      * @brief   This method serializes the FileNodeModel object, encrypts it, and saves it
      */
-    public void save(FileNodeModel fileNodeModel, String filePath) {
+    public void save(FileFormatModel formatModel, String filePath) {
+        formatModel.setAuthorName(System.getProperty("user.name"));
+        formatModel.setFileFormatVersion(FileFormatModel.FILE_FORMAT_VERSION);
+        formatModel.setCreationDate(getCurrentDateAndTime());
+        formatModel.setSoftwareVersion(Main.SOFTWARE_VERSION);
+
         try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
                 new CipherOutputStream(new FileOutputStream(filePath), createCipher(Cipher.ENCRYPT_MODE)))) {
-            objectOutputStream.writeObject(fileNodeModel);
+            objectOutputStream.writeObject(formatModel);
             System.out.println("Object saved successfully to " + filePath);
         } catch (IOException | GeneralSecurityException e) {
             LOGGER.log(Level.SEVERE, "Error saving object.", e);
@@ -39,16 +49,18 @@ public class FileSerializer {
     /**
      * @brief   This method loads the encrypted FileNodeModel object, decrypts it, and returns the object
      */
-    public FileNodeModel load(String filePath) {
-        FileNodeModel fileNodeModel = null;
+    public FileFormatModel load(String filePath) {
+        FileFormatModel formatModel = null;
         try (ObjectInputStream objectInputStream = new ObjectInputStream(
                 new CipherInputStream(new FileInputStream(filePath), createCipher(Cipher.DECRYPT_MODE)))) {
-            fileNodeModel = (FileNodeModel) objectInputStream.readObject();
+            formatModel = (FileFormatModel) objectInputStream.readObject();
             System.out.println("Object loaded successfully from " + filePath);
         } catch (IOException | ClassNotFoundException | GeneralSecurityException e) {
             LOGGER.log(Level.SEVERE, "Error loading object.", e);
+        } catch (ClassCastException e){
+            LOGGER.log(Level.SEVERE, "incompatible version.", e);
         }
-        return fileNodeModel;
+        return formatModel;
     }
 
     private Cipher createCipher(int mode) throws GeneralSecurityException {
@@ -60,5 +72,11 @@ public class FileSerializer {
     private SecretKeySpec generateSecretKey() {
         byte[] key = SECRET_KEY.getBytes();
         return new SecretKeySpec(key, ENCRYPTION_ALGORITHM);
+    }
+
+    private String getCurrentDateAndTime(){
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+        return currentDateTime.format(formatter);
     }
 }

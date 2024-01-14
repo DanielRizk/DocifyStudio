@@ -1,11 +1,9 @@
 package com.daniel.docify.ui;
 
 import com.daniel.docify.model.FileNodeModel;
-import com.daniel.docify.fileProcessor.UserConfiguration;
 import com.daniel.docify.model.FileInfoModel.ItemNameAndProperty;
 import com.daniel.docify.ui.components.*;
 import com.daniel.docify.ui.utils.ControllerUtils;
-import javafx.concurrent.Worker;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -13,10 +11,8 @@ import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.stage.DirectoryChooser;
-import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import java.io.*;
+
 import java.util.logging.Logger;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -24,8 +20,7 @@ import java.util.*;
 
 
 import static com.daniel.docify.core.Main.LOAD_ICONS;
-import static com.daniel.docify.core.Main.VERSION;
-import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcessDirectory;
+import static com.daniel.docify.core.Main.SOFTWARE_VERSION;
 
 /**
  * This class is the controller for JavaFX SceneBuilder, It manages all the actions
@@ -34,7 +29,6 @@ import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcess
 public class Controller implements Initializable {
 
     /* Core variables */
-    private FileNodeModel rootNode = null;
     private Stage primaryStage;
 
     /* UI components objects */
@@ -53,17 +47,9 @@ public class Controller implements Initializable {
     public final static String PythonProject    = ".py";
     public final static String JavaProject      = ".java";
 
-    /* getters and setters for private Variables */
-    public FileNodeModel getRootNode(){
-        return rootNode;
-    }
-
+    /* getters for private Variables */
     public Stage getPrimaryStage(){
         return primaryStage;
-    }
-
-    public void setRootNode(FileNodeModel node){
-        this.rootNode = node;
     }
 
     /* JavaFX SceneBuilder specific variables */
@@ -93,6 +79,8 @@ public class Controller implements Initializable {
     private MenuItem file_save_pdfMenuItem;
     @FXML
     private MenuItem file_closeMenuItem;
+    @FXML
+    private MenuItem about_menuItem;
     @FXML
     private Tab fileContentTab;
     @FXML
@@ -177,6 +165,11 @@ public class Controller implements Initializable {
     }
 
     @FXML
+    void displayMetadata(ActionEvent event) {
+        menuActions.displayMetaData();
+    }
+
+    @FXML
     void treeViewFileSelection(MouseEvent event) {
         if(explorerTreeView.getSelectionModel().getSelectedItem() != null &&
                 explorerTreeView.getSelectionModel().getSelectedItem().isLeaf()){
@@ -242,7 +235,7 @@ public class Controller implements Initializable {
         progressBar.setStyle("-fx-accent: green;");
 
         infoLabel.setText("");
-        versionLabel.setText(VERSION);
+        versionLabel.setText(SOFTWARE_VERSION);
         utils.updateInfoLabel("Initialization complete!");
     }
 

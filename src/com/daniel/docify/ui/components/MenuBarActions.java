@@ -1,6 +1,8 @@
 package com.daniel.docify.ui.components;
 
+import com.daniel.docify.core.Main;
 import com.daniel.docify.fileProcessor.UserConfiguration;
+import com.daniel.docify.model.FileFormatModel;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.ui.Controller;
 import com.daniel.docify.ui.utils.ControllerUtils;
@@ -20,6 +22,13 @@ import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcess
  * This class handles all actions associated with the UI MenuBar options.
  */
 public class MenuBarActions extends ControllerUtils {
+
+    private FileFormatModel fileFormatModel = new FileFormatModel(new FileNodeModel(null,false, null));
+
+    public FileFormatModel getFileFormatModel() {
+        return fileFormatModel;
+    }
+
     public MenuBarActions(Controller controller) {
         super(controller);
     }
@@ -58,15 +67,15 @@ public class MenuBarActions extends ControllerUtils {
             UserConfiguration.saveUserLastOpenConfig(selectedDir.getAbsolutePath());
 
             try {
-                controller.setRootNode(BuildAndProcessDirectory(selectedDir, fileType));
-                assert controller.getRootNode() != null;
-                controller.explorer.updateTreeView(controller.getRootNode());
+                fileFormatModel.setRootNode(BuildAndProcessDirectory(selectedDir, fileType));
+                assert fileFormatModel.getRootNode() != null;
+                controller.explorer.updateTreeView(fileFormatModel.getRootNode());
 
             } catch (IOException e){
                 throw new RuntimeException(e);
             }
-            controller.getPrimaryStage().setTitle("Docify Studio - " + controller.getRootNode().getName());
-            controller.utils.updateInfoLabel("Project Documentation - " + controller.getRootNode().getName() + " - created successfully");
+            controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
+            controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - created successfully");
         }
     }
 
@@ -74,7 +83,7 @@ public class MenuBarActions extends ControllerUtils {
      * This method saves the built project as a .doci file using the {@link com.daniel.docify.fileProcessor.FileSerializer}.
      */
     public void saveDociFile(){
-        if (controller.getRootNode() != null) {
+        if (fileFormatModel.getRootNode() != null) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save Docify File");
             File lastSavePath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastSaveConfig()));
@@ -91,9 +100,9 @@ public class MenuBarActions extends ControllerUtils {
                 UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
 
                 if (selectedDir.getAbsolutePath().endsWith(".doci")) {
-                    controller.getRootNode().save(controller.getRootNode(), selectedDir.getAbsolutePath());
+                    fileFormatModel.save(fileFormatModel, selectedDir.getAbsolutePath());
                 } else {
-                    controller.getRootNode().save(controller.getRootNode(), selectedDir.getAbsolutePath() + ".doci");
+                    fileFormatModel.save(fileFormatModel, selectedDir.getAbsolutePath() + ".doci");
                 }
                 controller.utils.updateInfoLabel("File saved successfully");
             }
@@ -125,18 +134,22 @@ public class MenuBarActions extends ControllerUtils {
             UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
 
             if (selectedDir.getAbsolutePath().endsWith(".doci")) {
-                controller.setRootNode(new FileNodeModel(null,false,null));
-                controller.setRootNode(controller.getRootNode().load(selectedDir.getAbsolutePath()));
-                controller.explorer.updateTreeView(controller.getRootNode());
-                controller.utils.updateInfoLabel("File - "+controller.getRootNode().getName() + " - opened successfully");
+                fileFormatModel = fileFormatModel.load(selectedDir.getAbsolutePath());
+                if (fileFormatModel == null) {
+                    fileFormatModel = new FileFormatModel(new FileNodeModel(null,false, null));
+                    closeRoutine();
+                    return;
+                }
+                controller.explorer.updateTreeView(fileFormatModel.getRootNode());
+                controller.utils.updateInfoLabel("File - " + fileFormatModel.getRootNode().getName() + " - opened successfully");
             } else {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle("Error");
                 alert.setContentText("Error opening file");
                 alert.showAndWait();
             }
-            controller.getPrimaryStage().setTitle("Docify Studio - " + controller.getRootNode().getName());
-            controller.utils.updateInfoLabel("Project Documentation - " + controller.getRootNode().getName() + " - loaded successfully");
+            controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
+            controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - loaded successfully");
         }
     }
 
@@ -146,8 +159,8 @@ public class MenuBarActions extends ControllerUtils {
      * the exiting routine of all involved UI components.
      */
     public void closeRoutine(){
-        if (controller.getRootNode() != null) {
-            controller.setRootNode(null);
+        if (fileFormatModel != null) {
+            fileFormatModel.setRootNode(null);
             controller.getExplorerTreeView().setRoot(null);
             controller.getExplorerListView().getItems().clear();
             controller.explorer.getProjectNodesList().clear();
@@ -159,6 +172,25 @@ public class MenuBarActions extends ControllerUtils {
             controller.mainWindow.getDocumentationView().setVisible(true);
             controller.getPrimaryStage().setTitle("Docify Studio");
             controller.getInfoLabel().setText(null);
+        }
+    }
+
+    /**
+     * This method is used to display the metadata of the file and
+     * the software to the user.
+     */
+    public void displayMetaData() {
+        if (fileFormatModel != null) {
+            controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "About",
+                    (fileFormatModel.getAuthorName() == null ? "" : "author: " + fileFormatModel.getAuthorName()) +
+                            (fileFormatModel.getFileFormatVersion() == null ? "" : "\nFile version: " + fileFormatModel.getFileFormatVersion()) +
+                            (fileFormatModel.getCreationDate() == null ? "" : "\nDate and time: " + fileFormatModel.getCreationDate()) +
+                            "\nSoftware version: " + Main.SOFTWARE_VERSION
+            );
+        }else{
+            controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "About",
+                            "Software version: " + Main.SOFTWARE_VERSION
+            );
         }
     }
 }
