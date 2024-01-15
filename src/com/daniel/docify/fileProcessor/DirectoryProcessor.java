@@ -7,10 +7,12 @@ import javafx.application.Platform;
 
 import java.io.*;
 import java.net.MalformedURLException;
+import java.nio.file.*;
 import java.util.Objects;
 import java.util.logging.Level;
 
 import static com.daniel.docify.ui.Controller.CProject;
+import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * @brief   This class provides all necessary methods to process
@@ -19,8 +21,15 @@ import static com.daniel.docify.ui.Controller.CProject;
 public class DirectoryProcessor {
 
     private final Controller controller;
-    public DirectoryProcessor(Controller controller){
+    private final WatchService watchService;
+
+    public DirectoryProcessor(Controller controller) throws IOException {
         this.controller = controller;
+        this.watchService = FileSystems.getDefault().newWatchService();
+    }
+
+    public Controller getController() {
+        return controller;
     }
 
     public double currentFileCount = 0.0;
@@ -59,9 +68,9 @@ public class DirectoryProcessor {
      * each fileInfo to the respective fileNode
      *
      */
-    public FileNodeModel buildDirTree(File directory, String projectType){
+    public FileNodeModel buildDirTree(File directory, String projectType) throws IOException {
         String fullPath = directory.getAbsolutePath();
-        FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
+        FileNodeModel node = new FileNodeModel(directory.getName(), projectType, false, fullPath);
 
         File[] files = directory.listFiles();
         if (files != null) {
@@ -78,13 +87,13 @@ public class DirectoryProcessor {
                 } else {
                     if (Objects.equals(projectType, CProject)){
                         if (file.getName().endsWith(".h") || file.getName().endsWith(".c")) {
-                            FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
+                            FileNodeModel childNode = new FileNodeModel(file.getName(), CProject,true, file.getAbsolutePath());
                             node.addChild(childNode);
                             containsFileType = true;
                         }
                     } else {
                         if (file.getName().endsWith(projectType)) {
-                            FileNodeModel childNode = new FileNodeModel(file.getName(), true, file.getAbsolutePath());
+                            FileNodeModel childNode = new FileNodeModel(file.getName(), projectType, true, file.getAbsolutePath());
                             node.addChild(childNode);
                             containsFileType = true;
                         }
@@ -93,12 +102,52 @@ public class DirectoryProcessor {
             }
             // If the directory or any of its subdirectories contains the file type, return the node
             if (containsFileType) {
+                registerDirectory(directory.toPath());
                 return node;
             } else {
                 return null;
             }
         }
         return null;
+    }
+
+    private void registerDirectory(Path dir) throws IOException {
+        dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+    }
+
+    public void syncOn(FileNodeModel rootNode) {
+        new Thread(() -> {
+            while (true) {
+                WatchKey key;
+                try {
+                    key = watchService.take();
+                } catch (InterruptedException e) {
+                    break;
+                }
+
+                for (WatchEvent<?> event : key.pollEvents()) {
+                    WatchEvent.Kind<?> kind = event.kind();
+                    if (kind == OVERFLOW) {
+                        continue;
+                    }
+
+                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
+                    Path filename = ev.context();
+                    Path dir = (Path) key.watchable();
+                    Path fullPath = dir.resolve(filename);
+
+                    boolean isFile = Files.isRegularFile(fullPath);
+                    Platform.runLater(() -> {
+                        rootNode.updateNode(fullPath, isFile, kind, this, rootNode.getProjectType());
+                    });
+                }
+
+                boolean valid = key.reset();
+                if (!valid) {
+                    break;
+                }
+            }
+        }).start();
     }
 
     public void buildAndProcessDirectory(File directory, String projectType, DirectoryProcessorCallback callback) throws IOException {
@@ -111,6 +160,7 @@ public class DirectoryProcessor {
                 FileNodeModel rootFileNode = buildDirTree(directory, projectType);
                 if (rootFileNode != null) {
                     processDirTree(rootFileNode, projectType);
+                    syncOn(rootFileNode);
                 }
 
                 // Use the callback to return the result

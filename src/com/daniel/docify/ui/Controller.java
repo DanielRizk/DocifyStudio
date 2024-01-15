@@ -14,6 +14,7 @@ import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.stage.Stage;
 
+import java.io.IOException;
 import java.util.logging.Logger;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -47,6 +48,9 @@ public class Controller implements Initializable {
     public final static String CProject         = ".h";
     public final static String PythonProject    = ".py";
     public final static String JavaProject      = ".java";
+
+    public Controller() throws IOException {
+    }
 
     /* getters for private Variables */
     public Stage getPrimaryStage(){

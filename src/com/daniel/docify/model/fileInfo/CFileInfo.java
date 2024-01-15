@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CFileInfo extends FileInfoModel implements Serializable {
-    private final String fileName;
     private final List<CExtern> externs;
     private final List<CMacro> macros;
     private final List<CStaticVar> staticVars;
@@ -26,7 +25,7 @@ public class CFileInfo extends FileInfoModel implements Serializable {
                      List<CFunction> functions,
                      String fileContent
     ) {
-        this.fileName = fileName;
+        super(fileName);
         this.externs = externs;
         this.macros = macros;
         this.staticVars = staticVars;
@@ -34,10 +33,6 @@ public class CFileInfo extends FileInfoModel implements Serializable {
         this.structs = structs;
         this.functions = functions;
         this.fileContent = fileContent;
-    }
-
-    public String getFileName() {
-        return fileName;
     }
 
     public List<CExtern> getExterns() {

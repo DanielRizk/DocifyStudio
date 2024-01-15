@@ -2,12 +2,14 @@ package com.daniel.docify.parser.clang;
 
 import com.daniel.docify.component.Clang.*;
 import com.daniel.docify.fileProcessor.FileSerializer;
+import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.fileInfo.CFileInfo;
 import com.daniel.docify.parser.ParserUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -32,20 +34,13 @@ public class ClangParser extends ParserUtils{
     /* Keeps track of the current line number in the document */
     private static int currentLineNumber = 0;
 
-    /**
-     * @brief   This method parses passed file according to the pre-existing comments
-     */
-    @NotNull
-    public static CFileInfo parseFile(FileNodeModel node) throws IOException {
-
+    private static CFileInfo safeParse(FileNodeModel node, BufferedReader reader) throws IOException {
         currentLineNumber = 0;
-
-        BufferedReader reader = new BufferedReader(new FileReader(node.getFullPath()));
 
         String fileContent = null;
 
         try {
-            fileContent = readFromFile(node.getFullPath());
+            fileContent = readFromFile(String.valueOf(node.getFullPath()));
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error opening file: "+node.getName(), e);
         }
@@ -88,13 +83,13 @@ public class ClangParser extends ParserUtils{
                 }
                 switch (identifyCommentBlock(chunk.toString())){
                     case 1:     enumScope = true;
-                                break;
+                        break;
                     case 2:     structScope = true;
-                                break;
+                        break;
                     case 3:     functionScope = true;
-                                break;
+                        break;
                     default:    chunk = new StringBuilder();
-                                break;
+                        break;
                 }
                 commentBuffer = extractFromComment(chunk.toString());
                 chunk = new StringBuilder();
@@ -212,6 +207,32 @@ public class ClangParser extends ParserUtils{
             }
         }
         return new CFileInfo(node.getName(), externs, macros, staticVars, enums, structs, functions, fileContent);
+    }
+
+    /**
+     * @brief   This method parses passed file according to the pre-existing comments
+     */
+    @NotNull
+    public static CFileInfo parseFile(FileNodeModel node) throws IOException {
+        BufferedReader reader = null;
+
+        try {
+            reader = new BufferedReader(new FileReader(node.getFullPath().toString()));
+            return safeParse(node, reader);
+
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Error processing file: " + node.getName(), e);
+            return new CFileInfo(null, null, null,
+                    null,null,null,null,null);
+        } finally {
+            if (reader != null) {
+                try {
+                    reader.close();
+                } catch (IOException e) {
+                    LOGGER.log(Level.SEVERE, "Error closing BufferedReader", e);
+                }
+            }
+        }
     }
 
     private static CExtern extractExtern(String line) {

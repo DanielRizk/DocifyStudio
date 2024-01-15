@@ -22,14 +22,14 @@ import java.util.Objects;
  */
 public class MenuBarActions extends ControllerUtils {
 
-    private FileFormatModel fileFormatModel = new FileFormatModel(new FileNodeModel(null,false, null));
+    private FileFormatModel fileFormatModel = new FileFormatModel(new FileNodeModel(null,null, false, null));
     private final DirectoryProcessor processor = new DirectoryProcessor(controller);
 
     public FileFormatModel getFileFormatModel() {
         return fileFormatModel;
     }
 
-    public MenuBarActions(Controller controller) {
+    public MenuBarActions(Controller controller) throws IOException {
         super(controller);
     }
 
@@ -139,7 +139,7 @@ public class MenuBarActions extends ControllerUtils {
             if (selectedDir.getAbsolutePath().endsWith(".doci")) {
                 fileFormatModel = fileFormatModel.load(selectedDir.getAbsolutePath());
                 if (fileFormatModel == null) {
-                    fileFormatModel = new FileFormatModel(new FileNodeModel(null,false, null));
+                    fileFormatModel = new FileFormatModel(new FileNodeModel(null, null,false, null));
                     closeRoutine();
                     return;
                 }
@@ -168,6 +168,7 @@ public class MenuBarActions extends ControllerUtils {
             controller.getExplorerListView().getItems().clear();
             controller.explorer.getProjectNodesList().clear();
             controller.mainWindow.getDocumentationView().getEngine().loadContent("");
+            controller.mainWindow.fileInfoBuff = null;
             controller.getFileContentListView().getItems().clear();
             controller.getSearchResultListView().getItems().clear();
             controller.fileRawCode.getCodeView().clear();

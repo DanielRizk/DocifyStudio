@@ -2,7 +2,6 @@ package com.daniel.docify.model;
 
 
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,7 +10,16 @@ import java.util.List;
  */
 public abstract class FileInfoModel implements Serializable{
 
+    private final String fileName;
     private String htmlContent = null;
+
+    protected FileInfoModel(String fileName) {
+        this.fileName = fileName;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
 
     public String getHtmlContent(){
         return htmlContent;

@@ -2,6 +2,7 @@ package com.daniel.docify.ui.components;
 
 import com.daniel.docify.component.Clang.*;
 import com.daniel.docify.model.FileInfoModel;
+import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.fileInfo.CFileInfo;
 import com.daniel.docify.ui.Controller;
 import com.daniel.docify.ui.utils.ControllerUtils;
@@ -18,6 +19,7 @@ public class MainWindow extends ControllerUtils {
 
     private final StringBuilder htmlContent = new StringBuilder();
     private final WebView documentationView = new WebView();
+    public FileInfoModel fileInfoBuff = null;
     public MainWindow(Controller controller) {
         super(controller);
     }
@@ -33,6 +35,9 @@ public class MainWindow extends ControllerUtils {
      * a file is selected either from the TreeView or the ListView.
      */
     public void compileWebViewDisplay(FileInfoModel fileInfo) {
+
+        fileInfoBuff = fileInfo;
+
 
         controller.getSearchResultListView().setVisible(false);
         controller.getSearchResultListView().getItems().clear();
@@ -256,6 +261,16 @@ public class MainWindow extends ControllerUtils {
             controller.fileRawCode.getCodeView().clear();
             controller.getFileContentListView().getItems().clear();
             updateInfoLabel("File has no documentation!");
+        }
+    }
+
+    public void refreshWebViewDisplay() {
+        if (fileInfoBuff != null){
+            for (FileNodeModel node : controller.explorer.getProjectNodesList()){
+                if (fileInfoBuff.getFileName().equals(node.getFileInfo().getFileName())){
+                    compileWebViewDisplay(node.getFileInfo());
+                }
+            }
         }
     }
 
