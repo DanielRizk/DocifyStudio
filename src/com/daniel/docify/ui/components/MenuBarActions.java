@@ -1,6 +1,7 @@
 package com.daniel.docify.ui.components;
 
 import com.daniel.docify.core.Main;
+import com.daniel.docify.fileProcessor.DirectoryProcessor;
 import com.daniel.docify.fileProcessor.UserConfiguration;
 import com.daniel.docify.model.FileFormatModel;
 import com.daniel.docify.model.FileNodeModel;
@@ -16,14 +17,13 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Objects;
 
-import static com.daniel.docify.fileProcessor.DirectoryProcessor.BuildAndProcessDirectory;
-
 /**
  * This class handles all actions associated with the UI MenuBar options.
  */
 public class MenuBarActions extends ControllerUtils {
 
     private FileFormatModel fileFormatModel = new FileFormatModel(new FileNodeModel(null,false, null));
+    private final DirectoryProcessor processor = new DirectoryProcessor(controller);
 
     public FileFormatModel getFileFormatModel() {
         return fileFormatModel;
@@ -67,15 +67,18 @@ public class MenuBarActions extends ControllerUtils {
             UserConfiguration.saveUserLastOpenConfig(selectedDir.getAbsolutePath());
 
             try {
-                fileFormatModel.setRootNode(BuildAndProcessDirectory(selectedDir, fileType));
-                assert fileFormatModel.getRootNode() != null;
-                controller.explorer.updateTreeView(fileFormatModel.getRootNode());
+                processor.buildAndProcessDirectory(selectedDir, fileType, rootNode -> {
+                    fileFormatModel.setRootNode(rootNode);
+                    assert fileFormatModel.getRootNode() != null;
+                    controller.explorer.updateTreeView(fileFormatModel.getRootNode());
+                    controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
+                    controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - created successfully");
+                });
+
 
             } catch (IOException e){
                 throw new RuntimeException(e);
             }
-            controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
-            controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - created successfully");
         }
     }
 

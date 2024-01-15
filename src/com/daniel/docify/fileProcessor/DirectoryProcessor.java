@@ -2,9 +2,13 @@ package com.daniel.docify.fileProcessor;
 
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.parser.clang.ClangParser;
+import com.daniel.docify.ui.Controller;
+import javafx.application.Platform;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.util.Objects;
+import java.util.logging.Level;
 
 import static com.daniel.docify.ui.Controller.CProject;
 
@@ -13,6 +17,20 @@ import static com.daniel.docify.ui.Controller.CProject;
  *          projects directories and create Dir-tree structure
  */
 public class DirectoryProcessor {
+
+    private final Controller controller;
+    public DirectoryProcessor(Controller controller){
+        this.controller = controller;
+    }
+
+    public double currentFileCount = 0.0;
+    public double totalFileCount = 0.0;
+
+    @FunctionalInterface
+    public interface DirectoryProcessorCallback {
+        void onCompletion(FileNodeModel rootFileNode) throws MalformedURLException;
+    }
+
     public double countFiles(File directory) {
         double filesCount = 0;
 
@@ -41,7 +59,7 @@ public class DirectoryProcessor {
      * each fileInfo to the respective fileNode
      *
      */
-    public static FileNodeModel buildDirTree(File directory, String projectType){
+    public FileNodeModel buildDirTree(File directory, String projectType){
         String fullPath = directory.getAbsolutePath();
         FileNodeModel node = new FileNodeModel(directory.getName(), false, fullPath);
 
@@ -49,6 +67,8 @@ public class DirectoryProcessor {
         if (files != null) {
             boolean containsFileType = false;
             for (File file : files) {
+                currentFileCount++;
+                controller.getProgressBar().setProgress(currentFileCount/totalFileCount);
                 if (file.isDirectory()) {
                     FileNodeModel childNode = buildDirTree(file, projectType);
                     if (childNode != null) {
@@ -81,16 +101,42 @@ public class DirectoryProcessor {
         return null;
     }
 
-    public static FileNodeModel BuildAndProcessDirectory(File directory, String projectType) throws IOException {
-        FileNodeModel rootFileNode = buildDirTree(directory, projectType);
-        if (rootFileNode != null) {
-            processDirTree(rootFileNode, projectType);
-        }
-        return rootFileNode;
+    public void buildAndProcessDirectory(File directory, String projectType, DirectoryProcessorCallback callback) throws IOException {
+        controller.getProgressBar().setVisible(true);
+        controller.getProgressBar().setProgress(0);
+
+        new Thread(() -> {
+            try {
+                totalFileCount = countFiles(directory) * 2;
+                FileNodeModel rootFileNode = buildDirTree(directory, projectType);
+                if (rootFileNode != null) {
+                    processDirTree(rootFileNode, projectType);
+                }
+
+                // Use the callback to return the result
+                if (callback != null) {
+                    Platform.runLater(() -> {
+                        try {
+                            callback.onCompletion(rootFileNode);
+                        } catch (MalformedURLException e) {
+                            throw new RuntimeException(e);
+                        }
+                        controller.getProgressBar().setVisible(false);
+                    });
+                }
+
+                totalFileCount = 0.0;
+                currentFileCount = 0.0;
+            } catch (IOException e) {
+                Controller.LOGGER.log(Level.SEVERE, "", e);
+            }
+        }).start();
     }
 
-    public static void processDirTree(FileNodeModel node, String projectType) throws IOException {
+    public void processDirTree(FileNodeModel node, String projectType) throws IOException {
         if (node.isFile()) {
+            currentFileCount++;
+            controller.getProgressBar().setProgress(currentFileCount/totalFileCount);
             if (Objects.equals(projectType, CProject)){// && node.getName().endsWith(".h")) {
                 node.setFileInfo(ClangParser.parseFile(node));
             }
@@ -103,7 +149,7 @@ public class DirectoryProcessor {
     /**
      * @brief   This method prints the file node structure to the console for debugging
      */
-    public static void printFileTree(FileNodeModel node, int depth) {
+    public void printFileTree(FileNodeModel node, int depth) {
 
         System.out.println("  ".repeat(Math.max(0, depth)) + (node.isFile() ? "- " : "+ ") + node.getName() + " (" + node.getFullPath() + ")");
 

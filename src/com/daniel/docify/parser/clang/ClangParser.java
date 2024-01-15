@@ -235,30 +235,39 @@ public class ClangParser extends ParserUtils{
 
         /* extract macro name */
         start = chunk.indexOf("#define ") + "#define ".length();
-        chunk = chunk.substring(start);
-        if (chunk.contains(" ")) {
-            String name = chunk.substring(0, chunk.indexOf(" "));
-            macro.setName(name);
+        chunk = chunk.substring(start).trim();
 
-            /* extract macro value */
-            chunk = chunk.substring(name.length());
-            chunk = chunk.trim();
-            String value = chunk;
-            value = value.replaceAll("\\\\(?!n)", "\n");
+        String name;
 
-            String[] lines = value.split("\\n");
-            for (int i = 0; i < lines.length; i++) {
-                lines[i] = lines[i].trim();
-            }
-
-            value = String.join("\n", lines);
-            macro.setValue(value);
-
-            macro.setLineNumber(currentLineNumber);
-
-            return macro;
+        if (!chunk.contains(" ")){
+            name = chunk;
+        } else {
+            name = chunk.substring(0, chunk.indexOf(" "));
         }
-        return null;
+        if (name.isEmpty() || name.contains("_H")){
+            return null;
+        }
+        macro.setName(name);
+
+        /* extract macro value */
+        chunk = chunk.substring(name.length()).trim();
+        String value = chunk;
+        value = value.replaceAll("\\\\(?!n)", "\n");
+
+        String[] lines = value.split("\\n");
+        for (int i = 0; i < lines.length; i++) {
+            lines[i] = lines[i].trim();
+        }
+
+        value = String.join("\n", lines);
+        if (value.isEmpty()){
+            value = "*Empty macro*";
+        }
+        macro.setValue(value);
+
+        macro.setLineNumber(currentLineNumber);
+
+        return macro;
     }
 
     private static CStaticVar extractStaticVar(String line) {

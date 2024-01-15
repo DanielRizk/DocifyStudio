@@ -67,9 +67,9 @@ public class ProjectExplorer extends ControllerUtils{
         treeItem.setExpanded(true);
         if (fileNode.isFile()){
             if (fileNode.getName().endsWith(Controller.CProject)) {
-                treeItem.setGraphic(setIcon("assets/icons/c_header.png")); // path to your file icon
+                //treeItem.setGraphic(setIcon("assets/icons/c_header.png")); // path to your file icon
             } else if (fileNode.getName().endsWith(".c") || fileNode.getName().endsWith(".cpp")){
-                treeItem.setGraphic(setIcon("assets/icons/c_src.png")); // path to your folder icon
+                //treeItem.setGraphic(setIcon("assets/icons/c_src.png")); // path to your folder icon
             } else if (fileNode.getName().endsWith(Controller.JavaProject)) {
                 treeItem.setGraphic(setIcon("assets/icons/java_file.png")); // path to your folder icon
             } else if (fileNode.getName().endsWith(Controller.PythonProject)) {

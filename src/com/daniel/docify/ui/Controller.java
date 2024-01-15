@@ -1,5 +1,6 @@
 package com.daniel.docify.ui;
 
+import com.daniel.docify.fileProcessor.DirectoryProcessor;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.FileInfoModel.ItemNameAndProperty;
 import com.daniel.docify.ui.components.*;
@@ -150,7 +151,6 @@ public class Controller implements Initializable {
 
     @FXML
     void openDociFile(ActionEvent event) throws MalformedURLException {
-
         menuActions.openDociFile();
     }
 
@@ -228,7 +228,7 @@ public class Controller implements Initializable {
 
         fileRawCode.initializeCodeArea();
         docContent.initializeFileContentListView();
-        explorer.initializeExplorerListView();
+        //explorer.initializeExplorerListView();
         mainWindow.loadWebViewStyling();
 
         progressBar.setVisible(false);

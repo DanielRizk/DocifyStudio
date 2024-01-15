@@ -13,7 +13,7 @@ import java.util.List;
 public class FileNodeModel extends FileSerializer implements Serializable {
     private final String name;
     private final boolean isFile;
-    private final String fullPath; // New attribute for full path
+    private final String fullPath;
     private final List<FileNodeModel> children;
     private FileInfoModel fileInfo;
 
