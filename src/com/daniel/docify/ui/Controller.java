@@ -233,7 +233,7 @@ public class Controller implements Initializable {
         docContent.initializeFileContentListView();
         explorer.initializeExplorerListView();
         mainWindow.initializeSearchResultListView();
-        mainWindow.initializeWebViewEngine();
+        //mainWindow.initializeWebViewEngine(); /* for debugging */
         mainWindow.loadWebViewStyling();
 
         progressBar.setVisible(false);

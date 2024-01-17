@@ -8,6 +8,8 @@ import javafx.application.Platform;
 import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.file.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 
@@ -22,10 +24,32 @@ public class DirectoryProcessor {
 
     private final Controller controller;
     private final WatchService watchService;
+    private List<String> ignoreList;
 
     public DirectoryProcessor(Controller controller) throws IOException {
         this.controller = controller;
         this.watchService = FileSystems.getDefault().newWatchService();
+    }
+
+    private List<String> getIgnoreList(File directory){
+        List<String> ignore = new ArrayList<>();
+        File[] directoryListing = directory.listFiles();
+        if (directoryListing != null) {
+            for (File child : directoryListing) {
+                if (child.getName().equals("doci.ignore")) {
+                    try (BufferedReader reader = new BufferedReader(new FileReader(child))) {
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            ignore.add(directory.getAbsolutePath()+line);
+                        }
+                        return ignore;
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public Controller getController() {
@@ -77,7 +101,13 @@ public class DirectoryProcessor {
             boolean containsFileType = false;
             for (File file : files) {
                 currentFileCount++;
-                controller.getProgressBar().setProgress(currentFileCount/totalFileCount);
+                controller.getProgressBar().setProgress(currentFileCount / totalFileCount);
+
+                // Skip processing if the file/directory is in the ignore list
+                if (ignoreList != null && ignoreList.contains(file.getAbsolutePath())) {
+                    continue;
+                }
+
                 if (file.isDirectory()) {
                     FileNodeModel childNode = buildDirTree(file, projectType);
                     if (childNode != null) {
@@ -85,18 +115,11 @@ public class DirectoryProcessor {
                         containsFileType = true; // Set to true if any child directory contains the file type
                     }
                 } else {
-                    if (Objects.equals(projectType, C_PROJECT)){
-                        if (file.getName().endsWith(".h") || file.getName().endsWith(".c")) {
-                            FileNodeModel childNode = new FileNodeModel(file.getName(), C_PROJECT,true, file.getAbsolutePath());
-                            node.addChild(childNode);
-                            containsFileType = true;
-                        }
-                    } else {
-                        if (file.getName().endsWith(projectType)) {
-                            FileNodeModel childNode = new FileNodeModel(file.getName(), projectType, true, file.getAbsolutePath());
-                            node.addChild(childNode);
-                            containsFileType = true;
-                        }
+                    // Process files based on project type
+                    if (isRelevantFile(file, projectType)) {
+                        FileNodeModel childNode = new FileNodeModel(file.getName(), projectType, true, file.getAbsolutePath());
+                        node.addChild(childNode);
+                        containsFileType = true;
                     }
                 }
             }
@@ -104,12 +127,19 @@ public class DirectoryProcessor {
             if (containsFileType) {
                 registerDirectory(directory.toPath());
                 return node;
-            } else {
-                return null;
             }
         }
         return null;
     }
+
+    private boolean isRelevantFile(File file, String projectType) {
+        if (Objects.equals(projectType, C_PROJECT)) {
+            return file.getName().endsWith(".h") || file.getName().endsWith(".c");
+        } else {
+            return file.getName().endsWith(projectType);
+        }
+    }
+
 
     private void registerDirectory(Path dir) throws IOException {
         dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
@@ -153,6 +183,7 @@ public class DirectoryProcessor {
     public void buildAndProcessDirectory(File directory, String projectType, DirectoryProcessorCallback callback) throws IOException {
         controller.getProgressBar().setVisible(true);
         controller.getProgressBar().setProgress(0);
+        ignoreList = getIgnoreList(directory);
 
         new Thread(() -> {
             try {
