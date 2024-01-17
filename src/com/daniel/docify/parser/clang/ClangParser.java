@@ -5,6 +5,7 @@ import com.daniel.docify.fileProcessor.FileSerializer;
 import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.fileInfo.CFileInfo;
+import com.daniel.docify.parser.IParser;
 import com.daniel.docify.parser.ParserUtils;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,14 +28,15 @@ import java.util.stream.Collectors;
 /**
  * @brief   This class provides all the necessary functionalities to parse C project files
  */
-public class ClangParser extends ParserUtils{
+public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
 
     private static final Logger LOGGER = Logger.getLogger(FileSerializer.class.getName());
 
     /* Keeps track of the current line number in the document */
     private static int currentLineNumber = 0;
 
-    private static CFileInfo safeParse(FileNodeModel node, BufferedReader reader) throws IOException {
+    @Override
+    public CFileInfo safeParse(FileNodeModel node, BufferedReader reader) throws IOException {
         currentLineNumber = 0;
 
         String fileContent = null;
@@ -68,7 +70,7 @@ public class ClangParser extends ParserUtils{
 
         while ((line = nextLine(reader)) != null) {
 
-            if (line.contains("/*") || commentScope){
+            if (line.contains("/**") || commentScope){
                 if (commentScope){
                     chunk.append(line);
                     commentScope = false;
@@ -213,11 +215,12 @@ public class ClangParser extends ParserUtils{
      * @brief   This method parses passed file according to the pre-existing comments
      */
     @NotNull
-    public static CFileInfo parseFile(FileNodeModel node) throws IOException {
+    @Override
+    public CFileInfo parseFile(FileNodeModel node){
         BufferedReader reader = null;
 
         try {
-            reader = new BufferedReader(new FileReader(node.getFullPath().toString()));
+            reader = new BufferedReader(new FileReader(node.getFullPath()));
             return safeParse(node, reader);
 
         } catch (IOException e) {
@@ -235,7 +238,7 @@ public class ClangParser extends ParserUtils{
         }
     }
 
-    private static CExtern extractExtern(String line) {
+    private CExtern extractExtern(String line) {
         CExtern extern = new CExtern();
 
         line = line.trim();
@@ -247,7 +250,7 @@ public class ClangParser extends ParserUtils{
         return extern;
     }
 
-    private static CMacro extractMacro(String chunk) {
+    private CMacro extractMacro(String chunk) {
         CMacro macro = new CMacro();
 
         int start;
@@ -291,7 +294,7 @@ public class ClangParser extends ParserUtils{
         return macro;
     }
 
-    private static CStaticVar extractStaticVar(String line) {
+    private CStaticVar extractStaticVar(String line) {
         CStaticVar staticVar = new CStaticVar();
 
         int start, startVal, end;
@@ -324,7 +327,7 @@ public class ClangParser extends ParserUtils{
         return staticVar;
     }
 
-    private static CEnum extractEnum(String chunk) {
+    private CEnum extractEnum(String chunk) {
         CEnum cEnum = new CEnum();
 
         int start, end;
@@ -361,7 +364,7 @@ public class ClangParser extends ParserUtils{
         return cEnum;
     }
 
-    private static CStruct extractStruct(String chunk) {
+    private CStruct extractStruct(String chunk) {
         CStruct struct = new CStruct();
 
         int start, end;
@@ -398,7 +401,7 @@ public class ClangParser extends ParserUtils{
         return struct;
     }
 
-    private static CFunction extractFunction(String chunk) {
+    private CFunction extractFunction(String chunk) {
         CFunction function = new CFunction();
 
         int start, end;
@@ -433,7 +436,7 @@ public class ClangParser extends ParserUtils{
         return function;
     }
 
-    private static String extractFromComment(String chunk) {
+    private String extractFromComment(String chunk) {
         int startTagIndex;
         String startTag;
 
@@ -463,12 +466,10 @@ public class ClangParser extends ParserUtils{
         return null;
     }
 
-    private static Integer identifyCommentBlock(String chunk){
+    private Integer identifyCommentBlock(String chunk){
         String buff = chunk;
         buff = buff.toLowerCase();
-        if (!buff.contains("/**")){
-            return 0;
-        } else if (buff.contains("this enum")){
+        if (buff.contains("this enum")){
             return 1;
         } else if (buff.contains("this struct")){
             return 2;
@@ -478,13 +479,9 @@ public class ClangParser extends ParserUtils{
         return 0;
     }
 
-    private static String nextLine(BufferedReader reader) throws IOException {
+    @Override
+    public String nextLine(BufferedReader reader) throws IOException {
         currentLineNumber++;
         return reader.readLine();
-    }
-
-    private static String readFromFile(String filePath) throws IOException {
-        Path path = Paths.get(filePath);
-        return Files.readString(path);
     }
 }

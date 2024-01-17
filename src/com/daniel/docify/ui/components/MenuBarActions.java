@@ -39,11 +39,11 @@ public class MenuBarActions extends ControllerUtils {
      * {@link com.daniel.docify.fileProcessor.DirectoryProcessor} to build the TreeView.
      */
     public void startNew(String fileType) {
-        if (Objects.equals(fileType, Controller.JavaProject)){
+        if (Objects.equals(fileType, Controller.JAVA_PROJECT)){
             controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
                     "Java documentation will be available in the next release");
             return;
-        }else if (Objects.equals(fileType, Controller.PythonProject)){
+        }else if (Objects.equals(fileType, Controller.PYTHON_PROJECT)){
             controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
                     "Python documentation will be available in the next release");
             return;

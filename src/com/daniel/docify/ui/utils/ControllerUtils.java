@@ -29,6 +29,7 @@ import java.util.logging.Level;
 public class ControllerUtils {
 
     protected Controller controller;
+    private boolean isGetFromSreachResultCalled = false;
 
     public ControllerUtils (Controller controller){
         this.controller = controller;
@@ -90,7 +91,7 @@ public class ControllerUtils {
             if (file.getFileInfo() != null) {
                 for (FileInfoModel.ItemNameAndProperty itemName : file.getFileInfo().getItemNames()) {
                     if (isMatch(itemName.toString(), searchWord)) {
-                        searchResults.add(new SearchResultModel(itemName.toString(), file));
+                        searchResults.add(new SearchResultModel(itemName, file));
                     }
                 }
             }
@@ -151,6 +152,7 @@ public class ControllerUtils {
     }
 
     public void getFromSearchResult(){
+        isGetFromSreachResultCalled = true;
         ControllerUtils.SearchResultModel selectedItem = controller.getSearchResultListView().getSelectionModel().getSelectedItem();
 
         if (controller.getSearchResultListView().getSelectionModel().getSelectedItem() != null) {
@@ -164,24 +166,34 @@ public class ControllerUtils {
         controller.mainWindow.getDocumentationView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
                 // Now that the page has loaded, we can highlight the search term
-                if (selectedItem != null) scrollToLine(selectedItem.toString());
+                if (selectedItem != null &&
+                        !selectedItem.toString().isEmpty() &&
+                        isGetFromSreachResultCalled){
+                    scrollToLine(selectedItem.toString());
+                    isGetFromSreachResultCalled  = false;
+                }
             }
         });
+
     }
 
-    public record SearchResultModel(String itemName, FileNodeModel fileNodeModel) implements Comparable<SearchResultModel>{
+    public record SearchResultModel(FileInfoModel.ItemNameAndProperty item, FileNodeModel fileNodeModel) implements Comparable<SearchResultModel>{
         public FileNodeModel getParentFileNode() {
             return fileNodeModel;
         }
+
+        public FileInfoModel.ItemNameAndProperty getNameAndProperty(){
+            return item;
+        }
         @Override
         public String toString() {
-            return itemName;
+            return item.toString();
         }
 
         @Override
         public int compareTo(@NotNull ControllerUtils.SearchResultModel o) {
             if (o instanceof SearchResultModel other) {
-                return this.itemName.compareTo(other.itemName);
+                return this.item.toString().compareTo(other.item.toString());
                 // You could also add more sophisticated comparison logic here if needed
             }
             return -1; // or throw an exception if comparing with a non-SearchResultModel object

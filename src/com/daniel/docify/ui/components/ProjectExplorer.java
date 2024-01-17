@@ -11,13 +11,14 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents the left pane of the UI, and it contains the TreeView structure
@@ -27,6 +28,31 @@ public class ProjectExplorer extends ControllerUtils{
 
 
     private final ObservableList<FileNodeModel> projectNodesList = FXCollections.observableArrayList();
+    private static final Map<String, Image> iconCache = new HashMap<>();
+
+    private static final String ICON_HEADER        = "assets/icons/c_header.png";
+    private static final String ICON_SOURCE        = "assets/icons/c_src.png";
+    private static final String ICON_JAVA          = "assets/icons/java_file.png";
+    private static final String ICON_PYTHON        = "assets/icons/py_file.png";
+    private static final String ICON_FOLDER        = "assets/icons/open.png";
+
+    static {
+        // Pre-load icons
+        loadIcon(ICON_HEADER);
+        loadIcon(ICON_SOURCE);
+        loadIcon(ICON_JAVA);
+        loadIcon(ICON_PYTHON);
+        loadIcon(ICON_FOLDER);
+        // Add more icons as needed
+    }
+
+    private static void loadIcon(String path) {
+        try {
+            iconCache.put(path, new Image(new FileInputStream(path)));
+        } catch (FileNotFoundException e) {
+            System.err.println("Icon file not found: " + path);
+        }
+    }
 
     public ProjectExplorer(Controller controller){
         super(controller);
@@ -62,27 +88,39 @@ public class ProjectExplorer extends ControllerUtils{
      * assigning icon to the directories and files in the tree.
      */
     private TreeItem<FileNodeModel> convertToTreeItem(FileNodeModel fileNode) throws MalformedURLException {
-
         TreeItem<FileNodeModel> treeItem = new TreeItem<>(fileNode);
         treeItem.setExpanded(true);
-        if (fileNode.isFile()){
-            if (fileNode.getName().endsWith(Controller.CProject)) {
-                //treeItem.setGraphic(setIcon("assets/icons/c_header.png")); // path to your file icon
-            } else if (fileNode.getName().endsWith(".c") || fileNode.getName().endsWith(".cpp")){
-                //treeItem.setGraphic(setIcon("assets/icons/c_src.png")); // path to your folder icon
-            } else if (fileNode.getName().endsWith(Controller.JavaProject)) {
-                treeItem.setGraphic(setIcon("assets/icons/java_file.png")); // path to your folder icon
-            } else if (fileNode.getName().endsWith(Controller.PythonProject)) {
-                treeItem.setGraphic(setIcon("assets/icons/py_file.png")); // path to your folder icon
-            }
+
+        Image icon = getIconForNode(fileNode);
+        if (icon != null) {
+            ImageView iconView = new ImageView(icon);
+            iconView.setFitHeight(20.0); // Set the height as per your requirement
+            iconView.setFitWidth(20.0);  // Set the width as per your requirement
+            treeItem.setGraphic(iconView);
         }
-        else{
-            treeItem.setGraphic(setIcon("assets/icons/open.png"));
-        }
-        for(FileNodeModel child : fileNode.getChildren()){
+
+        for (FileNodeModel child : fileNode.getChildren()) {
             treeItem.getChildren().add(convertToTreeItem(child));
         }
+
         return treeItem;
+    }
+
+    private Image getIconForNode(FileNodeModel fileNode) {
+        if (fileNode.isFile()) {
+            if (fileNode.getName().endsWith(Controller.C_PROJECT)) {
+                return iconCache.get(ICON_HEADER);
+            } else if (fileNode.getName().endsWith(".c") || fileNode.getName().endsWith(".cpp")) {
+                return iconCache.get(ICON_SOURCE);
+            } else if (fileNode.getName().endsWith(Controller.JAVA_PROJECT)) {
+                return iconCache.get(ICON_JAVA);
+            } else if (fileNode.getName().endsWith(Controller.PYTHON_PROJECT)) {
+                return iconCache.get(ICON_PYTHON);
+            }
+        } else {
+            return iconCache.get(ICON_FOLDER);
+        }
+        return null; // Default icon or null if none matches
     }
 
     /**
@@ -139,6 +177,8 @@ public class ProjectExplorer extends ControllerUtils{
         private final ImageView imageView = new ImageView();
         private final Text text = new Text();
 
+        private final HBox cellBox = new HBox(imageView, text);
+
         @Override
         protected void updateItem(FileNodeModel node, boolean empty) {
             super.updateItem(node, empty);
@@ -149,40 +189,30 @@ public class ProjectExplorer extends ControllerUtils{
                 setGraphic(null);
             } else {
                 text.setText(node.getName());
-
-                try {
-                    if (node.getName().endsWith(Controller.CProject)) {
-                        imageView.setImage(setIconForList("assets/icons/c_header.png"));
-                        text.setFill(Color.web("#28725f"));
-                    } else if (node.getName().endsWith(".c") || node.getName().endsWith(".cpp")){
-                        imageView.setImage(setIconForList("assets/icons/c_src.png"));
-                        text.setFill(Color.web("#4b245b"));
-                    } else if (node.getName().endsWith(Controller.JavaProject)) {
-                        imageView.setImage(setIconForList("assets/icons/java_file.png"));
-                        text.setFill(Color.web("#824d00"));
-                    } else if (node.getName().endsWith(Controller.PythonProject)) {
-                        imageView.setImage(setIconForList("assets/icons/py_file.png"));
-                        text.setFill(Color.web("#62664d"));
-                    }
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
+                Image icon = getIconForNode(node);
+                if (icon != null) {
+                    imageView.setImage(icon);
                 }
 
                 imageView.setFitHeight(30.0);
                 imageView.setFitWidth(30.0);
-                HBox cellBox = new HBox(imageView, text);
                 cellBox.setSpacing(10);
                 setGraphic(cellBox);
             }
         }
 
-        /**
-         * This method is a helper method used to load an icon and returns
-         * an Image object.
-         */
-        private Image setIconForList(String iconPath) throws FileNotFoundException {
-            FileInputStream input = new FileInputStream(iconPath);
-            return new Image(input);
+        private Image getIconForNode(FileNodeModel node) {
+            if (node.getName().endsWith(Controller.C_PROJECT)) {
+                return iconCache.get(ICON_HEADER);
+            } else if (node.getName().endsWith(".c") || node.getName().endsWith(".cpp")) {
+                return iconCache.get(ICON_SOURCE);
+            } else if (node.getName().endsWith(Controller.JAVA_PROJECT)) {
+                return iconCache.get(ICON_JAVA);
+            } else if (node.getName().endsWith(Controller.PYTHON_PROJECT)) {
+                return iconCache.get(ICON_PYTHON);
+            }
+            return null; // Default icon or null if none matches
         }
     }
+
 }

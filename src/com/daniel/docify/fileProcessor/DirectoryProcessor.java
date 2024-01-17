@@ -11,7 +11,7 @@ import java.nio.file.*;
 import java.util.Objects;
 import java.util.logging.Level;
 
-import static com.daniel.docify.ui.Controller.CProject;
+import static com.daniel.docify.ui.Controller.C_PROJECT;
 import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
@@ -85,9 +85,9 @@ public class DirectoryProcessor {
                         containsFileType = true; // Set to true if any child directory contains the file type
                     }
                 } else {
-                    if (Objects.equals(projectType, CProject)){
+                    if (Objects.equals(projectType, C_PROJECT)){
                         if (file.getName().endsWith(".h") || file.getName().endsWith(".c")) {
-                            FileNodeModel childNode = new FileNodeModel(file.getName(), CProject,true, file.getAbsolutePath());
+                            FileNodeModel childNode = new FileNodeModel(file.getName(), C_PROJECT,true, file.getAbsolutePath());
                             node.addChild(childNode);
                             containsFileType = true;
                         }
@@ -187,8 +187,9 @@ public class DirectoryProcessor {
         if (node.isFile()) {
             currentFileCount++;
             controller.getProgressBar().setProgress(currentFileCount/totalFileCount);
-            if (Objects.equals(projectType, CProject)){// && node.getName().endsWith(".h")) {
-                node.setFileInfo(ClangParser.parseFile(node));
+            if (Objects.equals(projectType, C_PROJECT)){// && node.getName().endsWith(".h")) {
+                ClangParser parser = new ClangParser();
+                node.setFileInfo(parser.parseFile(node));
             }
         }
         for (FileNodeModel child : node.getChildren()) {

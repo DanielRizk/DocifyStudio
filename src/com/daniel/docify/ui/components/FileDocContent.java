@@ -15,6 +15,8 @@ import javafx.scene.text.Text;
 import javafx.util.Callback;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This Class represents the right pane of the UI, and it contains file specific info
@@ -62,6 +64,35 @@ public class FileDocContent extends ControllerUtils {
     private static class FileContentItemCell extends ListCell<FileInfoModel.ItemNameAndProperty> {
         private final ImageView imageView = new ImageView();
         private final Text text = new Text();
+        private final HBox cellBox = new HBox(imageView, text); // Pre-create HBox
+        private static final Map<String, Image> iconCache = new HashMap<>();
+
+        private static final String ICON_EXTERN = "assets/icons/clang_extern.png";
+        private static final String ICON_MACRO = "assets/icons/clang_macro.png";
+        private static final String ICON_STATIC_VAR = "assets/icons/clang_staticVar.png";
+        private static final String ICON_ENUM = "assets/icons/clang_enum.png";
+        private static final String ICON_STRUCT = "assets/icons/clang_struct.png";
+        private static final String ICON_FUNCTION = "assets/icons/clang_function.png";
+        private static final String ICON_DEFAULT = "assets/icons/cprog.png";
+
+        static {
+            // Load specific icons if they are not loaded already in the cache
+            loadIcon(ICON_EXTERN);
+            loadIcon(ICON_MACRO);
+            loadIcon(ICON_STATIC_VAR);
+            loadIcon(ICON_ENUM);
+            loadIcon(ICON_STRUCT);
+            loadIcon(ICON_FUNCTION);
+            loadIcon(ICON_DEFAULT);
+        }
+
+        private static void loadIcon(String path) {
+            try {
+                iconCache.put(path, new Image(new FileInputStream(path)));
+            } catch (FileNotFoundException e) {
+                System.err.println("Icon file not found: " + path);
+            }
+        }
 
         @Override
         protected void updateItem(FileInfoModel.ItemNameAndProperty item, boolean empty) {
@@ -71,82 +102,51 @@ public class FileDocContent extends ControllerUtils {
                 setText(null);
             } else {
                 text.setText(item.toString());
-                switch (item.getType()) {
-                    case FileInfoModel.ObjectType.EXTREN:
-                        try {
-                            imageView.setImage(setIconForList("assets/icons/clang_extern.png"));
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                        text.setFill(Color.web("#574e3b"));
-                        break;
-                    case FileInfoModel.ObjectType.MACRO:
-                        try {
-                            imageView.setImage(setIconForList("assets/icons/clang_macro.png"));
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                        text.setFill(Color.web("#215973"));
-                        break;
-                    case FileInfoModel.ObjectType.STATIC:
-                        try {
-                            imageView.setImage(setIconForList("assets/icons/clang_staticVar.png"));
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                        text.setFill(Color.web("#a86900"));
-                        break;
-                    case FileInfoModel.ObjectType.ENUM:
-                        try {
-                            imageView.setImage(setIconForList("assets/icons/clang_enum.png"));
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                        text.setFill(Color.web("#13522d"));
-                        break;
-                    case FileInfoModel.ObjectType.STRUCT:
-                        try {
-                            imageView.setImage(setIconForList("assets/icons/clang_struct.png"));
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                        text.setFill(Color.web("#5e1c12"));
-                        break;
-                    case FileInfoModel.ObjectType.FUNCTION:
-                        try {
-                            imageView.setImage(setIconForList("assets/icons/clang_function.png"));
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                        text.setFill(Color.web("#541f80"));
-                        break;
-                    default:
-                        try {
-                            imageView.setImage(setIconForList("assets/icons/cprog.png"));
-                        } catch (FileNotFoundException e) {
-                            throw new RuntimeException(e);
-                        }
-                        text.setFill(Color.BLACK);
-                        break;
-                }
+                setTextColorAndIcon(item);
 
                 imageView.setFitHeight(20.0);
                 imageView.setFitWidth(20.0);
-                HBox cellBox = new HBox(imageView, text);
                 cellBox.setSpacing(10);
                 setGraphic(cellBox);
             }
         }
 
-        /**
-         * This method is a helper method used to load an icon and returns
-         * an Image object.
-         */
-        private Image setIconForList(String iconPath) throws FileNotFoundException {
-            FileInputStream input = new FileInputStream(iconPath);
-            return new Image(input);
+        private void setTextColorAndIcon(FileInfoModel.ItemNameAndProperty item) {
+            Image icon;
+            switch (item.getType()) {
+                case FileInfoModel.ObjectType.EXTREN:
+                    icon = iconCache.get(ICON_EXTERN);
+                    text.setFill(Color.web("#574e3b"));
+                    break;
+                case FileInfoModel.ObjectType.MACRO:
+                    icon = iconCache.get(ICON_MACRO);
+                    text.setFill(Color.web("#215973"));
+                    break;
+                case FileInfoModel.ObjectType.STATIC:
+                    icon = iconCache.get(ICON_STATIC_VAR);
+                    text.setFill(Color.web("#a86900"));
+                    break;
+                case FileInfoModel.ObjectType.ENUM:
+                    icon = iconCache.get(ICON_ENUM);
+                    text.setFill(Color.web("#13522d"));
+                    break;
+                case FileInfoModel.ObjectType.STRUCT:
+                    icon = iconCache.get(ICON_STRUCT);
+                    text.setFill(Color.web("#5e1c12"));
+                    break;
+                case FileInfoModel.ObjectType.FUNCTION:
+                    icon = iconCache.get(ICON_FUNCTION);
+                    text.setFill(Color.web("#541f80"));
+                    break;
+                default:
+                    icon = iconCache.get(ICON_DEFAULT);
+                    text.setFill(Color.BLACK);
+                    break;
+            }
+            if (icon != null) {
+                imageView.setImage(icon);
+            }
         }
     }
-
-
 }
+

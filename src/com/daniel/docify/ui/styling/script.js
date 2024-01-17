@@ -19,12 +19,38 @@ function highlightSearch(text) {
 
     if (!text) return;
 
-    var xpath = "//text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '" + text.toLowerCase() + "')]";
+    var xpath = "//text()[contains(., '" + text + "')]";
+    //var xpath = "//text()[contains(translate(., 'ABCDEFGHIJKLMNOPQRSTUVWXYZ', 'abcdefghijklmnopqrstuvwxyz'), '" + text.toLowerCase() + "')]";
     var matches = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
 
     for (var i = 0; i < matches.snapshotLength; i++) {
         var textNode = matches.snapshotItem(i);
+        expandParentCollapsible(textNode);
         highlightTextNode(textNode, text);
+    }
+}
+
+function expandParentCollapsible(node) {
+    var count = 0;
+    while (node != null && node.tagName !== 'BODY') {
+        count++;
+        console.log(count);
+        if (node.classList && node.classList.contains('collapsible')) {
+            // Expand the collapsible content
+            var content = node.nextElementSibling;
+            if (content && content.style.display !== 'block') {
+                content.style.display = 'block';
+                node.classList.add('expanded');
+            }
+        } else if (node.classList && node.classList.contains('emptyBox')) {
+            // Expand the group collapse
+            var groupContent = node;
+            if (groupContent && groupContent.style.display !== 'block') {
+                groupContent.style.display = 'block';
+                //node.classList.add('expanded');
+            }
+        }
+        node = node.parentNode; // Continue traversing up the DOM
     }
 }
 

@@ -6,9 +6,22 @@ import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.fileInfo.CFileInfo;
 import com.daniel.docify.ui.Controller;
 import com.daniel.docify.ui.utils.ControllerUtils;
+import com.sun.javafx.webkit.WebConsoleListener;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Text;
 import javafx.scene.web.WebView;
+import javafx.util.Callback;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 
 /**
@@ -79,10 +92,10 @@ public class MainWindow extends ControllerUtils {
                 }
 
                 if (hasExterns) {
-                    dynamicHtmlContent.append("<div class='groupCollapse extern' onclick=\"toggleCollapse('").append(externsContainerId).append("')\">Externs</div>");
-                    dynamicHtmlContent.append("<div id='").append(externsContainerId).append("' style='display: none;'>")
+                    dynamicHtmlContent.append("<div class='groupCollapse extern' data-content='").append(externsContainerId).append("' onclick=\"toggleCollapse('").append(externsContainerId).append("')\">Externs</div>");
+                    dynamicHtmlContent.append("<div class='emptyBox' id='").append(externsContainerId).append("' style='display: none;'>")
                             .append(externContent)
-                            .append("</div>");
+                            .append("</div>").append("</div>");
                 }
 
 
@@ -108,10 +121,10 @@ public class MainWindow extends ControllerUtils {
                 }
 
                 if (hasMacros) {
-                    dynamicHtmlContent.append("<div class='groupCollapse macro' onclick=\"toggleCollapse('").append(macrosContainerId).append("')\">Macros</div>");
-                    dynamicHtmlContent.append("<div id='").append(macrosContainerId).append("' style='display: none;'>")
+                    dynamicHtmlContent.append("<div class='groupCollapse macro' data-content='").append(macrosContainerId).append("'onclick=\"toggleCollapse('").append(macrosContainerId).append("')\">Macros</div>");
+                    dynamicHtmlContent.append("<div class='emptyBox' id='").append(macrosContainerId).append("' style='display: none;'>")
                             .append(macroContent)
-                            .append("</div>");
+                            .append("</div>").append("</div>");
                 }
 
 
@@ -137,10 +150,10 @@ public class MainWindow extends ControllerUtils {
                 }
 
                 if (hasStatics) {
-                    dynamicHtmlContent.append("<div class='groupCollapse staticVar' onclick=\"toggleCollapse('").append(staticsContainerId).append("')\">Static variables</div>");
-                    dynamicHtmlContent.append("<div id='").append(staticsContainerId).append("' style='display: none;'>")
+                    dynamicHtmlContent.append("<div class='groupCollapse staticVar' data-content='").append(staticsContainerId).append("'onclick=\"toggleCollapse('").append(staticsContainerId).append("')\">Static variables</div>");
+                    dynamicHtmlContent.append("<div class='emptyBox' id='").append(staticsContainerId).append("' style='display: none;'>")
                             .append(staticVarContent)
-                            .append("</div>");
+                            .append("</div>").append("</div>");
                 }
 
 
@@ -171,10 +184,10 @@ public class MainWindow extends ControllerUtils {
                 }
 
                 if (hasEnums) {
-                    dynamicHtmlContent.append("<div class='groupCollapse enum' onclick=\"toggleCollapse('").append(enumsContainerId).append("')\">Enums</div>");
-                    dynamicHtmlContent.append("<div id='").append(enumsContainerId).append("' style='display: none;'>")
+                    dynamicHtmlContent.append("<div class='groupCollapse enum' data-dontent='").append(enumsContainerId).append("'onclick=\"toggleCollapse('").append(enumsContainerId).append("')\">Enums</div>");
+                    dynamicHtmlContent.append("<div class='emptyBox' id='").append(enumsContainerId).append("' style='display: none;'>")
                             .append(enumContent)
-                            .append("</div>");
+                            .append("</div>").append("</div>");
                 }
 
 
@@ -205,10 +218,10 @@ public class MainWindow extends ControllerUtils {
                 }
 
                 if (hasStructs) {
-                    dynamicHtmlContent.append("<div class='groupCollapse struct' onclick=\"toggleCollapse('").append(structsContainerId).append("')\">Structs</div>");
-                    dynamicHtmlContent.append("<div id='").append(structsContainerId).append("' style='display: none;'>")
+                    dynamicHtmlContent.append("<div class='groupCollapse struct' data-content='").append(staticsContainerId).append("'onclick=\"toggleCollapse('").append(structsContainerId).append("')\">Structs</div>");
+                    dynamicHtmlContent.append("<div class='emptyBox' id='").append(structsContainerId).append("' style='display: none;'>")
                             .append(structContent)
-                            .append("</div>");
+                            .append("</div>").append("</div>");
                 }
 
 
@@ -229,8 +242,9 @@ public class MainWindow extends ControllerUtils {
                         functionsContent.append("<div class='attr'><b>No documentation available!</b></div> ");
                     }
                     for (String params : fun.getParams())
-                        if (params != null)
+                        if (params != null && !params.isEmpty())
                             functionsContent.append("<div class='attr'><b>Param:</b> ").append(params).append("</div>");
+                        else functionsContent.append("<div class='attr'><b>Param:</b> ").append("Function has no arguments ").append("</div>");
                     if (fun.getReturnType() != null)
                         functionsContent.append("<div class='attr'><b>Return type:</b> ").append(fun.getReturnType()).append("</div>");
                     if (fun.getLineNumber() != null)
@@ -239,10 +253,10 @@ public class MainWindow extends ControllerUtils {
                 }
 
                 if (hasFunctions) {
-                    dynamicHtmlContent.append("<div class='groupCollapse function' onclick=\"toggleCollapse('").append(functionsContainerId).append("')\">Functions</div>");
-                    dynamicHtmlContent.append("<div id='").append(functionsContainerId).append("' style='display: none;'>")
+                    dynamicHtmlContent.append("<div class='groupCollapse function' data-content='").append(functionsContainerId).append("'onclick=\"toggleCollapse('").append(functionsContainerId).append("')\">Functions</div>");
+                    dynamicHtmlContent.append("<div class='emptyBox' id='").append(functionsContainerId).append("' style='display: none;'>")
                             .append(functionsContent)
-                            .append("</div>");
+                            .append("</div>").append("</div>");
                 }
 
                 if (dynamicHtmlContent.isEmpty()){
@@ -264,6 +278,10 @@ public class MainWindow extends ControllerUtils {
         }
     }
 
+    /**
+     * This method refreshes the main window when a file is modified on the system,
+     * it retrieves the last opened file.
+     */
     public void refreshWebViewDisplay() {
         if (fileInfoBuff != null){
             for (FileNodeModel node : controller.explorer.getProjectNodesList()){
@@ -292,6 +310,124 @@ public class MainWindow extends ControllerUtils {
             htmlContent.append(finalHtmlContent);
         } catch (IOException e) {
             Controller.LOGGER.log(Level.SEVERE, "Error loading styles.", e);
+        }
+    }
+
+    /**
+     * This method initializes the Web console to work with the
+     * IDE providing log messages from the WebView engine.
+     */
+    public void initializeWebViewEngine() {
+        WebConsoleListener.setDefaultListener(new WebConsoleListener() {
+            @Override
+            public void messageAdded(WebView webView, String message, int lineNumber, String sourceId) {
+                System.out.println("Console: [" + sourceId + ":" + lineNumber + "] " + message);
+            }
+        });
+    }
+
+    /**
+     * This method initializes the searchResultListView and assigns cell factory
+     * in order to stylize the text and add an icon to each entry according to
+     * certain rules.
+     */
+    public void initializeSearchResultListView(){
+        controller.getSearchResultListView().setCellFactory(new Callback<ListView<ControllerUtils.SearchResultModel>, ListCell<ControllerUtils.SearchResultModel>>() {
+            public FileContentItemCell call(ListView<ControllerUtils.SearchResultModel> listView) {
+                return new MainWindow.FileContentItemCell();
+            }
+        });
+    }
+
+    /**
+     * This subclass assists the cell factory of the searchResultListView, and it contains the
+     * logic behind styling the cells.
+     */
+    private static class FileContentItemCell extends ListCell<ControllerUtils.SearchResultModel> {
+        private final ImageView imageView = new ImageView();
+        private final Text text = new Text();
+        private final HBox cellBox = new HBox(imageView, text); // Pre-create HBox
+        private static final Map<String, Image> iconCache = new HashMap<>();
+
+        private static final String ICON_EXTERN = "assets/icons/clang_extern.png";
+        private static final String ICON_MACRO = "assets/icons/clang_macro.png";
+        private static final String ICON_STATIC_VAR = "assets/icons/clang_staticVar.png";
+        private static final String ICON_ENUM = "assets/icons/clang_enum.png";
+        private static final String ICON_STRUCT = "assets/icons/clang_struct.png";
+        private static final String ICON_FUNCTION = "assets/icons/clang_function.png";
+        private static final String ICON_DEFAULT = "assets/icons/cprog.png";
+
+        static {
+            // Load specific icons if they are not loaded already in the cache
+            loadIcon(ICON_EXTERN);
+            loadIcon(ICON_MACRO);
+            loadIcon(ICON_STATIC_VAR);
+            loadIcon(ICON_ENUM);
+            loadIcon(ICON_STRUCT);
+            loadIcon(ICON_FUNCTION);
+            loadIcon(ICON_DEFAULT);
+        }
+
+        private static void loadIcon(String path) {
+            try {
+                iconCache.put(path, new Image(new FileInputStream(path)));
+            } catch (FileNotFoundException e) {
+                System.err.println("Icon file not found: " + path);
+            }
+        }
+
+        @Override
+        protected void updateItem(ControllerUtils.SearchResultModel item, boolean empty) {
+            super.updateItem(item, empty);
+            if (empty || item == null) {
+                setGraphic(null);
+                setText(null);
+            } else {
+                text.setText(item.toString());
+                setTextColorAndIcon(item);
+
+                imageView.setFitHeight(20.0);
+                imageView.setFitWidth(20.0);
+                cellBox.setSpacing(10);
+                setGraphic(cellBox);
+            }
+        }
+
+        private void setTextColorAndIcon(ControllerUtils.SearchResultModel item) {
+            Image icon;
+            switch (item.getNameAndProperty().getType()) {
+                case FileInfoModel.ObjectType.EXTREN:
+                    icon = iconCache.get(ICON_EXTERN);
+                    text.setFill(Color.web("#574e3b"));
+                    break;
+                case FileInfoModel.ObjectType.MACRO:
+                    icon = iconCache.get(ICON_MACRO);
+                    text.setFill(Color.web("#215973"));
+                    break;
+                case FileInfoModel.ObjectType.STATIC:
+                    icon = iconCache.get(ICON_STATIC_VAR);
+                    text.setFill(Color.web("#a86900"));
+                    break;
+                case FileInfoModel.ObjectType.ENUM:
+                    icon = iconCache.get(ICON_ENUM);
+                    text.setFill(Color.web("#13522d"));
+                    break;
+                case FileInfoModel.ObjectType.STRUCT:
+                    icon = iconCache.get(ICON_STRUCT);
+                    text.setFill(Color.web("#5e1c12"));
+                    break;
+                case FileInfoModel.ObjectType.FUNCTION:
+                    icon = iconCache.get(ICON_FUNCTION);
+                    text.setFill(Color.web("#541f80"));
+                    break;
+                default:
+                    icon = iconCache.get(ICON_DEFAULT);
+                    text.setFill(Color.BLACK);
+                    break;
+            }
+            if (icon != null) {
+                imageView.setImage(icon);
+            }
         }
     }
 

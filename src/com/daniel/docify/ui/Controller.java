@@ -1,6 +1,5 @@
 package com.daniel.docify.ui;
 
-import com.daniel.docify.fileProcessor.DirectoryProcessor;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.FileInfoModel.ItemNameAndProperty;
 import com.daniel.docify.ui.components.*;
@@ -45,9 +44,9 @@ public class Controller implements Initializable {
     public static final Logger LOGGER = Logger.getLogger(Controller.class.getName());
 
     /* Static variables */
-    public final static String CProject         = ".h";
-    public final static String PythonProject    = ".py";
-    public final static String JavaProject      = ".java";
+    public final static String C_PROJECT = ".h";
+    public final static String PYTHON_PROJECT = ".py";
+    public final static String JAVA_PROJECT = ".java";
 
     public Controller() throws IOException {
     }
@@ -140,17 +139,17 @@ public class Controller implements Initializable {
 
     @FXML
     void cProjectMenuItemStart(ActionEvent event) {
-        menuActions.startNew(CProject);
+        menuActions.startNew(C_PROJECT);
     }
 
     @FXML
     void javaProjectMenuItemStart(ActionEvent event) {
-        menuActions.startNew(JavaProject);
+        menuActions.startNew(JAVA_PROJECT);
     }
 
     @FXML
     void pythonProjectMenuItemStart(ActionEvent event) {
-        menuActions.startNew(PythonProject);
+        menuActions.startNew(PYTHON_PROJECT);
     }
 
     @FXML
@@ -232,7 +231,9 @@ public class Controller implements Initializable {
 
         fileRawCode.initializeCodeArea();
         docContent.initializeFileContentListView();
-        //explorer.initializeExplorerListView();
+        explorer.initializeExplorerListView();
+        mainWindow.initializeSearchResultListView();
+        mainWindow.initializeWebViewEngine();
         mainWindow.loadWebViewStyling();
 
         progressBar.setVisible(false);
