@@ -14,7 +14,6 @@ public class CFileInfo extends FileInfoModel implements Serializable {
     private final List<CEnum> enums;
     private final List<CStruct> structs;
     private final List<CFunction> functions;
-    private final String fileContent;
 
     public CFileInfo(String fileName,
                      List<CExtern> externs,
@@ -23,18 +22,17 @@ public class CFileInfo extends FileInfoModel implements Serializable {
                      List<CEnum> enums,
                      List<CStruct> structs,
                      List<CFunction> functions,
-                     String fileContent
+                     String fileContent,
+                     String fileType
     ) {
-        super(fileName);
+        super(fileName, fileType, fileContent);
         this.externs = externs;
         this.macros = macros;
         this.staticVars = staticVars;
         this.enums = enums;
         this.structs = structs;
         this.functions = functions;
-        this.fileContent = fileContent;
     }
-
     public List<CExtern> getExterns() {
         return externs;
     }
@@ -53,10 +51,6 @@ public class CFileInfo extends FileInfoModel implements Serializable {
 
     public List<CStruct> getStructs() {
         return structs;
-    }
-
-    public String getFileContent() {
-        return fileContent;
     }
 
     public List<CFunction> getFunctions() {

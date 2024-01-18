@@ -29,7 +29,7 @@ import java.util.logging.Level;
 public class ControllerUtils {
 
     protected Controller controller;
-    private boolean isGetFromSreachResultCalled = false;
+    private boolean isGetFromSearchResultCalled = false;
 
     public ControllerUtils (Controller controller){
         this.controller = controller;
@@ -146,13 +146,11 @@ public class ControllerUtils {
         alert.setTitle(title);
         alert.setHeaderText(null); // No header text
         alert.setContentText(message);
-        // Show the alert dialog
         alert.showAndWait();
-
     }
 
     public void getFromSearchResult(){
-        isGetFromSreachResultCalled = true;
+        isGetFromSearchResultCalled = true;
         ControllerUtils.SearchResultModel selectedItem = controller.getSearchResultListView().getSelectionModel().getSelectedItem();
 
         if (controller.getSearchResultListView().getSelectionModel().getSelectedItem() != null) {
@@ -168,9 +166,9 @@ public class ControllerUtils {
                 // Now that the page has loaded, we can highlight the search term
                 if (selectedItem != null &&
                         !selectedItem.toString().isEmpty() &&
-                        isGetFromSreachResultCalled){
+                        isGetFromSearchResultCalled){
                     scrollToLine(selectedItem.toString());
-                    isGetFromSreachResultCalled  = false;
+                    isGetFromSearchResultCalled = false;
                 }
             }
         });

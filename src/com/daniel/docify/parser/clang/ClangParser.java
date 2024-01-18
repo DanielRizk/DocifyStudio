@@ -7,6 +7,7 @@ import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.fileInfo.CFileInfo;
 import com.daniel.docify.parser.IParser;
 import com.daniel.docify.parser.ParserUtils;
+import javafx.scene.control.Alert;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
@@ -36,7 +37,7 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
     private static int currentLineNumber = 0;
 
     @Override
-    public CFileInfo safeParse(FileNodeModel node, BufferedReader reader) throws IOException {
+    public CFileInfo safeParse(FileNodeModel node, String fileType, BufferedReader reader) throws IOException {
         currentLineNumber = 0;
 
         String fileContent = null;
@@ -68,80 +69,133 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
         String commentBuffer = null;
         String line;
 
-        while ((line = nextLine(reader)) != null) {
+        try {
 
-            if (line.contains("/**") || commentScope){
-                if (commentScope){
-                    chunk.append(line);
-                    commentScope = false;
+            while ((line = nextLine(reader)) != null) {
+
+                if (line.contains("/**") || commentScope) {
+                    if (commentScope) {
+                        chunk.append(line);
+                        commentScope = false;
+                    }
+                    if (line.contains("*/")) {
+                        chunk.append(line);
+                    } else {
+                        while (!line.contains("*/")) {
+                            line = nextLine(reader);
+                            chunk.append(line);
+                        }
+                    }
+                    switch (identifyCommentBlock(chunk.toString())) {
+                        case 1:
+                            enumScope = true;
+                            break;
+                        case 2:
+                            structScope = true;
+                            break;
+                        case 3:
+                            functionScope = true;
+                            break;
+                        default:
+                            chunk = new StringBuilder();
+                            break;
+                    }
+                    commentBuffer = extractFromComment(chunk.toString());
+                    chunk = new StringBuilder();
+                } else if (line.matches("\\s*//.*")) {
+                    chunk = new StringBuilder();
+                } else if (line.contains("static") && line.contains(";")) {
+                    CStaticVar staticVar = extractStaticVar(line);
+                    staticVar.setFileName(node.getName());
+                    staticVar.setLineNumber(currentLineNumber);
+                    staticVars.add(staticVar);
+                } else if (line.contains("typedef enum") || line.contains("enum")) {
+                    enumScope = true;
+                    enumFoundWithNoComment = true;
+                } else if (line.contains("typedef struct") || line.contains("struct")) {
+                    structScope = true;
+                    structFoundWithNoComment = true;
+                } else if (line.contains("#define")) {
+                    macroScope = true;
+                } else if (line.contains("extern")) {
+                    CExtern extern = extractExtern(line);
+                    extern.setFileName(node.getName());
+                    externs.add(extern);
                 }
-                if (line.contains("*/")){
+
+                if (macroScope) {
                     chunk.append(line);
-                }else {
-                    while (!line.contains("*/")) {
-                        line = nextLine(reader);
+                    Pattern pattern = Pattern.compile("\\\\(?!n)");
+                    Matcher matcher = pattern.matcher(line);
+                    if (line.contains("\\")) {
+                        do {
+                            line = nextLine(reader);
+                            matcher = pattern.matcher(line);
+                            chunk.append(line);
+                        } while (matcher.find());
+                    }
+                    CMacro macro = extractMacro(chunk.toString());
+                    if (macro != null) {
+                        macro.setFileName(node.getName());
+                        macros.add(macro);
+                    }
+                    chunk = new StringBuilder();
+                    macroScope = false;
+                }
+
+                if (enumScope) {
+                    if (enumFoundWithNoComment) {
+                        enumFoundWithNoComment = false;
                         chunk.append(line);
                     }
+                    if (!(chunk.toString().contains("enum") && chunk.toString().contains(";"))) {
+                        do {
+                            line = nextLine(reader);
+                            chunk.append(line);
+                            if (line.contains("/**")) {
+                                commentScope = true;
+                                break;
+                            }
+                        } while (!(line.contains("}") && line.contains(";")));
+                        if (!commentScope) {
+                            CEnum cEnum = extractEnum(chunk.toString());
+                            cEnum.setFileName(node.getName());
+                            cEnum.setDocumentation(commentBuffer);
+                            commentBuffer = null;
+                            enums.add(cEnum);
+                        }
+                    }
+                    chunk = new StringBuilder();
+                    enumScope = false;
                 }
-                switch (identifyCommentBlock(chunk.toString())){
-                    case 1:     enumScope = true;
-                        break;
-                    case 2:     structScope = true;
-                        break;
-                    case 3:     functionScope = true;
-                        break;
-                    default:    chunk = new StringBuilder();
-                        break;
-                }
-                commentBuffer = extractFromComment(chunk.toString());
-                chunk = new StringBuilder();
-            } else if (line.matches("\\s*//.*")) {
-                chunk = new StringBuilder();
-            } else if (line.contains("static") && line.contains(";")) {
-                CStaticVar staticVar = extractStaticVar(line);
-                staticVar.setFileName(node.getName());
-                staticVar.setLineNumber(currentLineNumber);
-                staticVars.add(staticVar);
-            }else if (line.contains("typedef enum") || line.contains("enum")) {
-                enumScope = true;
-                enumFoundWithNoComment = true;
-            }else if (line.contains("typedef struct") || line.contains("struct")) {
-                structScope = true;
-                structFoundWithNoComment = true;
-            } else if (line.contains("#define")){
-                macroScope = true;
-            } else if (line.contains("extern")){
-                CExtern extern = extractExtern(line);
-                extern.setFileName(node.getName());
-                externs.add(extern);
-            }
 
-            if (macroScope){
-                chunk.append(line);
-                Pattern pattern = Pattern.compile("\\\\(?!n)");
-                Matcher matcher = pattern.matcher(line);
-                if (line.contains("\\")){
-                    do{
-                        line = nextLine(reader);
-                        matcher = pattern.matcher(line);
+                if (structScope) {
+                    if (structFoundWithNoComment) {
+                        structFoundWithNoComment = false;
                         chunk.append(line);
-                    }while (matcher.find());
+                    }
+                    if (!(chunk.toString().contains("struct") && chunk.toString().contains(";"))) {
+                        do {
+                            line = nextLine(reader);
+                            chunk.append(line);
+                            if (line.contains("/**")) {
+                                commentScope = true;
+                                break;
+                            }
+                        } while (!(line.contains("}") && line.contains(";")));
+                        if (!commentScope) {
+                            CStruct struct = extractStruct(chunk.toString());
+                            struct.setFileName(node.getName());
+                            struct.setDocumentation(commentBuffer);
+                            commentBuffer = null;
+                            structs.add(struct);
+                        }
+                    }
+                    chunk = new StringBuilder();
+                    structScope = false;
                 }
-                CMacro macro = extractMacro(chunk.toString());
-                if (macro != null) {
-                    macro.setFileName(node.getName());
-                    macros.add(macro);
-                }
-                chunk = new StringBuilder();
-                macroScope = false;
-            }
 
-            if (enumScope){
-                if (enumFoundWithNoComment){
-                    enumFoundWithNoComment = false;
-                    chunk.append(line);
-                }
-                if (!(chunk.toString().contains("enum") && chunk.toString().contains(";"))) {
+                if (functionScope) {
                     do {
                         line = nextLine(reader);
                         chunk.append(line);
@@ -149,66 +203,22 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                             commentScope = true;
                             break;
                         }
-                    } while (!(line.contains("}") && line.contains(";")));
+                    } while (!(line.contains(";") || line.contains("{")));
                     if (!commentScope) {
-                        CEnum cEnum = extractEnum(chunk.toString());
-                        cEnum.setFileName(node.getName());
-                        cEnum.setDocumentation(commentBuffer);
+                        CFunction function = extractFunction(chunk.toString());
+                        function.setFileName(node.getName());
+                        function.setDocumentation(commentBuffer);
                         commentBuffer = null;
-                        enums.add(cEnum);
+                        functions.add(function);
                     }
+                    chunk = new StringBuilder();
+                    functionScope = false;
                 }
-                chunk = new StringBuilder();
-                enumScope = false;
             }
-
-            if (structScope){
-                if (structFoundWithNoComment){
-                    structFoundWithNoComment = false;
-                    chunk.append(line);
-                }
-                if (!(chunk.toString().contains("struct") && chunk.toString().contains(";"))) {
-                    do {
-                        line = nextLine(reader);
-                        chunk.append(line);
-                        if (line.contains("/**")) {
-                            commentScope = true;
-                            break;
-                        }
-                    } while (!(line.contains("}") && line.contains(";")));
-                    if (!commentScope) {
-                        CStruct struct = extractStruct(chunk.toString());
-                        struct.setFileName(node.getName());
-                        struct.setDocumentation(commentBuffer);
-                        commentBuffer = null;
-                        structs.add(struct);
-                    }
-                }
-                chunk = new StringBuilder();
-                structScope = false;
-            }
-
-            if (functionScope){
-                do{
-                    line = nextLine(reader);
-                    chunk.append(line);
-                    if (line.contains("/**")){
-                        commentScope = true;
-                        break;
-                    }
-                }while(!(line.contains(";") || line.contains("{")));
-                if (!commentScope) {
-                    CFunction function = extractFunction(chunk.toString());
-                    function.setFileName(node.getName());
-                    function.setDocumentation(commentBuffer);
-                    commentBuffer = null;
-                    functions.add(function);
-                }
-                chunk = new StringBuilder();
-                functionScope = false;
-            }
+        } catch (NullPointerException e){
+            LOGGER.log(Level.WARNING, "Null pointer exception in file: " + node.getName() + " in line: " + currentLineNumber);
         }
-        return new CFileInfo(node.getName(), externs, macros, staticVars, enums, structs, functions, fileContent);
+        return new CFileInfo(node.getName(), externs, macros, staticVars, enums, structs, functions, fileContent, fileType);
     }
 
     /**
@@ -216,17 +226,17 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
      */
     @NotNull
     @Override
-    public CFileInfo parseFile(FileNodeModel node){
+    public CFileInfo parseFile(FileNodeModel node, String fileType){
         BufferedReader reader = null;
 
         try {
             reader = new BufferedReader(new FileReader(node.getFullPath()));
-            return safeParse(node, reader);
+            return safeParse(node, fileType, reader);
 
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Error processing file: " + node.getName(), e);
             return new CFileInfo(null, null, null,
-                    null,null,null,null,null);
+                    null,null,null,null,null, null);
         } finally {
             if (reader != null) {
                 try {

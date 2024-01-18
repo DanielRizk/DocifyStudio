@@ -7,9 +7,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 public interface IParser <T>{
-    T safeParse(FileNodeModel node, BufferedReader reader) throws IOException;
+    T safeParse(FileNodeModel node, String filetype, BufferedReader reader) throws IOException;
 
-    T parseFile(FileNodeModel node);
+    T parseFile(FileNodeModel node, String filetype);
 
     String nextLine(BufferedReader reader) throws IOException;
 }

@@ -5,8 +5,8 @@ import com.daniel.docify.model.FileInfoModel;
 import java.util.List;
 
 public class JavaFileInfo extends FileInfoModel {
-    public JavaFileInfo(String fileName) {
-        super(fileName);
+    public JavaFileInfo(String fileName, String fileContent,String fileType) {
+        super(fileName, fileType ,fileContent);
     }
 
     @Override

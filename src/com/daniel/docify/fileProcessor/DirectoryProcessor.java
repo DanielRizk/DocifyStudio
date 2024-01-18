@@ -4,6 +4,7 @@ import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.parser.clang.ClangParser;
 import com.daniel.docify.ui.Controller;
 import javafx.application.Platform;
+import javafx.scene.control.Alert;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -220,7 +221,7 @@ public class DirectoryProcessor {
             controller.getProgressBar().setProgress(currentFileCount/totalFileCount);
             if (Objects.equals(projectType, C_PROJECT)){// && node.getName().endsWith(".h")) {
                 ClangParser parser = new ClangParser();
-                node.setFileInfo(parser.parseFile(node));
+                node.setFileInfo(parser.parseFile(node, projectType));
             }
         }
         for (FileNodeModel child : node.getChildren()) {

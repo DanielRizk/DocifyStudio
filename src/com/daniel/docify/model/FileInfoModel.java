@@ -11,14 +11,26 @@ import java.util.List;
 public abstract class FileInfoModel implements Serializable{
 
     private final String fileName;
+    private final String fileType;
+    private final String fileContent;
     private String htmlContent = null;
 
-    protected FileInfoModel(String fileName) {
+    protected FileInfoModel(String fileName, String fileType, String fileContent) {
         this.fileName = fileName;
+        this.fileType = fileType;
+        this.fileContent = fileContent;
     }
 
     public String getFileName() {
         return fileName;
+    }
+
+    public String getFileType() {
+        return fileType;
+    }
+
+    public String getFileContent() {
+        return fileContent;
     }
 
     public String getHtmlContent(){
