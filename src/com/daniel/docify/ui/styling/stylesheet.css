@@ -24,6 +24,7 @@ body {
     cursor: pointer;
     padding: 10px;
     color: #ffffff;
+    //color: #2C2C2CFF;
     margin-bottom: 5px;
     font-size: 20px;
 }
@@ -34,26 +35,32 @@ body {
 
 .groupCollapse.extern {
     background-color: #422f17;
+//background-color: #B5B5B5;
 }
 
 .groupCollapse.macro {
     background-color: #092f46;
+//background-color: #B5B5B5;
 }
 
 .groupCollapse.staticVar {
     background-color: #865401;
+//background-color: #B5B5B5;
 }
 
 .groupCollapse.enums {
     background-color: #154127;
+//background-color: #B5B5B5;
 }
 
 .groupCollapse.struct {
     background-color: #7a2619;
+//background-color: #B5B5B5;
 }
 
 .groupCollapse.function {
     background-color: #6e2f8a;
+//background-color: #B5B5B5;
 }
 
 .collapsible {
@@ -77,26 +84,32 @@ body {
 
 .collapsible.extern {
     background-color: #aba38f;
+//background-color: #DDDDDD;
 }
 
 .collapsible.macro {
     background-color: #AED6F1;
+//background-color: #DDDDDD;
 }
 
 .collapsible.staticVar {
     background-color: #FAD7A0;
+//background-color: #DDDDDD;
 }
 
 .collapsible.enums {
     background-color: #A9DFBF;
+//background-color: #DDDDDD;
 }
 
 .collapsible.struct {
     background-color: #F5B7B1;
+//background-color: #DDDDDD;
 }
 
 .collapsible.function {
     background-color: #D7BDE2;
+//background-color: #DDDDDD;
 }
 
 .content {
@@ -107,30 +120,38 @@ body {
     padding: 10px;
     display: none;
     overflow: hidden;
-    background-color: #b0b4bb;
     border-bottom-right-radius: 8px;
     border-bottom-left-radius: 8px;
     margin-bottom: 10px;
 }
+.content.extern {
+    background-color: #c2c1b8;
+//background-color: #F4F4F4;
+}
 
 .content.macro {
     background-color: #c9dae7;
+//background-color: #F4F4F4;
 }
 
 .content.staticVar {
     background-color: #ecdfcf;
+//background-color: #F4F4F4;
 }
 
 .content.enums {
     background-color: #c4dcce;
+//background-color: #F4F4F4;
 }
 
 .content.struct {
     background-color: #ecdad8;
+//background-color: #F4F4F4;
 }
 
 .content.function {
     background-color: #e1ddec;
+//background-color: #F4F4F4;
 }
 
 .attr {
@@ -139,5 +160,5 @@ body {
 }
 
 .highlighted {
-    //background-color: yellow;
+//background-color: yellow;
 }

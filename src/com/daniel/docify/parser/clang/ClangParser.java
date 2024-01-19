@@ -104,20 +104,20 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                     chunk = new StringBuilder();
                 } else if (line.matches("\\s*//.*")) {
                     chunk = new StringBuilder();
-                } else if (line.contains("static") && line.contains(";")) {
+                } else if (line.contains("static ") && line.contains(";") && ensureNotCommentLine(line)) {
                     CStaticVar staticVar = extractStaticVar(line);
                     staticVar.setFileName(node.getName());
                     staticVar.setLineNumber(currentLineNumber);
                     staticVars.add(staticVar);
-                } else if (line.contains("typedef enum") || line.contains("enum")) {
+                } else if ((line.contains("typedef enum") || line.contains("enum ")) && ensureNotCommentLine(line)) {
                     enumScope = true;
                     enumFoundWithNoComment = true;
-                } else if (line.contains("typedef struct") || line.contains("struct")) {
+                } else if ((line.contains("typedef struct") || line.contains("struct ")) && ensureNotCommentLine(line)) {
                     structScope = true;
                     structFoundWithNoComment = true;
-                } else if (line.contains("#define")) {
+                } else if (line.contains("#define ") && ensureNotCommentLine(line)) {
                     macroScope = true;
-                } else if (line.contains("extern")) {
+                } else if (line.contains("extern ") && ensureNotCommentLine(line)) {
                     CExtern extern = extractExtern(line);
                     extern.setFileName(node.getName());
                     externs.add(extern);
@@ -216,9 +216,15 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                 }
             }
         } catch (NullPointerException e){
-            LOGGER.log(Level.WARNING, "Null pointer exception in file: " + node.getName() + " in line: " + currentLineNumber);
+            LOGGER.log(Level.WARNING, "Null pointer exception in file: " + node.getFullPath() + " in line: " + currentLineNumber);
         }
         return new CFileInfo(node.getName(), externs, macros, staticVars, enums, structs, functions, fileContent, fileType);
+    }
+
+    private boolean ensureNotCommentLine(String line){
+        String lineBuff = line;
+        lineBuff = lineBuff.trim();
+        return !lineBuff.startsWith("*") && !lineBuff.startsWith("//");
     }
 
     /**
@@ -350,6 +356,9 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
             start = chunk.indexOf("enum") + "enum".length();
             end = chunk.indexOf("{");
             enumName = chunk.substring(start, end).trim();
+            if (enumName.isEmpty()){
+                enumName = "Enum has no identifier!";
+            }
         }
         cEnum.setName(enumName);
 
@@ -392,7 +401,10 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
 
         /* extract struct type */
         end = chunk.indexOf("{");
-        String structType = chunk.substring(0, end);
+        String structType = chunk.substring(0, end).trim();
+        if (structType.contains(structName)){
+            structType = structType.replace(structName, "");
+        }
         struct.setStructType(structType);
 
         /* extract struct members */

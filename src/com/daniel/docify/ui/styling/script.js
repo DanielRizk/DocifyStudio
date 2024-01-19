@@ -1,7 +1,10 @@
 function toggleCollapse(id) {
     unhighlight();
     const content = document.getElementById(id);
+    if (!content) return; // Check if the element exists
+
     const collapsible = content.previousElementSibling;
+    if (!collapsible) return; // Check if the collapsible element exists
 
     if (content.style.display === 'block' || content.style.display === '') {
         content.style.display = 'none';
@@ -12,6 +15,7 @@ function toggleCollapse(id) {
     }
     console.log('Toggled: ' + id);
 }
+
 
 function highlightSearch(text) {
     unhighlight(); // Unhighlight previous results
@@ -31,46 +35,42 @@ function highlightSearch(text) {
 }
 
 function expandParentCollapsible(node) {
-    var count = 0;
     while (node != null && node.tagName !== 'BODY') {
-        count++;
-        console.log(count);
         if (node.classList && node.classList.contains('collapsible')) {
-            // Expand the collapsible content
             var content = node.nextElementSibling;
-            if (content && content.style.display !== 'block') {
+            if (content && content.style && content.style.display !== 'block') {
                 content.style.display = 'block';
                 node.classList.add('expanded');
             }
         } else if (node.classList && node.classList.contains('emptyBox')) {
-            // Expand the group collapse
             var groupContent = node;
-            if (groupContent && groupContent.style.display !== 'block') {
+            if (groupContent && groupContent.style && groupContent.style.display !== 'block') {
                 groupContent.style.display = 'block';
-                //node.classList.add('expanded');
             }
         }
-        node = node.parentNode; // Continue traversing up the DOM
+        node = node.parentNode;
     }
 }
 
+
 function highlightTextNode(node, text) {
-    // Create a regex pattern that treats underscores and brackets as part of the word
     var boundary = "(?:\\b|(?<!\\w)[_\\[\\]]?)";
     var pattern = new RegExp(boundary + escapeRegExp(text) + boundary, "gi");
     var content = node.nodeValue;
     var match, matches = [];
 
-    // Use exec to find all matches in the text node
     while ((match = pattern.exec(content)) !== null) {
-        // Avoid infinite loops with zero-width matches
         if (match.index === pattern.lastIndex) {
             pattern.lastIndex++;
         }
-        var span = document.createElement('span');
-        span.className = 'highlighted';
+
+        // Check if the indices are within the range of the node's value
         var start = match.index;
         var end = start + match[0].length;
+        if (end > content.length) break; // Prevent IndexSizeError
+
+        var span = document.createElement('span');
+        span.className = 'highlighted';
         var middleBit = node.splitText(start);
         var endBit = middleBit.splitText(end - start);
         var middleClone = middleBit.cloneNode(true);
@@ -78,17 +78,18 @@ function highlightTextNode(node, text) {
         middleBit.parentNode.replaceChild(span, middleBit);
 
         matches.push(span); // Add the span to the matches array
+        node = endBit; // Reset node for the next iteration
 
-        // Reset node to the end bit for next iteration
-        node = endBit;
+        // Adjust content for the remaining part
+        content = node.nodeValue;
     }
 
-    // Scroll the first highlighted text into view
     if (matches.length > 0 && !window.findHighlightCalled) {
         matches[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
         window.findHighlightCalled = true;
     }
 }
+
 
 
 function escapeRegExp(text) {

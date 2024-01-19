@@ -261,7 +261,7 @@ public class MainWindow extends ControllerUtils {
         }
 
         if (hasEnums) {
-            dynamicHtmlContent.append("<div class='groupCollapse enum' data-dontent='").append(enumsContainerId).append("'onclick=\"toggleCollapse('").append(enumsContainerId).append("')\">Enums</div>");
+            dynamicHtmlContent.append("<div class='groupCollapse enums' data-content='").append(enumsContainerId).append("'onclick=\"toggleCollapse('").append(enumsContainerId).append("')\">Enums</div>");
             dynamicHtmlContent.append("<div class='emptyBox' id='").append(enumsContainerId).append("' style='display: none;'>")
                     .append(enumContent)
                     .append("</div>").append("</div>");
@@ -292,7 +292,7 @@ public class MainWindow extends ControllerUtils {
                 if (member != null)
                     structContent.append("<div class='attr'><b>Member:</b> ").append(member).append("</div>");
             if (st.getMembers() != null)
-                structContent.append("<div class='attr'><b>Struct type:</b> ").append(st.getMembers()).append("</div>");
+                structContent.append("<div class='attr'><b>Struct type:</b> ").append(st.getStructType()).append("</div>");
             if (st.getLineNumber() != null)
                 structContent.append("<div class='attr'><b>Line number:</b> ").append(st.getLineNumber()).append("</div>");
             structContent.append("</div>");
