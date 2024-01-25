@@ -37,9 +37,11 @@
                           </items>
                         </Menu>
                         <MenuItem fx:id="file_openMenuItem" mnemonicParsing="false" onAction="#openDociFile" text="Open" />
+                        <MenuItem fx:id="file_refresh" mnemonicParsing="false" onAction="#refreshProject" text="Refresh" />
+                        <MenuItem fx:id="file_save" mnemonicParsing="false" onAction="#saveDociFile" text="Save" />
                         <Menu fx:id="file_saveAsSubMenu" mnemonicParsing="false" text="Save as">
                           <items>
-                            <MenuItem fx:id="file_save_docifyMenuItem" mnemonicParsing="false" onAction="#saveDociFile" text="Docify" />
+                            <MenuItem fx:id="file_save_docifyMenuItem" mnemonicParsing="false" onAction="#saveAsDociFile" text="Docify" />
                               <MenuItem fx:id="file_save_pdfMenuItem" mnemonicParsing="false" text="PDF" />
                           </items>
                         </Menu>

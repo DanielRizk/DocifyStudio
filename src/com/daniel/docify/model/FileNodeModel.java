@@ -36,7 +36,7 @@ public class FileNodeModel extends FileSerializer implements Serializable {
         this.children = new ArrayList<>();
     }
 
-    public void updateNode(Path path, boolean isFile, WatchEvent.Kind<?> kind, DirectoryProcessor directoryProcessor, String projectType) {
+    public void updateNode(Path path, boolean isFile, WatchEvent.Kind<?> kind, DirectoryProcessor directoryProcessor) {
         // Check if the event is for file modification
         if (kind == ENTRY_MODIFY) {
             for (int i = 0; i < children.size(); i++) {
@@ -45,11 +45,11 @@ public class FileNodeModel extends FileSerializer implements Serializable {
                     try {
                         // Rebuild the node for the modified file/directory
                         FileNodeModel updatedNode = isFile ?
-                                new FileNodeModel(path.getFileName().toString(), projectType, true, path.toString()) :
-                                directoryProcessor.buildDirTree(path.toFile(), projectType);
+                                new FileNodeModel(path.getFileName().toString(), this.getProjectType(), true, path.toString()) :
+                                directoryProcessor.buildDirTree(path.toFile(), this.getProjectType());
 
                         if (updatedNode != null) {
-                            directoryProcessor.processDirTree(updatedNode, projectType);
+                            directoryProcessor.processDirTree(updatedNode, this.getProjectType());
                             children.set(i, updatedNode); // Replace the old node with the updated one
                         }
 
@@ -71,7 +71,7 @@ public class FileNodeModel extends FileSerializer implements Serializable {
                 }else {
                     if (!child.isFile()){
                         Path childPath = Path.of(child.getFullPath());
-                        updateNode(childPath, child.isFile, kind, directoryProcessor, projectType);
+                        updateNode(childPath, child.isFile, kind, directoryProcessor);
                     }
                 }
             }
@@ -101,6 +101,19 @@ public class FileNodeModel extends FileSerializer implements Serializable {
     public void addChild(FileNodeModel child) {
         children.add(child);
     }
+
+    public void removeChild(String childFullPath) {
+        // First, try to remove the child directly if it's a direct child of this node
+        boolean removed = children.removeIf(child -> child.getFullPath().equals(childFullPath));
+
+        // If not removed, it means the target node is a subchild, so we need to look deeper
+        if (!removed) {
+            for (FileNodeModel child : children) {
+                child.removeChild(childFullPath);
+            }
+        }
+    }
+
 
     public void setFileInfo (FileInfoModel fileInfo){
         this.fileInfo = fileInfo;

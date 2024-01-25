@@ -4,7 +4,6 @@ import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.parser.clang.ClangParser;
 import com.daniel.docify.ui.Controller;
 import javafx.application.Platform;
-import javafx.scene.control.Alert;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -26,6 +25,7 @@ public class DirectoryProcessor {
     private final Controller controller;
     private final WatchService watchService;
     private List<String> ignoreList;
+    public static volatile boolean watchThreadKeepRunning = true;
 
     public DirectoryProcessor(Controller controller) throws IOException {
         this.controller = controller;
@@ -41,6 +41,7 @@ public class DirectoryProcessor {
                     try (BufferedReader reader = new BufferedReader(new FileReader(child))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
+                            line = line.replaceAll("/", "\\\\");
                             ignore.add(directory.getAbsolutePath()+line);
                         }
                         return ignore;
@@ -143,12 +144,12 @@ public class DirectoryProcessor {
 
 
     private void registerDirectory(Path dir) throws IOException {
-        dir.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
+        dir.register(watchService, ENTRY_MODIFY);
     }
 
     public void syncOn(FileNodeModel rootNode) {
         new Thread(() -> {
-            while (true) {
+            while (watchThreadKeepRunning) {
                 WatchKey key;
                 try {
                     key = watchService.take();
@@ -168,9 +169,11 @@ public class DirectoryProcessor {
                     Path fullPath = dir.resolve(filename);
 
                     boolean isFile = Files.isRegularFile(fullPath);
-                    Platform.runLater(() -> {
-                        rootNode.updateNode(fullPath, isFile, kind, this, rootNode.getProjectType());
-                    });
+                    if (!filename.toString().endsWith(".doci")) {
+                        Platform.runLater(() -> {
+                            rootNode.updateNode(fullPath, isFile, kind, this);
+                        });
+                    }
                 }
 
                 boolean valid = key.reset();
@@ -185,6 +188,7 @@ public class DirectoryProcessor {
         controller.getProgressBar().setVisible(true);
         controller.getProgressBar().setProgress(0);
         ignoreList = getIgnoreList(directory);
+        watchThreadKeepRunning = true;
 
         new Thread(() -> {
             try {

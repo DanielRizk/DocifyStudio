@@ -36,6 +36,7 @@ public class FileSerializer {
         formatModel.setFileFormatVersion(FileFormatModel.FILE_FORMAT_VERSION);
         formatModel.setCreationDate(getCurrentDateAndTime());
         formatModel.setSoftwareVersion(Main.SOFTWARE_VERSION);
+        formatModel.setSavedLocation(filePath);
 
         try (ObjectOutputStream objectOutputStream = new ObjectOutputStream(
                 new CipherOutputStream(new FileOutputStream(filePath), createCipher(Cipher.ENCRYPT_MODE)))) {

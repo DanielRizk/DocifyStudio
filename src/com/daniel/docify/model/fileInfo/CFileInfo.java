@@ -75,14 +75,14 @@ public class CFileInfo extends FileInfoModel implements Serializable {
                 itemNames.add(new ItemNameAndProperty(staticVar.getName(), ObjectType.STATIC));
             }
         }
-        if (structs != null){
-            for (CStruct struct : structs){
-                itemNames.add(new ItemNameAndProperty(struct.getName(), ObjectType.STRUCT));
-            }
-        }
         if (enums != null){
             for (CEnum cEnum  : enums){
                 itemNames.add(new ItemNameAndProperty(cEnum.getName(), ObjectType.ENUM));
+            }
+        }
+        if (structs != null){
+            for (CStruct struct : structs){
+                itemNames.add(new ItemNameAndProperty(struct.getName(), ObjectType.STRUCT));
             }
         }
         if (functions != null){

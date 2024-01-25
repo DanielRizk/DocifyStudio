@@ -8,11 +8,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.stage.Stage;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Logger;
 import java.net.MalformedURLException;
@@ -51,6 +50,27 @@ public class Controller implements Initializable {
     public Controller() throws IOException {
     }
 
+    /* Class private Singleton instance */ /** NOT USED! */
+    private static Controller instance;
+
+    /* Singleton constructor */ /** NOT USED! */
+    private Controller(String data) throws IOException {
+    }
+
+    /* Singleton getter method */ /** NOT USED! */
+    public static Controller getInstance() throws IOException {
+        Controller result = instance;
+        if (result == null) {
+            synchronized (Controller.class) {
+                result = instance;
+                if (instance == null) {
+                    instance = new Controller("test");
+                }
+            }
+        }
+        return result;
+    }
+
     /* getters for private Variables */
     public Stage getPrimaryStage(){
         return primaryStage;
@@ -77,6 +97,10 @@ public class Controller implements Initializable {
     private MenuItem file_new_pythonProjectMenuItem;
     @FXML
     private MenuItem file_openMenuItem;
+    @FXML
+    private MenuItem file_refresh;
+    @FXML
+    private MenuItem file_save;
     @FXML
     private MenuItem file_save_docifyMenuItem;
     @FXML
@@ -158,8 +182,18 @@ public class Controller implements Initializable {
     }
 
     @FXML
-    void saveDociFile(ActionEvent event) {
+    void refreshProject(ActionEvent event) throws MalformedURLException {
+        menuActions.refreshProject();
+    }
+
+    @FXML
+    void saveDociFile(ActionEvent event) throws MalformedURLException {
         menuActions.saveDociFile();
+    }
+
+    @FXML
+    void saveAsDociFile(ActionEvent event) {
+        menuActions.saveAsDociFile();
     }
 
     @FXML
@@ -175,22 +209,26 @@ public class Controller implements Initializable {
     @FXML
     void treeViewFileSelection(MouseEvent event) {
         if(explorerTreeView.getSelectionModel().getSelectedItem() != null &&
-                explorerTreeView.getSelectionModel().getSelectedItem().isLeaf()){
+                explorerTreeView.getSelectionModel().getSelectedItem().isLeaf() &&
+                event.getButton() == MouseButton.PRIMARY){
             mainWindow.compileWebViewDisplay(explorerTreeView.getSelectionModel().getSelectedItem().getValue().getFileInfo());
         }
     }
 
     @FXML
     void listViewFileSelection(MouseEvent event) {
-        if(explorerListView.getSelectionModel().getSelectedItem() != null){
+        if(explorerListView.getSelectionModel().getSelectedItem() != null
+                && event.getButton() == MouseButton.PRIMARY){
             mainWindow.compileWebViewDisplay(explorerListView.getSelectionModel().getSelectedItem().getFileInfo());
         }
     }
 
     @FXML
     void fileContentListSelection(MouseEvent event) {
-        ItemNameAndProperty selectedItem = fileContentListView.getSelectionModel().getSelectedItem();
-        utils.scrollToLine(selectedItem.toString());
+        if (event.getButton() == MouseButton.PRIMARY) {
+            ItemNameAndProperty selectedItem = fileContentListView.getSelectionModel().getSelectedItem();
+            utils.scrollToLine(selectedItem.toString());
+        }
     }
 
     @FXML
@@ -250,6 +288,7 @@ public class Controller implements Initializable {
      */
     public void setStage(Stage primaryStage) {
         this.primaryStage = primaryStage;
+        initializeKeyBindings();
     }
 
 
@@ -260,8 +299,10 @@ public class Controller implements Initializable {
         try {
             utils.setIcon(file_newSubMenu, "assets/icons/new.png");
             utils.setIcon(file_saveAsSubMenu, "assets/icons/save.png");
+            utils.setIcon(file_save, "assets/icons/save.png");
             utils.setIcon(file_openMenuItem, "assets/icons/open.png");
             utils.setIcon(file_closeMenuItem, "assets/icons/close.png");
+            utils.setIcon(file_refresh, "assets/icons/refresh.png");
             utils.setIcon(file_new_cProjectMenuItem, "assets/icons/cprog.png");
             utils.setIcon(file_new_javaProjectMenuItem, "assets/icons/javaprog.png");
             utils.setIcon(file_new_pythonProjectMenuItem, "assets/icons/pyprog.png");
@@ -270,5 +311,63 @@ public class Controller implements Initializable {
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    KeyCombination ctrlN = new KeyCodeCombination(KeyCode.N, KeyCombination.CONTROL_DOWN);
+    KeyCombination ctrlO = new KeyCodeCombination(KeyCode.O, KeyCombination.CONTROL_DOWN);
+    KeyCombination ctrlS = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN);
+    KeyCombination ctrlQ = new KeyCodeCombination(KeyCode.Q, KeyCombination.CONTROL_DOWN);
+    KeyCombination ctrlShS = new KeyCodeCombination(KeyCode.S, KeyCombination.CONTROL_DOWN, KeyCombination.SHIFT_DOWN);
+
+    private void initializeKeyBindings(){
+        primaryStage.getScene().addEventHandler(javafx.scene.input.KeyEvent.KEY_PRESSED, event -> {
+            if (ctrlN.match(event)) {
+                Optional<ButtonType> result;
+                try {
+                    result = menuActions.showCreateNewOptionDialog();
+                } catch (FileNotFoundException | MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+                result.ifPresent(buttonType -> {
+                    if (Objects.equals(buttonType.getText(), "C/C++ project")){
+                        menuActions.startNew(C_PROJECT);
+                    } else if (Objects.equals(buttonType.getText(), "Java project")) {
+                        menuActions.startNew(JAVA_PROJECT);
+                    } else if (Objects.equals(buttonType.getText(), "Python project")) {
+                        menuActions.startNew(PYTHON_PROJECT);
+                    }
+                });
+                event.consume();
+            } else if (ctrlO.match(event)) {
+                try {
+                    menuActions.openDociFile();
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+                event.consume();
+            }else if (ctrlS.match(event)) {
+                try {
+                    menuActions.saveDociFile();
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+                event.consume();
+            } else if (ctrlShS.match(event)) {
+                Optional<ButtonType> result;
+                result = menuActions.showSaveAsOptionDialog();
+                result.ifPresent(buttonType -> {
+                    if (Objects.equals(buttonType.getText(), "Doci file")){
+                        menuActions.saveAsDociFile();
+                    } else if (Objects.equals(buttonType.getText(), "PDF file")) {
+                        //TODO: Save as PDF
+                    }
+                });
+                event.consume();
+            }
+            else if (ctrlQ.match(event)) {
+                menuActions.closeRoutine();
+                event.consume();
+            }
+        });
     }
 }

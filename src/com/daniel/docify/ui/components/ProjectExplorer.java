@@ -5,18 +5,18 @@ import com.daniel.docify.ui.Controller;
 import com.daniel.docify.ui.utils.ControllerUtils;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.control.ListCell;
-import javafx.scene.control.ListView;
-import javafx.scene.control.TreeItem;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
 import javafx.util.Callback;
+import javafx.util.Duration;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.*;
 import java.net.MalformedURLException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -75,6 +75,7 @@ public class ProjectExplorer extends ControllerUtils{
         else {
             treeItem = convertToTreeItem(rootFileNode);
         }
+        controller.getExplorerTreeView().setCellFactory(tv -> new FileNodeTreeCell(controller));
         controller.getExplorerTreeView().setRoot(treeItem);
         assert rootFileNode != null;
         projectNodesList.clear();
@@ -91,14 +92,6 @@ public class ProjectExplorer extends ControllerUtils{
         TreeItem<FileNodeModel> treeItem = new TreeItem<>(fileNode);
         treeItem.setExpanded(true);
 
-        Image icon = getIconForNode(fileNode);
-        if (icon != null) {
-            ImageView iconView = new ImageView(icon);
-            iconView.setFitHeight(20.0); // Set the height as per your requirement
-            iconView.setFitWidth(20.0);  // Set the width as per your requirement
-            treeItem.setGraphic(iconView);
-        }
-
         for (FileNodeModel child : fileNode.getChildren()) {
             treeItem.getChildren().add(convertToTreeItem(child));
         }
@@ -106,33 +99,20 @@ public class ProjectExplorer extends ControllerUtils{
         return treeItem;
     }
 
-    private Image getIconForNode(FileNodeModel fileNode) {
-        if (fileNode.isFile()) {
-            if (fileNode.getName().endsWith(Controller.C_PROJECT)) {
-                return iconCache.get(ICON_HEADER);
-            } else if (fileNode.getName().endsWith(".c") || fileNode.getName().endsWith(".cpp")) {
-                return iconCache.get(ICON_SOURCE);
-            } else if (fileNode.getName().endsWith(Controller.JAVA_PROJECT)) {
-                return iconCache.get(ICON_JAVA);
-            } else if (fileNode.getName().endsWith(Controller.PYTHON_PROJECT)) {
-                return iconCache.get(ICON_PYTHON);
-            }
-        } else {
-            return iconCache.get(ICON_FOLDER);
-        }
-        return null; // Default icon or null if none matches
-    }
+
 
     /**
      * This method generates a list of FileNodeModel from the current RootNode and adds it to the project nodes
      * list container.
      */
     private void generateExplorerListview(FileNodeModel fileNode){
-        if (fileNode.isFile()) {
+        if (fileNode != null && fileNode.isFile()) {
             projectNodesList.add(fileNode);
         }
-        for (FileNodeModel child : fileNode.getChildren()) {
-            generateExplorerListview(child);
+        if (fileNode != null &&fileNode.getChildren() != null) {
+            for (FileNodeModel child : fileNode.getChildren()) {
+                generateExplorerListview(child);
+            }
         }
     }
 
@@ -163,7 +143,7 @@ public class ProjectExplorer extends ControllerUtils{
         controller.getExplorerListView().setCellFactory(new Callback<ListView<FileNodeModel>, ListCell<FileNodeModel>>() {
             @Override
             public ListCell<FileNodeModel> call(ListView<FileNodeModel> listView) {
-                return new ProjectExplorer.ExplorerItemCell();
+                return new ProjectExplorer.ExplorerItemCell(controller);
             }
         });
 
@@ -175,9 +155,24 @@ public class ProjectExplorer extends ControllerUtils{
      */
     public static class ExplorerItemCell extends ListCell<FileNodeModel> {
         private final ImageView imageView = new ImageView();
+        private final Tooltip tooltip = new Tooltip();
         private final Text text = new Text();
-
+        private final ContextMenu contextMenu = new ContextMenu();
         private final HBox cellBox = new HBox(imageView, text);
+
+        Controller controller;
+        public ExplorerItemCell(Controller controller) {
+            MenuItem remove = new MenuItem("Remove from project");
+            remove.setOnAction(event -> {
+                try {
+                    performRemove(getItem());
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            contextMenu.getItems().addAll(remove);
+            this.controller = controller;
+        }
 
         @Override
         protected void updateItem(FileNodeModel node, boolean empty) {
@@ -187,7 +182,20 @@ public class ProjectExplorer extends ControllerUtils{
                 text.setText(null);
                 imageView.setImage(null);
                 setGraphic(null);
+                setTooltip(null);
             } else {
+                tooltip.setShowDelay(new Duration(1000));
+                tooltip.activatedProperty();
+                if (node.isFile()) {
+                    if(node.getFileInfo() != null) tooltip.setText("File has a Documentation\n"+node.getFullPath());
+                    else tooltip.setText("File has no Documentation\n"+node.getFullPath());
+                }else{
+                    tooltip.setText(node.getFullPath());
+                }
+
+                setContextMenu(contextMenu);
+
+                setTooltip(tooltip);
                 text.setText(node.getName());
                 Image icon = getIconForNode(node);
                 if (icon != null) {
@@ -199,6 +207,10 @@ public class ProjectExplorer extends ControllerUtils{
                 cellBox.setSpacing(10);
                 setGraphic(cellBox);
             }
+        }
+        private void performRemove(FileNodeModel item) throws MalformedURLException {
+            controller.menuActions.getFileFormatModel().getRootNode().removeChild(item.getFullPath());
+            controller.menuActions.refreshProject();
         }
 
         private Image getIconForNode(FileNodeModel node) {
@@ -215,4 +227,77 @@ public class ProjectExplorer extends ControllerUtils{
         }
     }
 
+    public static class FileNodeTreeCell extends TreeCell<FileNodeModel> {
+        private final Tooltip tooltip = new Tooltip();
+        private final ContextMenu contextMenu = new ContextMenu();
+
+        Controller controller;
+        public FileNodeTreeCell(Controller controller) {
+            MenuItem remove = new MenuItem("Remove from project");
+            remove.setOnAction(event -> {
+                try {
+                    performRemove(getItem());
+                } catch (MalformedURLException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+            contextMenu.getItems().addAll(remove);
+            this.controller = controller;
+        }
+
+        @Override
+        protected void updateItem(FileNodeModel item, boolean empty) {
+            super.updateItem(item, empty);
+
+            if (empty || item == null) {
+                setText(null);
+                setGraphic(null);
+                setTooltip(null);
+            } else {
+                setText(item.getName()); // Set the text of the cell
+                tooltip.setShowDelay(new Duration(1000));
+                tooltip.activatedProperty();
+                if (item.isFile()) {
+                    if(item.getFileInfo() != null) tooltip.setText("File has a Documentation\n"+item.getFullPath());
+                    else tooltip.setText("File has no Documentation\n"+item.getFullPath());
+                }else{
+                    tooltip.setText(item.getFullPath());
+                }
+                setTooltip(tooltip);
+
+                Image icon = getIconForNode(item);
+                if (icon != null) {
+                    ImageView iconView = new ImageView(icon);
+                    iconView.setFitHeight(20.0);
+                    iconView.setFitWidth(20.0);
+                    setGraphic(iconView);
+                } else {
+                    setGraphic(null);
+                }
+                setContextMenu(contextMenu);
+            }
+        }
+
+        private void performRemove(FileNodeModel item) throws MalformedURLException {
+            controller.menuActions.getFileFormatModel().getRootNode().removeChild(item.getFullPath());
+            controller.menuActions.refreshProject();
+        }
+
+        private Image getIconForNode(FileNodeModel fileNode) {
+            if (fileNode.isFile()) {
+                if (fileNode.getName().endsWith(Controller.C_PROJECT)) {
+                    return iconCache.get(ICON_HEADER);
+                } else if (fileNode.getName().endsWith(".c") || fileNode.getName().endsWith(".cpp")) {
+                    return iconCache.get(ICON_SOURCE);
+                } else if (fileNode.getName().endsWith(Controller.JAVA_PROJECT)) {
+                    return iconCache.get(ICON_JAVA);
+                } else if (fileNode.getName().endsWith(Controller.PYTHON_PROJECT)) {
+                    return iconCache.get(ICON_PYTHON);
+                }
+            } else {
+                return iconCache.get(ICON_FOLDER);
+            }
+            return null; // Default icon or null if none matches
+        }
+    }
 }

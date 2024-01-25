@@ -8,14 +8,18 @@ import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.ui.Controller;
 import com.daniel.docify.ui.utils.ControllerUtils;
 import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.DialogPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * This class handles all actions associated with the UI MenuBar options.
@@ -69,13 +73,12 @@ public class MenuBarActions extends ControllerUtils {
             try {
                 processor.buildAndProcessDirectory(selectedDir, fileType, rootNode -> {
                     fileFormatModel.setRootNode(rootNode);
-                    assert fileFormatModel.getRootNode() != null;
-                    controller.explorer.updateTreeView(fileFormatModel.getRootNode());
-                    controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
-                    controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - created successfully");
+                    if (fileFormatModel.getRootNode() != null) {
+                        controller.explorer.updateTreeView(fileFormatModel.getRootNode());
+                        controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
+                        controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - created successfully");
+                    }
                 });
-
-
             } catch (IOException e){
                 throw new RuntimeException(e);
             }
@@ -83,9 +86,39 @@ public class MenuBarActions extends ControllerUtils {
     }
 
     /**
+     * This method opens a dialog when user tries to use key bindings
+     * to create new project documentation
+     */
+    public Optional<ButtonType> showCreateNewOptionDialog() throws FileNotFoundException, MalformedURLException {
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Create new");
+        alert.setHeaderText("Select project type");
+
+        ButtonType option1 = new ButtonType("C/C++ project");
+        ButtonType option2 = new ButtonType("Java project");
+        ButtonType option3 = new ButtonType("Python project");
+        ButtonType cancel = new ButtonType("Cancel");
+
+        alert.getButtonTypes().setAll(option1, option2, option3, cancel);
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStyleClass().add("dialog-pane");
+
+        return alert.showAndWait();
+    }
+
+    /**
+     * This method refreshes and rebuilds the existing opened project
+     */
+    public void refreshProject() throws MalformedURLException {
+        if (fileFormatModel.getRootNode().getFullPath() != null) {
+            controller.explorer.updateTreeView(fileFormatModel.getRootNode());
+        }
+    }
+
+    /**
      * This method saves the built project as a .doci file using the {@link com.daniel.docify.fileProcessor.FileSerializer}.
      */
-    public void saveDociFile(){
+    public void saveAsDociFile(){
         if (fileFormatModel.getRootNode() != null) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save Docify File");
@@ -112,6 +145,37 @@ public class MenuBarActions extends ControllerUtils {
         }else {
             controller.utils.popUpAlert(Alert.AlertType.ERROR, "Error", "No project opened");
         }
+    }
+
+    public void saveDociFile() throws MalformedURLException {
+        if (fileFormatModel.getRootNode() != null && fileFormatModel.getRootNode().getName() != null) {
+            if (fileFormatModel.getSavedLocation() != null) {
+                fileFormatModel.save(fileFormatModel, fileFormatModel.getSavedLocation());
+                controller.utils.updateInfoLabel("Project saved successfully!");
+            }else {
+                saveAsDociFile();
+            }
+        }
+    }
+
+    /**
+     * This method opens a dialog when user tries to use key bindings
+     * to save project as project documentation
+     */
+    public Optional<ButtonType> showSaveAsOptionDialog(){
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Save as");
+        alert.setHeaderText("Save as");
+
+        ButtonType option1 = new ButtonType("Doci file");
+        ButtonType option2 = new ButtonType("PDF file");
+        ButtonType cancel = new ButtonType("Cancel");
+
+        alert.getButtonTypes().setAll(option1, option2, cancel);
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.getStyleClass().add("dialog-pane");
+
+        return alert.showAndWait();
     }
 
     /**
@@ -156,14 +220,14 @@ public class MenuBarActions extends ControllerUtils {
         }
     }
 
-
     /**
      * This method closes the currently open project and performs
      * the exiting routine of all involved UI components.
      */
     public void closeRoutine(){
         if (fileFormatModel != null) {
-            fileFormatModel.setRootNode(null);
+            fileFormatModel.clear();
+            DirectoryProcessor.watchThreadKeepRunning = false;
             controller.getExplorerTreeView().setRoot(null);
             controller.getExplorerListView().getItems().clear();
             controller.explorer.getProjectNodesList().clear();
