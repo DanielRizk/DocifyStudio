@@ -1,5 +1,6 @@
 package com.daniel.docify.core;
 
+import com.daniel.docify.fileProcessor.UserConfiguration;
 import com.daniel.docify.ui.Controller;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -44,6 +45,7 @@ public class Main extends Application {
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         controller.setStage(primaryStage);
+        UserConfiguration.checkUserConfiguration();
         primaryStage.setOnCloseRequest(event -> {
             Platform.exit();
             System.exit(0);

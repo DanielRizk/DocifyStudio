@@ -141,7 +141,7 @@ public class ControllerUtils {
         }
     }
 
-    public void popUpAlert(Alert.AlertType type, String title, String message){
+    public static void popUpAlert(Alert.AlertType type, String title, String message){
         Alert alert = new Alert(type);
         alert.setTitle(title);
         alert.setHeaderText(null); // No header text

@@ -23,7 +23,7 @@ import static com.daniel.docify.core.Main.LOAD_ICONS;
 import static com.daniel.docify.core.Main.SOFTWARE_VERSION;
 
 /**
- * This class is the controller for JavaFX SceneBuilder, It manages all the actions
+ * This class is the controller for JavaFX SceneBuilder application, It manages all the actions
  * from the user in the UI
  */
 public class Controller implements Initializable {
@@ -197,6 +197,9 @@ public class Controller implements Initializable {
     }
 
     @FXML
+    void saveAsPDF(ActionEvent event) { menuActions.saveAsPDF();}
+
+    @FXML
     void closeOpenedProject(ActionEvent event) {
         menuActions.closeRoutine();
     }
@@ -359,7 +362,7 @@ public class Controller implements Initializable {
                     if (Objects.equals(buttonType.getText(), "Doci file")){
                         menuActions.saveAsDociFile();
                     } else if (Objects.equals(buttonType.getText(), "PDF file")) {
-                        //TODO: Save as PDF
+                        menuActions.saveAsPDF();
                     }
                 });
                 event.consume();

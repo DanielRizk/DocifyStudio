@@ -42,7 +42,7 @@
                         <Menu fx:id="file_saveAsSubMenu" mnemonicParsing="false" text="Save as">
                           <items>
                             <MenuItem fx:id="file_save_docifyMenuItem" mnemonicParsing="false" onAction="#saveAsDociFile" text="Docify" />
-                              <MenuItem fx:id="file_save_pdfMenuItem" mnemonicParsing="false" text="PDF" />
+                              <MenuItem fx:id="file_save_pdfMenuItem" mnemonicParsing="false" onAction="#saveAsPDF" text="PDF" />
                           </items>
                         </Menu>
                     <MenuItem fx:id="file_closeMenuItem" mnemonicParsing="false" onAction="#closeOpenedProject" text="Close" />

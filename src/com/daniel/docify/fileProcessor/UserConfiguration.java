@@ -1,10 +1,9 @@
 package com.daniel.docify.fileProcessor;
 import com.google.gson.Gson;
 
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -148,4 +147,43 @@ public class UserConfiguration {
             writer.append(userConfiguration.toJson());
         }
     }
+
+    public static void checkUserConfiguration() throws IOException {
+        File configFile = new File("config/config.json");
+        File configDir = new File("config");
+
+        // Ensure the config directory exists
+        if (!configDir.exists()) {
+            if (!configDir.mkdir()) {
+                throw new IOException("Failed to create configuration directory.");
+            }
+        }
+
+        UserConfiguration configuration;
+        if (!configFile.exists()) {
+            if (configFile.createNewFile()) {
+                System.out.println("User configuration created successfully.");
+                configuration = new UserConfiguration();
+                configuration.setLastSaveDir("");
+                configuration.setLastOpenDir("");
+                saveUserConfiguration(configuration);
+            } else {
+                throw new IOException("Could not create User configuration file.");
+            }
+        } else {
+            configuration = loadUserConfiguration();
+            if (configuration == null) {
+                configuration = new UserConfiguration();
+                configuration.setLastOpenDir("");
+                configuration.setLastSaveDir("");
+            }
+            if (configuration.getLastOpenDir() == null) {
+                configuration.setLastOpenDir("");
+            } else if (configuration.getLastSaveDir() == null) {
+                configuration.setLastSaveDir("");
+            }
+            saveUserConfiguration(configuration);
+        }
+    }
+
 }

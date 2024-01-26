@@ -15,8 +15,6 @@ import javafx.util.Duration;
 
 import java.io.*;
 import java.net.MalformedURLException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 

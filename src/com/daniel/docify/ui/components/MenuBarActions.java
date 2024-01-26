@@ -44,17 +44,21 @@ public class MenuBarActions extends ControllerUtils {
      */
     public void startNew(String fileType) {
         if (Objects.equals(fileType, Controller.JAVA_PROJECT)){
-            controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
+            ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
                     "Java documentation will be available in the next release");
             return;
         }else if (Objects.equals(fileType, Controller.PYTHON_PROJECT)){
-            controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
+            ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
                     "Python documentation will be available in the next release");
             return;
         }
         DirectoryChooser directoryChooser = new DirectoryChooser();
         directoryChooser.setTitle("Create new project");
-
+        try {
+            UserConfiguration.checkUserConfiguration();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         File lastOpenPath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastOpenConfig()));
 
         if (lastOpenPath.exists() && !lastOpenPath.getAbsolutePath().isEmpty()) {
@@ -119,12 +123,20 @@ public class MenuBarActions extends ControllerUtils {
      * This method saves the built project as a .doci file using the {@link com.daniel.docify.fileProcessor.FileSerializer}.
      */
     public void saveAsDociFile(){
-        if (fileFormatModel.getRootNode() != null) {
+        if (fileFormatModel.getRootNode().getName() != null) {
             FileChooser fileChooser = new FileChooser();
             fileChooser.setTitle("Save Docify File");
-            File lastSavePath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastSaveConfig()));
 
-            fileChooser.setInitialDirectory(lastSavePath);
+            try {
+                UserConfiguration.checkUserConfiguration();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            File lastSavePath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastSaveConfig()));
+            if (lastSavePath.exists() && !lastSavePath.getAbsolutePath().isEmpty()) {
+                fileChooser.setInitialDirectory(lastSavePath);
+            }
+
             FileChooser.ExtensionFilter allFilesFilter = new FileChooser.ExtensionFilter("All Files", "*.*");
             FileChooser.ExtensionFilter docifyFilter = new FileChooser.ExtensionFilter("Docify File (*.doci)", "*.doci");
             fileChooser.getExtensionFilters().addAll(docifyFilter, allFilesFilter);
@@ -143,8 +155,13 @@ public class MenuBarActions extends ControllerUtils {
                 controller.utils.updateInfoLabel("File saved successfully");
             }
         }else {
-            controller.utils.popUpAlert(Alert.AlertType.ERROR, "Error", "No project opened");
+            ControllerUtils.popUpAlert(Alert.AlertType.WARNING, "Warning", "No project opened to be saved");
         }
+    }
+
+    public void saveAsPDF() {
+        ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
+                "PDF file will be supported in the upcoming release.");
     }
 
     public void saveDociFile() throws MalformedURLException {
@@ -185,9 +202,17 @@ public class MenuBarActions extends ControllerUtils {
     public void openDociFile() throws MalformedURLException {
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Open Docify File");
-        File lastSavePath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastSaveConfig()));
 
-        fileChooser.setInitialDirectory(lastSavePath);
+        try {
+            UserConfiguration.checkUserConfiguration();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        File lastSavePath = new File(Objects.requireNonNull(UserConfiguration.loadUserLastSaveConfig()));
+        if (lastSavePath.exists() && !lastSavePath.getAbsolutePath().isEmpty()) {
+            fileChooser.setInitialDirectory(lastSavePath);
+        }
+
         //directoryChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Select Directory", "*"));
         FileChooser.ExtensionFilter allFilesFilter = new FileChooser.ExtensionFilter("All Files", "*.*");
         FileChooser.ExtensionFilter docifyFilter = new FileChooser.ExtensionFilter("Docify File (*.doci)", "*.doci");
@@ -249,14 +274,14 @@ public class MenuBarActions extends ControllerUtils {
      */
     public void displayMetaData() {
         if (fileFormatModel != null) {
-            controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "About",
+            ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "About",
                     (fileFormatModel.getAuthorName() == null ? "" : "author: " + fileFormatModel.getAuthorName()) +
                             (fileFormatModel.getFileFormatVersion() == null ? "" : "\nFile version: " + fileFormatModel.getFileFormatVersion()) +
                             (fileFormatModel.getCreationDate() == null ? "" : "\nDate and time: " + fileFormatModel.getCreationDate()) +
                             "\nSoftware version: " + Main.SOFTWARE_VERSION
             );
         }else{
-            controller.utils.popUpAlert(Alert.AlertType.INFORMATION, "About",
+            ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "About",
                             "Software version: " + Main.SOFTWARE_VERSION
             );
         }

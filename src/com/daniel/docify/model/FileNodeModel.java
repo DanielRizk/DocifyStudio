@@ -36,7 +36,7 @@ public class FileNodeModel extends FileSerializer implements Serializable {
         this.children = new ArrayList<>();
     }
 
-    public void updateNode(Path path, boolean isFile, WatchEvent.Kind<?> kind, DirectoryProcessor directoryProcessor) {
+    public void updateNode(Path path, boolean isFile, WatchEvent.Kind<?> kind, DirectoryProcessor directoryProcessor) throws IOException {
         // Check if the event is for file modification
         if (kind == ENTRY_MODIFY) {
             for (int i = 0; i < children.size(); i++) {
@@ -66,7 +66,7 @@ public class FileNodeModel extends FileSerializer implements Serializable {
 
                         break; // Exit the loop as the relevant node has been found and updated
                     } catch (IOException e) {
-                        e.printStackTrace(); // Or handle the exception as appropriate
+                        throw new IOException("could not build project! - " + this.getClass().getName()); // Or handle the exception as appropriate
                     }
                 }else {
                     if (!child.isFile()){

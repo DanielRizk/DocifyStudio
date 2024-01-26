@@ -4,6 +4,8 @@ import com.daniel.docify.core.Main;
 import com.daniel.docify.model.FileFormatModel;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.ui.utils.ControllerUtils;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
@@ -54,12 +56,32 @@ public class FileSerializer {
         FileFormatModel formatModel = null;
         try (ObjectInputStream objectInputStream = new ObjectInputStream(
                 new CipherInputStream(new FileInputStream(filePath), createCipher(Cipher.DECRYPT_MODE)))) {
-            formatModel = (FileFormatModel) objectInputStream.readObject();
-            System.out.println("Object loaded successfully from " + filePath);
+
+            Object obj = objectInputStream.readObject();
+
+            if (obj instanceof FileFormatModel) {
+                formatModel = (FileFormatModel) obj;
+                System.out.println("Object loaded successfully from " + filePath);
+            } else {
+                // Handle the case where obj is not a FileFormatModel
+                String errorMessage = "Incompatible object type: expected FileFormatModel, found "
+                        + obj.getClass().getName();
+                LOGGER.log(Level.SEVERE, errorMessage);
+                Platform.runLater(() -> {
+                    ControllerUtils.popUpAlert(Alert.AlertType.ERROR,
+                            "Loading file", "The file you are trying to open is not " +
+                                    "compatible with this version of "+ Main.SOFTWARE_VERSION);
+                });
+                return null;
+            }
+
         } catch (IOException | ClassNotFoundException | GeneralSecurityException e) {
-            LOGGER.log(Level.SEVERE, "Error loading object.", e);
-        } catch (ClassCastException e){
-            LOGGER.log(Level.SEVERE, "incompatible version.", e);
+            LOGGER.log(Level.SEVERE, "Error loading object.");
+            Platform.runLater(() -> {
+                ControllerUtils.popUpAlert(Alert.AlertType.ERROR,
+                        "Loading file", "The file you are trying to open is not " +
+                                "compatible with this version of "+ Main.SOFTWARE_VERSION);
+            });
         }
         return formatModel;
     }

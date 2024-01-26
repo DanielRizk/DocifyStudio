@@ -1,12 +1,15 @@
 package com.daniel.docify.model;
 
 import com.daniel.docify.fileProcessor.FileSerializer;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.Unmarshaller;
+import jakarta.xml.bind.annotation.XmlRootElement;
 
-import java.io.File;
 import java.io.Serializable;
 import java.lang.reflect.Method;
-import java.util.Date;
 
+
+@XmlRootElement
 public class FileFormatModel extends FileSerializer implements Serializable {
 
     public static final String FILE_FORMAT_VERSION = "1.0";
@@ -19,6 +22,7 @@ public class FileFormatModel extends FileSerializer implements Serializable {
     private String savedLocation;
 
     private FileNodeModel rootNode;
+
     public FileFormatModel(FileNodeModel rootNode){
         this.rootNode = rootNode;
     }

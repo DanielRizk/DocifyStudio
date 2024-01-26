@@ -171,7 +171,11 @@ public class DirectoryProcessor {
                     boolean isFile = Files.isRegularFile(fullPath);
                     if (!filename.toString().endsWith(".doci")) {
                         Platform.runLater(() -> {
-                            rootNode.updateNode(fullPath, isFile, kind, this);
+                            try {
+                                rootNode.updateNode(fullPath, isFile, kind, this);
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         });
                     }
                 }
