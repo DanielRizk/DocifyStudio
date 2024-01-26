@@ -1,15 +1,10 @@
 package com.daniel.docify.model;
 
 import com.daniel.docify.fileProcessor.FileSerializer;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.Unmarshaller;
-import jakarta.xml.bind.annotation.XmlRootElement;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
 
-
-@XmlRootElement
 public class FileFormatModel extends FileSerializer implements Serializable {
 
     public static final String FILE_FORMAT_VERSION = "1.0";
@@ -89,7 +84,7 @@ public class FileFormatModel extends FileSerializer implements Serializable {
                 try {
                     method.invoke(this, new Object[]{null});
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    throw new RuntimeException("Could not clear FileFormatModel. " + e);
                 }
             }
         }
