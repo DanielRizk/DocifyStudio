@@ -235,7 +235,7 @@ public class ProjectExplorer extends ControllerUtils{
             remove.setOnAction(event -> {
                 try {
                     performRemove(getItem());
-                } catch (MalformedURLException e) {
+                } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
             });
@@ -276,9 +276,24 @@ public class ProjectExplorer extends ControllerUtils{
             }
         }
 
-        private void performRemove(FileNodeModel item) throws MalformedURLException {
+        private void performRemove(FileNodeModel item) throws IOException {
             controller.menuActions.getFileFormatModel().getRootNode().removeChild(item.getFullPath());
             controller.menuActions.refreshProject();
+            String rootPath = controller.menuActions.getFileFormatModel().getRootNode().getFullPath();
+            File file = new File(rootPath + "\\temp.ignore");
+            if (!file.exists()){
+                try {
+                    if (file.createNewFile()){
+                        System.out.println("temp.ignore created.");
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+            try (FileWriter writer = new FileWriter(file, true)){
+                String relativePath = item.getFullPath().substring(item.getFullPath().indexOf(rootPath) + rootPath.length());
+                writer.append(relativePath).append("\n");
+            }
         }
 
         private Image getIconForNode(FileNodeModel fileNode) {

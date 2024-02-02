@@ -18,9 +18,6 @@ public class Main extends Application {
     public static final String SOFTWARE_VERSION = "Docify Studio v1.0";
     public static final boolean LOAD_ICONS = true;
     public static void main(String[] args){
-
-        /* for debugging only */
-        //MainWindow mainWindow = new MainWindow();
         launch(args);
     }
 
@@ -41,12 +38,12 @@ public class Main extends Application {
         }
 
         Scene scene = new Scene(root);
-        //scene.getStylesheets().add(Objects.requireNonNull(getClass().getResource("darkmode.css")).toExternalForm());
         primaryStage.setScene(scene);
         primaryStage.setMaximized(true);
         controller.setStage(primaryStage);
         UserConfiguration.checkUserConfiguration();
         primaryStage.setOnCloseRequest(event -> {
+            controller.menuActions.closeRoutine();
             Platform.exit();
             System.exit(0);
         });

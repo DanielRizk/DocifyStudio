@@ -38,7 +38,21 @@ public class FileNodeModel extends FileSerializer implements Serializable {
 
     public void updateNode(Path path, boolean isFile, WatchEvent.Kind<?> kind, DirectoryProcessor directoryProcessor) throws IOException {
         // Check if the event is for file modification
-        if (kind == ENTRY_MODIFY) {
+        if (kind == ENTRY_MODIFY || kind == ENTRY_DELETE || kind == ENTRY_CREATE) {
+            if (getFullPath().equals(path.toString())){
+                Platform.runLater(() -> {
+                    Controller controller = directoryProcessor.getController();
+                    try {
+                        FileNodeModel newNode = directoryProcessor.RebuildDirTree(path.toFile(), this.getProjectType());
+                        directoryProcessor.processDirTree(newNode, this.getProjectType());
+                        controller.menuActions.getFileFormatModel().setRootNode(newNode);
+                        controller.explorer.updateTreeView(controller.menuActions.getFileFormatModel().getRootNode());
+                        controller.mainWindow.refreshWebViewDisplay();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            }
             for (int i = 0; i < children.size(); i++) {
                 FileNodeModel child = children.get(i);
                 if (child.getFullPath().equals(path.toString())) {
@@ -46,7 +60,7 @@ public class FileNodeModel extends FileSerializer implements Serializable {
                         // Rebuild the node for the modified file/directory
                         FileNodeModel updatedNode = isFile ?
                                 new FileNodeModel(path.getFileName().toString(), this.getProjectType(), true, path.toString()) :
-                                directoryProcessor.buildDirTree(path.toFile(), this.getProjectType());
+                                directoryProcessor.RebuildDirTree(path.toFile(), this.getProjectType());
 
                         if (updatedNode != null) {
                             directoryProcessor.processDirTree(updatedNode, this.getProjectType());

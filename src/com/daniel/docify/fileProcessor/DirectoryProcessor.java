@@ -23,13 +23,11 @@ import static java.nio.file.StandardWatchEventKinds.*;
 public class DirectoryProcessor {
 
     private final Controller controller;
-    private final WatchService watchService;
     private List<String> ignoreList;
     public static volatile boolean watchThreadKeepRunning = true;
 
-    public DirectoryProcessor(Controller controller) throws IOException {
+    public DirectoryProcessor(Controller controller){
         this.controller = controller;
-        this.watchService = FileSystems.getDefault().newWatchService();
     }
 
     private List<String> getIgnoreList(File directory){
@@ -37,21 +35,20 @@ public class DirectoryProcessor {
         File[] directoryListing = directory.listFiles();
         if (directoryListing != null) {
             for (File child : directoryListing) {
-                if (child.getName().equals("doci.ignore")) {
+                if (child.getName().equals("doci.ignore") || child.getName().equals("temp.ignore")) {
                     try (BufferedReader reader = new BufferedReader(new FileReader(child))) {
                         String line;
                         while ((line = reader.readLine()) != null) {
                             line = line.replaceAll("/", "\\\\");
                             ignore.add(directory.getAbsolutePath()+line);
                         }
-                        return ignore;
                     } catch (IOException e) {
                         throw new RuntimeException(e);
                     }
                 }
             }
         }
-        return null;
+        return ignore;
     }
 
     public Controller getController() {
@@ -127,7 +124,6 @@ public class DirectoryProcessor {
             }
             // If the directory or any of its subdirectories contains the file type, return the node
             if (containsFileType) {
-                registerDirectory(directory.toPath());
                 return node;
             }
         }
@@ -142,50 +138,10 @@ public class DirectoryProcessor {
         }
     }
 
-
-    private void registerDirectory(Path dir) throws IOException {
-        dir.register(watchService, ENTRY_MODIFY);
-    }
-
-    public void syncOn(FileNodeModel rootNode) {
-        new Thread(() -> {
-            while (watchThreadKeepRunning) {
-                WatchKey key;
-                try {
-                    key = watchService.take();
-                } catch (InterruptedException e) {
-                    break;
-                }
-
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    WatchEvent.Kind<?> kind = event.kind();
-                    if (kind == OVERFLOW) {
-                        continue;
-                    }
-
-                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                    Path filename = ev.context();
-                    Path dir = (Path) key.watchable();
-                    Path fullPath = dir.resolve(filename);
-
-                    boolean isFile = Files.isRegularFile(fullPath);
-                    if (!filename.toString().endsWith(".doci")) {
-                        Platform.runLater(() -> {
-                            try {
-                                rootNode.updateNode(fullPath, isFile, kind, this);
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
-                        });
-                    }
-                }
-
-                boolean valid = key.reset();
-                if (!valid) {
-                    break;
-                }
-            }
-        }).start();
+    public FileNodeModel RebuildDirTree(File directory, String projectType) throws IOException {
+        FileNodeModel node = controller.menuActions.getFileFormatModel().getRootNode();
+        if (node != null) ignoreList = getIgnoreList(new File(node.getFullPath()));
+        return buildDirTree(directory, projectType);
     }
 
     public void buildAndProcessDirectory(File directory, String projectType, DirectoryProcessorCallback callback) throws IOException {
@@ -200,7 +156,7 @@ public class DirectoryProcessor {
                 FileNodeModel rootFileNode = buildDirTree(directory, projectType);
                 if (rootFileNode != null) {
                     processDirTree(rootFileNode, projectType);
-                    syncOn(rootFileNode);
+                    DirectoryWatchService.syncOn(rootFileNode, this);
                 }
 
                 // Use the callback to return the result

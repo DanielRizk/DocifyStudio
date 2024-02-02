@@ -2,6 +2,7 @@ package com.daniel.docify.ui.components;
 
 import com.daniel.docify.core.Main;
 import com.daniel.docify.fileProcessor.DirectoryProcessor;
+import com.daniel.docify.fileProcessor.DirectoryWatchService;
 import com.daniel.docify.fileProcessor.UserConfiguration;
 import com.daniel.docify.model.FileFormatModel;
 import com.daniel.docify.model.FileNodeModel;
@@ -251,8 +252,9 @@ public class MenuBarActions extends ControllerUtils {
      */
     public void closeRoutine(){
         if (fileFormatModel != null) {
+            DirectoryWatchService.stop();
+            cleanTempFiles();
             fileFormatModel.clear();
-            DirectoryProcessor.watchThreadKeepRunning = false;
             controller.getExplorerTreeView().setRoot(null);
             controller.getExplorerListView().getItems().clear();
             controller.explorer.getProjectNodesList().clear();
@@ -265,6 +267,18 @@ public class MenuBarActions extends ControllerUtils {
             controller.mainWindow.getDocumentationView().setVisible(true);
             controller.getPrimaryStage().setTitle("Docify Studio");
             controller.getInfoLabel().setText(null);
+        }
+    }
+
+    private void cleanTempFiles(){
+        FileNodeModel rootNode = controller.menuActions.getFileFormatModel().getRootNode();
+        if (rootNode != null && rootNode.getFullPath() != null) {
+            File file = new File(rootNode.getFullPath() + "\\temp.ignore");
+            if (file.exists()) {
+                if (file.delete()) {
+                    System.out.println("temp file cleaned");
+                }
+            }
         }
     }
 
