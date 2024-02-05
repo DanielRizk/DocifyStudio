@@ -1,11 +1,9 @@
 package com.daniel.docify.model;
 
-import com.daniel.docify.fileProcessor.DirectoryProcessor;
-import com.daniel.docify.fileProcessor.FileSerializer;
+import com.daniel.docify.fileProcessor.*;
 import com.daniel.docify.ui.Controller;
 import javafx.application.Platform;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.MalformedURLException;
@@ -20,11 +18,11 @@ import static java.nio.file.StandardWatchEventKinds.*;
  * This class represents a node in a directory structure hierarchy,
  * also provides useful method to create a node-tree structure
  */
-public class FileNodeModel extends FileSerializer implements Serializable {
-    private final String name;
-    private final String projectType;
-    private final boolean isFile;
-    private final String fullPath;
+public class FileNodeModel extends FileSerializer implements DociSerializable, Serializable {
+    private String name;
+    private String projectType;
+    private boolean isFile;
+    private String fullPath;
     private final List<FileNodeModel> children;
     private FileInfoModel fileInfo;
 
@@ -96,16 +94,32 @@ public class FileNodeModel extends FileSerializer implements Serializable {
         return name;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public String getProjectType() {
         return projectType;
+    }
+
+    public void setProjectType(String projectType) {
+        this.projectType = projectType;
     }
 
     public boolean isFile() {
         return isFile;
     }
 
+    public void setFile(boolean file) {
+        isFile = file;
+    }
+
     public String getFullPath() {
         return fullPath;
+    }
+
+    public void setFullPath(String fullPath) {
+        this.fullPath = fullPath;
     }
 
     public List<FileNodeModel> getChildren() {
@@ -140,5 +154,68 @@ public class FileNodeModel extends FileSerializer implements Serializable {
     @Override
     public String toString() {
         return name;
+    }
+
+    @Override
+    public void serialize(ExtendedFileOutputStream out) throws IOException {
+        out.writeStringFieldMappingToStream(FILE_NODE_NAME_TAG, getName());
+        out.writeStringFieldMappingToStream(FILE_NODE_TYPE_TAG, getProjectType());
+        out.writeBoolFieldMappingToStream(FILE_NODE_IS_FILE_TAG, isFile());
+        out.writeStringFieldMappingToStream(FILE_NODE_PATH_TAG, getFullPath());
+        out.writeStringFieldMappingToStream(FILE_INFO_MODEL_TAG, "");
+        // serialize fileInfo here
+
+        out.writeIntFieldMappingToStream(FILE_NODE_CHILD_COUNT_TAG, getChildren().size());
+        for (FileNodeModel child : getChildren()){
+            child.serialize(out);
+        }
+    }
+
+    public static FileNodeModel deserialize(ExtendedFileInputStream in) throws IOException {
+        FileNodeModel fileNode = new FileNodeModel(null, null, false, null);
+        TagDataPair pair;
+
+        // read node name
+        pair = in.readStringFieldMappingFromStream();
+        if (pair.tag() == FILE_NODE_NAME_TAG){
+            fileNode.setName(pair.SData());
+        }
+
+        // read node type
+        pair = in.readStringFieldMappingFromStream();
+        if (pair.tag() == FILE_NODE_TYPE_TAG){
+            fileNode.setProjectType(pair.SData());
+        }
+
+        // read node is file
+        pair = in.readBoolFieldMappingFromStream();
+        if (pair.tag() == FILE_NODE_IS_FILE_TAG){
+            fileNode.setFile(pair.BData());
+        }
+
+        // read node path
+        pair = in.readStringFieldMappingFromStream();
+        if (pair.tag() == FILE_NODE_PATH_TAG){
+            fileNode.setFullPath(pair.SData());
+        }
+
+        // read file info
+        pair = in.readStringFieldMappingFromStream();
+        if (pair.tag() == FILE_INFO_MODEL_TAG){
+            fileNode.setFileInfo(/*fileInfo deserialize*/ null);
+        }
+
+        int childCount = 0;
+        // read child count
+        pair = in.readIntFieldMappingFromStream();
+        if (pair.tag() == FILE_NODE_CHILD_COUNT_TAG){
+            childCount = pair.IData();
+        }
+
+        for (int i = 0; i < childCount; i++){
+            fileNode.addChild(FileNodeModel.deserialize(in));
+        }
+
+        return fileNode;
     }
 }

@@ -1,9 +1,7 @@
 package com.daniel.docify.ui.components;
 
 import com.daniel.docify.core.Main;
-import com.daniel.docify.fileProcessor.DirectoryProcessor;
-import com.daniel.docify.fileProcessor.DirectoryWatchService;
-import com.daniel.docify.fileProcessor.UserConfiguration;
+import com.daniel.docify.fileProcessor.*;
 import com.daniel.docify.model.FileFormatModel;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.ui.Controller;
@@ -15,9 +13,7 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.util.Objects;
 import java.util.Optional;
@@ -34,7 +30,7 @@ public class MenuBarActions extends ControllerUtils {
         return fileFormatModel;
     }
 
-    public MenuBarActions(Controller controller) throws IOException {
+    public MenuBarActions(Controller controller){
         super(controller);
     }
 
@@ -83,6 +79,17 @@ public class MenuBarActions extends ControllerUtils {
                         controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
                         controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - created successfully");
                     }
+
+
+
+                    try (ExtendedFileOutputStream out = new ExtendedFileOutputStream("test.txt")){
+                        fileFormatModel.serialize(out);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+
+
+
                 });
             } catch (IOException e){
                 throw new RuntimeException(e);
@@ -161,6 +168,17 @@ public class MenuBarActions extends ControllerUtils {
     }
 
     public void saveAsPDF() {
+
+
+
+        try (ExtendedFileInputStream in = new ExtendedFileInputStream("test.txt")){
+            FileFormatModel newFormat = FileFormatModel.deserialize(in);
+            System.out.println("test");
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
         ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
                 "PDF file will be supported in the upcoming release.");
     }
