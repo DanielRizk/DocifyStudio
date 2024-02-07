@@ -1,8 +1,9 @@
 package com.daniel.docify.component;
 
+import com.daniel.docify.fileProcessor.DociSerializable;
 import java.io.Serializable;
 
-public abstract class Component implements Serializable {
+public abstract class Component implements DociSerializable ,Serializable {
 
     private String fileName;
     private String name;
@@ -31,4 +32,5 @@ public abstract class Component implements Serializable {
     public Integer getLineNumber() {
         return lineNumber;
     }
+
 }

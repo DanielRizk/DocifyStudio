@@ -4,6 +4,7 @@ import com.daniel.docify.component.Clang.*;
 import com.daniel.docify.model.FileInfoModel;
 
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,6 +92,11 @@ public class CFileInfo extends FileInfoModel implements Serializable {
             }
         }
         return itemNames;
+    }
+
+    @Override
+    public Field[] getComponents() {
+        return this.getClass().getDeclaredFields();
     }
 
 

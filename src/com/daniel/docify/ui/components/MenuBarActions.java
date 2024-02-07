@@ -79,17 +79,6 @@ public class MenuBarActions extends ControllerUtils {
                         controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
                         controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - created successfully");
                     }
-
-
-
-                    try (ExtendedFileOutputStream out = new ExtendedFileOutputStream("test.txt")){
-                        fileFormatModel.serialize(out);
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-
-
-
                 });
             } catch (IOException e){
                 throw new RuntimeException(e);

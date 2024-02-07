@@ -162,8 +162,13 @@ public class FileNodeModel extends FileSerializer implements DociSerializable, S
         out.writeStringFieldMappingToStream(FILE_NODE_TYPE_TAG, getProjectType());
         out.writeBoolFieldMappingToStream(FILE_NODE_IS_FILE_TAG, isFile());
         out.writeStringFieldMappingToStream(FILE_NODE_PATH_TAG, getFullPath());
-        out.writeStringFieldMappingToStream(FILE_INFO_MODEL_TAG, "");
-        // serialize fileInfo here
+
+        if (getFileInfo() != null) {
+            out.writeIntFieldMappingToStream(FILE_INFO_MODEL_TAG, 0);
+            fileInfo.serialize(out);
+        } else {
+            out.writeIntFieldMappingToStream(FILE_INFO_MODEL_TAG, FILE_INFO_MODEL_INVALID_TAG);
+        }
 
         out.writeIntFieldMappingToStream(FILE_NODE_CHILD_COUNT_TAG, getChildren().size());
         for (FileNodeModel child : getChildren()){
@@ -200,9 +205,13 @@ public class FileNodeModel extends FileSerializer implements DociSerializable, S
         }
 
         // read file info
-        pair = in.readStringFieldMappingFromStream();
+        pair = in.readIntFieldMappingFromStream();
         if (pair.tag() == FILE_INFO_MODEL_TAG){
-            fileNode.setFileInfo(/*fileInfo deserialize*/ null);
+            if (pair.IData() == 0) {
+                fileNode.setFileInfo(FileInfoModel.deserialize(in));
+            } else {
+                fileNode.setFileInfo(null);
+            }
         }
 
         int childCount = 0;

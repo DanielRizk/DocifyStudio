@@ -2,6 +2,8 @@ package com.daniel.docify.fileProcessor;
 
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class ExtendedFileOutputStream extends FileOutputStream {
     private final String filePath;
@@ -26,8 +28,16 @@ public class ExtendedFileOutputStream extends FileOutputStream {
         tagBuffer.putInt(tag);
         write(tagBuffer.array());
 
+
+        byte[] messageBytes;
+        ByteBuffer lengthBuffer;
+        // Write the message length
+        messageBytes = Objects.requireNonNullElse(message, "").getBytes(StandardCharsets.UTF_8);
+        lengthBuffer = ByteBuffer.allocate(4);
+        lengthBuffer.putInt(messageBytes.length);
+        write(lengthBuffer.array());
+
         // Write the message bytes
-        byte[] messageBytes = message.getBytes();
         write(messageBytes);
 
         // Write a newline character
