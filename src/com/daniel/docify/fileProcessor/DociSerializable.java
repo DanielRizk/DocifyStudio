@@ -40,6 +40,23 @@ public interface DociSerializable {
     Integer COMPONENT_STRUCT_TAG           = 0x47;
     Integer COMPONENT_METHOD_TAG           = 0x48;
 
+    String hexKey = "0123456789ABCDEF0123456789ABCDEF";
+    String hexIV = "FEDCBA9876543210FEDCBA9876543210";
+
+    Integer VALIDATION_KEY = 2709;
+    Integer ENCRYPTION_KEY = 0x27;
+
+    // Utility method to convert hex string to byte array
+    static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
+    }
+
     static int getTagNameForField(String name){
         return switch (name) {
             case "externs" -> FILE_INFO_EXTERN_LIST_TAG;
@@ -54,7 +71,7 @@ public interface DociSerializable {
 
     void serialize(ExtendedFileOutputStream out) throws IOException;
 
-    static <T extends DociSerializable> T deserialize(ExtendedFileInputStream in, Class<T> clazz) {
+    static <T extends DociSerializable> T deserialize() {
         // Placeholder for a generic deserialization method;
         throw new UnsupportedOperationException("Deserialization not implemented");
     }

@@ -4,6 +4,11 @@ package com.daniel.docify.fileProcessor;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 
+import static com.daniel.docify.fileProcessor.DociSerializable.ENCRYPTION_KEY;
+/**
+ * if you ever want to remove the decryption, remove all readDecrypted call
+ * i.g. tagBuffer = readDecrypted(tagBuffer); -> delete the whole line
+ */
 public class ExtendedFileInputStream extends FileInputStream {
     private final BufferedInputStream bufferedIn;
 
@@ -17,12 +22,34 @@ public class ExtendedFileInputStream extends FileInputStream {
         this.bufferedIn = new BufferedInputStream(this);
     }
 
+    public Integer readValidationKey() throws IOException {
+        byte[] tagBuffer = new byte[4];
+        long read = bufferedIn.read(tagBuffer);
+        if (read < 4) { // End of stream or incomplete tag
+            return null;
+        }
+
+        return ((tagBuffer[0] & 0xFF) << 24) | ((tagBuffer[1] & 0xFF) << 16)
+                | ((tagBuffer[2] & 0xFF) << 8) | (tagBuffer[3] & 0xFF);
+    }
+
+    private byte[] readDecrypted(byte[] byteArray) {
+        byte[] result = new byte[byteArray.length];
+        for (int i = 0; i < byteArray.length; i++) {
+            // Cast result to byte, truncates towards zero
+            result[i] = (byte)(byteArray[i] - ENCRYPTION_KEY);
+        }
+        return result;
+    }
+
     public TagDataPair readStringFieldMappingFromStream() throws IOException {
         byte[] tagBuffer = new byte[4];
         long read = bufferedIn.read(tagBuffer);
         if (read < 4) { // End of stream or incomplete tag
             return null;
         }
+
+        tagBuffer = readDecrypted(tagBuffer);
 
         int tag = ((tagBuffer[0] & 0xFF) << 24) | ((tagBuffer[1] & 0xFF) << 16)
                 | ((tagBuffer[2] & 0xFF) << 8) | (tagBuffer[3] & 0xFF);
@@ -33,6 +60,9 @@ public class ExtendedFileInputStream extends FileInputStream {
         if (read < 4) {
             return null; // Incomplete length or end of stream
         }
+
+        lengthBuffer = readDecrypted(lengthBuffer);
+
         int length = ((lengthBuffer[0] & 0xFF) << 24) | ((lengthBuffer[1] & 0xFF) << 16)
                 | ((lengthBuffer[2] & 0xFF) << 8) | (lengthBuffer[3] & 0xFF);
 
@@ -50,6 +80,8 @@ public class ExtendedFileInputStream extends FileInputStream {
             return null; // Incomplete message data or end of stream
         }
 
+        messageBytes = readDecrypted(messageBytes);
+
         // Optionally read and discard the line separator if it's consistently included after each message
         bufferedIn.read(new byte[System.lineSeparator().getBytes().length]);
 
@@ -66,6 +98,8 @@ public class ExtendedFileInputStream extends FileInputStream {
             return null;
         }
 
+        tagBuffer = readDecrypted(tagBuffer);
+
         int tag = ((tagBuffer[0] & 0xFF) << 24) | ((tagBuffer[1] & 0xFF) << 16)
                 | ((tagBuffer[2] & 0xFF) << 8) | (tagBuffer[3] & 0xFF);
 
@@ -74,6 +108,8 @@ public class ExtendedFileInputStream extends FileInputStream {
         if (readInt < 4) { // End of stream or incomplete tag
             return null;
         }
+
+        dataBuffer = readDecrypted(dataBuffer);
 
         int data = ((dataBuffer[0] & 0xFF) << 24) | ((dataBuffer[1] & 0xFF) << 16)
                 | ((dataBuffer[2] & 0xFF) << 8) | (dataBuffer[3] & 0xFF);
@@ -95,6 +131,8 @@ public class ExtendedFileInputStream extends FileInputStream {
             return null;
         }
 
+        tagBuffer = readDecrypted(tagBuffer);
+
         int tag = ((tagBuffer[0] & 0xFF) << 24) | ((tagBuffer[1] & 0xFF) << 16)
                 | ((tagBuffer[2] & 0xFF) << 8) | (tagBuffer[3] & 0xFF);
 
@@ -102,6 +140,7 @@ public class ExtendedFileInputStream extends FileInputStream {
         int ch;
         while ((ch = bufferedIn.read()) != -1) {
             // Check for line end (considering both \n and \r\n)
+            ch = ch- ENCRYPTION_KEY;
             if (ch == '\n') {
                 break;
             }

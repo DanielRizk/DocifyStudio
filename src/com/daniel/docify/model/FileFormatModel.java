@@ -117,6 +117,7 @@ public class FileFormatModel extends FileSerializer implements DociSerializable,
     public void serialize(ExtendedFileOutputStream out) throws IOException {
         prepareFileFormatMetaData(out.getFilePath());
 
+        out.writeValidationKey(VALIDATION_KEY);
         out.writeStringFieldMappingToStream(FILE_FORMAT_MODEL_TAG, "");
         out.writeStringFieldMappingToStream(FILE_VERSION_TAG, getFileFormatVersion());
         out.writeStringFieldMappingToStream(SOFTWARE_VERSION_TAG, getSoftwareVersion());
@@ -131,6 +132,15 @@ public class FileFormatModel extends FileSerializer implements DociSerializable,
     public static FileFormatModel deserialize(ExtendedFileInputStream in) throws IOException {
         FileFormatModel formatModel = new FileFormatModel(new FileNodeModel(null, null, false, null));
         TagDataPair pair;
+
+        if (!Objects.equals(in.readValidationKey(), VALIDATION_KEY)){
+            Platform.runLater(() ->{
+                popUpAlert(Alert.AlertType.WARNING,
+                        "File incompatibility",
+                        "The file you are trying to open is corrupted");
+            });
+            throw new IncompatibleClassChangeError("File format is incompatible");
+        }
 
         // validate the first tag is FILE_FORMAT_MODEL_TAG 0x10
         pair = in.readStringFieldMappingFromStream();

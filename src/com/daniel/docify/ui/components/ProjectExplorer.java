@@ -15,8 +15,7 @@ import javafx.util.Duration;
 
 import java.io.*;
 import java.net.MalformedURLException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * This class represents the left pane of the UI, and it contains the TreeView structure
@@ -90,7 +89,23 @@ public class ProjectExplorer extends ControllerUtils{
         TreeItem<FileNodeModel> treeItem = new TreeItem<>(fileNode);
         treeItem.setExpanded(true);
 
-        for (FileNodeModel child : fileNode.getChildren()) {
+        // Get the children of the current node
+        List<FileNodeModel> children = fileNode.getChildren();
+
+        // Sort the children: directories first, then files
+        children.sort((o1, o2) -> {
+            // Assuming isFile is a boolean where false indicates a directory
+            if (o1.isFile() && !o2.isFile()) {
+                return 1; // o1 is a file and o2 is a directory, o1 should come after o2
+            } else if (!o1.isFile() && o2.isFile()) {
+                return -1; // o1 is a directory and o2 is a file, o1 should come before o2
+            }
+            // If both are files or both are directories, sort alphabetically or by any other criteria you prefer
+            return o1.getName().compareToIgnoreCase(o2.getName());
+        });
+
+        // Recursively add sorted children to the tree
+        for (FileNodeModel child : children) {
             treeItem.getChildren().add(convertToTreeItem(child));
         }
 

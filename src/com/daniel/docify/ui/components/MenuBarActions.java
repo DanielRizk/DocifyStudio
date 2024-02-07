@@ -12,6 +12,7 @@ import javafx.scene.control.DialogPane;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -144,11 +145,17 @@ public class MenuBarActions extends ControllerUtils {
                 System.out.println("Selected Directory " + selectedDir.getParent());
                 UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
 
-                if (selectedDir.getAbsolutePath().endsWith(".doci")) {
-                    fileFormatModel.save(fileFormatModel, selectedDir.getAbsolutePath());
-                } else {
-                    fileFormatModel.save(fileFormatModel, selectedDir.getAbsolutePath() + ".doci");
+                String finalPath = getFinalPath(selectedDir);
+
+                // Java native serialization
+                //fileFormatModel.save(fileFormatModel, finalPath);
+
+                try (ExtendedFileOutputStream out = new ExtendedFileOutputStream(finalPath)){
+                    fileFormatModel.serialize(out);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
                 }
+
                 controller.utils.updateInfoLabel("File saved successfully");
             }
         }else {
@@ -156,26 +163,37 @@ public class MenuBarActions extends ControllerUtils {
         }
     }
 
+
     public void saveAsPDF() {
-
-
-
-        try (ExtendedFileInputStream in = new ExtendedFileInputStream("test.txt")){
-            FileFormatModel newFormat = FileFormatModel.deserialize(in);
-            System.out.println("test");
-        }catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-
-
         ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "Information",
                 "PDF file will be supported in the upcoming release.");
+    }
+
+    @NotNull
+    private static String getFinalPath(File selectedDir) {
+        String finalPath;
+
+        if (selectedDir.getAbsolutePath().endsWith(".doci")) {
+            finalPath = selectedDir.getAbsolutePath();
+        } else {
+            finalPath = selectedDir.getAbsolutePath() + ".doci";
+        }
+        return finalPath;
     }
 
     public void saveDociFile() throws MalformedURLException {
         if (fileFormatModel.getRootNode() != null && fileFormatModel.getRootNode().getName() != null) {
             if (fileFormatModel.getSavedLocation() != null) {
-                fileFormatModel.save(fileFormatModel, fileFormatModel.getSavedLocation());
+
+                // Java native serialization
+                //fileFormatModel.save(fileFormatModel, fileFormatModel.getSavedLocation());
+
+                try (ExtendedFileOutputStream out = new ExtendedFileOutputStream(fileFormatModel.getSavedLocation())){
+                    fileFormatModel.serialize(out);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
                 controller.utils.updateInfoLabel("Project saved successfully!");
             }else {
                 saveAsDociFile();
@@ -234,7 +252,15 @@ public class MenuBarActions extends ControllerUtils {
             UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
 
             if (selectedDir.getAbsolutePath().endsWith(".doci")) {
-                fileFormatModel = fileFormatModel.load(selectedDir.getAbsolutePath());
+                // Java native deserialization
+                //fileFormatModel = fileFormatModel.load(selectedDir.getAbsolutePath());
+
+                try (ExtendedFileInputStream in = new ExtendedFileInputStream(selectedDir.getAbsolutePath())){
+                    fileFormatModel = FileFormatModel.deserialize(in);
+                }catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
                 if (fileFormatModel == null) {
                     fileFormatModel = new FileFormatModel(new FileNodeModel(null, null,false, null));
                     closeRoutine();
