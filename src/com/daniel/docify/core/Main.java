@@ -2,7 +2,6 @@ package com.daniel.docify.core;
 
 import com.daniel.docify.fileProcessor.UserConfiguration;
 import com.daniel.docify.ui.Controller;
-import com.daniel.docify.ui.components.HelpMenu;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -37,7 +36,6 @@ public class Main extends Application {
         } catch (MalformedURLException e) {
             System.out.println(e.getMessage());
         }
-
 
         Scene scene = new Scene(root);
         primaryStage.setScene(scene);

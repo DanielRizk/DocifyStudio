@@ -90,40 +90,41 @@ public abstract class FileInfoModel implements DociSerializable ,Serializable{
         out.writeStringFieldMappingToStream(FILE_INFO_P_TYPE_TAG,getFileType());
         out.writeStringFieldMappingToStream(FILE_INFO_CONTENT_TAG,getFileContent());
 
-        switch (this) {
-            case CFileInfo fileInfo -> {
-                Field[] fields = fileInfo.getComponents();
-                out.writeStringFieldMappingToStream(FILE_INFO_TYPE_TAG, "CFileInfo");
-                out.writeIntFieldMappingToStream(FILE_INFO_COMP_COUNT_TAG, fields.length);
+        if (this instanceof CFileInfo fileInfo) {
+            Field[] fields = fileInfo.getComponents();
+            out.writeStringFieldMappingToStream(FILE_INFO_TYPE_TAG, "CFileInfo");
+            out.writeIntFieldMappingToStream(FILE_INFO_COMP_COUNT_TAG, fields.length);
 
-                for (Field field : fields) {
-                    field.setAccessible(true);
+            for (Field field : fields) {
+                field.setAccessible(true);
 
-                    if (List.class.isAssignableFrom(field.getType())) {
-                        List<?> list = null;
-                        try {
-                            list = (List<?>) field.get(fileInfo);
-                        } catch (IllegalAccessException e) {
-                            throw new RuntimeException(e);
-                        }
-                        int tag = DociSerializable.getTagNameForField(field.getName());
+                if (List.class.isAssignableFrom(field.getType())) {
+                    List<?> list = null;
+                    try {
+                        list = (List<?>) field.get(fileInfo);
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
+                    }
+                    int tag = DociSerializable.getTagNameForField(field.getName());
 
-                        // Serialize list size for this component
-                        out.writeStringFieldMappingToStream(tag, "");
-                        out.writeIntFieldMappingToStream(FILE_INFO_COMP_LIST_SIZE_TAG, list.size());
+                    // Serialize list size for this component
+                    out.writeStringFieldMappingToStream(tag, "");
+                    out.writeIntFieldMappingToStream(FILE_INFO_COMP_LIST_SIZE_TAG, list.size());
 
-                        // Serialize each element in the list
-                        for (Object element : list) {
-                            if (element instanceof DociSerializable) {
-                                ((DociSerializable) element).serialize(out);
-                            }
+                    // Serialize each element in the list
+                    for (Object element : list) {
+                        if (element instanceof DociSerializable) {
+                            ((DociSerializable) element).serialize(out);
                         }
                     }
                 }
             }
-            case JavaFileInfo fileInfo -> out.writeStringFieldMappingToStream(FILE_INFO_TYPE_TAG, "JavaFileInfo");
-            case PythonFileInfo fileInfo -> out.writeStringFieldMappingToStream(FILE_INFO_TYPE_TAG, "PythonFileInfo");
-            case null, default -> throw new InvalidClassException("Unknown FileInfoModel sub-class");
+        } else if (this instanceof JavaFileInfo) {
+            out.writeStringFieldMappingToStream(FILE_INFO_TYPE_TAG, "JavaFileInfo");
+        } else if (this instanceof PythonFileInfo) {
+            out.writeStringFieldMappingToStream(FILE_INFO_TYPE_TAG, "PythonFileInfo");
+        } else {
+            throw new InvalidClassException("Unknown FileInfoModel sub-class");
         }
 
 

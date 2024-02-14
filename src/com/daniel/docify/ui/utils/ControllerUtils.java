@@ -28,6 +28,7 @@ public class ControllerUtils {
 
     protected Controller controller;
     private boolean isGetFromSearchResultCalled = false;
+    private ControllerUtils.SearchResultModel currentSelectedItem;
 
     public ControllerUtils (Controller controller){
         this.controller = controller;
@@ -151,11 +152,11 @@ public class ControllerUtils {
 
     public void getFromSearchResult(){
         isGetFromSearchResultCalled = true;
-        ControllerUtils.SearchResultModel selectedItem = controller.getSearchResultListView().getSelectionModel().getSelectedItem();
+        currentSelectedItem = controller.getSearchResultListView().getSelectionModel().getSelectedItem();
 
         if (controller.getSearchResultListView().getSelectionModel().getSelectedItem() != null) {
             controller.mainWindow.getDocumentationView().getEngine().loadContent("");
-            controller.mainWindow.compileWebViewDisplay(selectedItem.getParentFileNode().getFileInfo());
+            controller.mainWindow.compileWebViewDisplay(currentSelectedItem.getParentFileNode().getFileInfo());
         }
         controller.getSearchResultListView().getItems().clear();
         controller.getSearchResultListView().setVisible(false);
@@ -164,10 +165,10 @@ public class ControllerUtils {
         controller.mainWindow.getDocumentationView().getEngine().getLoadWorker().stateProperty().addListener((observable, oldState, newState) -> {
             if (newState == Worker.State.SUCCEEDED) {
                 // Now that the page has loaded, we can highlight the search term
-                if (selectedItem != null &&
-                        !selectedItem.toString().isEmpty() &&
+                if (currentSelectedItem != null &&
+                        !currentSelectedItem.toString().isEmpty() &&
                         isGetFromSearchResultCalled){
-                    scrollToLine(selectedItem.toString());
+                    scrollToLine(currentSelectedItem.toString());
                     isGetFromSearchResultCalled = false;
                 }
             }
@@ -190,11 +191,10 @@ public class ControllerUtils {
 
         @Override
         public int compareTo(@NotNull ControllerUtils.SearchResultModel o) {
-            if (o instanceof SearchResultModel other) {
-                return this.item.toString().compareTo(other.item.toString());
-                // You could also add more sophisticated comparison logic here if needed
-            }
-            return -1; // or throw an exception if comparing with a non-SearchResultModel object
+            // Check if 'o' is an instance of SearchResultModel without pattern matching
+            // Explicitly cast 'o' to SearchResultModel
+            return this.item.toString().compareTo(((SearchResultModel) o).item.toString());
+            // Additional comparison logic can be added here
         }
     }
 }

@@ -114,27 +114,27 @@ public class FileDocContent extends ControllerUtils {
         private void setTextColorAndIcon(FileInfoModel.ItemNameAndProperty item) {
             Image icon;
             switch (item.getType()) {
-                case FileInfoModel.ObjectType.EXTREN:
+                case EXTREN:
                     icon = iconCache.get(ICON_EXTERN);
                     text.setFill(Color.web("#574e3b"));
                     break;
-                case FileInfoModel.ObjectType.MACRO:
+                case MACRO:
                     icon = iconCache.get(ICON_MACRO);
                     text.setFill(Color.web("#215973"));
                     break;
-                case FileInfoModel.ObjectType.STATIC:
+                case STATIC:
                     icon = iconCache.get(ICON_STATIC_VAR);
                     text.setFill(Color.web("#a86900"));
                     break;
-                case FileInfoModel.ObjectType.ENUM:
+                case ENUM:
                     icon = iconCache.get(ICON_ENUM);
                     text.setFill(Color.web("#13522d"));
                     break;
-                case FileInfoModel.ObjectType.STRUCT:
+                case STRUCT:
                     icon = iconCache.get(ICON_STRUCT);
                     text.setFill(Color.web("#5e1c12"));
                     break;
-                case FileInfoModel.ObjectType.FUNCTION:
+                case FUNCTION:
                     icon = iconCache.get(ICON_FUNCTION);
                     text.setFill(Color.web("#541f80"));
                     break;

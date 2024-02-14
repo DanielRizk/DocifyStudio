@@ -416,13 +416,13 @@ public class MainWindow extends ControllerUtils {
         private final HBox cellBox = new HBox(imageView, text); // Pre-create HBox
         private static final Map<String, Image> iconCache = new HashMap<>();
 
-        private static final String ICON_EXTERN = "assets/icons/clang_extern.png";
-        private static final String ICON_MACRO = "assets/icons/clang_macro.png";
-        private static final String ICON_STATIC_VAR = "assets/icons/clang_staticVar.png";
-        private static final String ICON_ENUM = "assets/icons/clang_enum.png";
-        private static final String ICON_STRUCT = "assets/icons/clang_struct.png";
-        private static final String ICON_FUNCTION = "assets/icons/clang_function.png";
-        private static final String ICON_DEFAULT = "assets/icons/cprog.png";
+        private static final String ICON_EXTERN = "resources/assets/icons/clang_extern.png";
+        private static final String ICON_MACRO = "resources/assets/icons/clang_macro.png";
+        private static final String ICON_STATIC_VAR = "resources/assets/icons/clang_staticVar.png";
+        private static final String ICON_ENUM = "resources/assets/icons/clang_enum.png";
+        private static final String ICON_STRUCT = "resources/assets/icons/clang_struct.png";
+        private static final String ICON_FUNCTION = "resources/assets/icons/clang_function.png";
+        private static final String ICON_DEFAULT = "resources/assets/icons/cprog.png";
 
         static {
             // Load specific icons if they are not loaded already in the cache
@@ -463,27 +463,27 @@ public class MainWindow extends ControllerUtils {
         private void setTextColorAndIcon(ControllerUtils.SearchResultModel item) {
             Image icon;
             switch (item.getNameAndProperty().getType()) {
-                case FileInfoModel.ObjectType.EXTREN:
+                case EXTREN:
                     icon = iconCache.get(ICON_EXTERN);
                     text.setFill(Color.web("#574e3b"));
                     break;
-                case FileInfoModel.ObjectType.MACRO:
+                case MACRO:
                     icon = iconCache.get(ICON_MACRO);
                     text.setFill(Color.web("#215973"));
                     break;
-                case FileInfoModel.ObjectType.STATIC:
+                case STATIC:
                     icon = iconCache.get(ICON_STATIC_VAR);
                     text.setFill(Color.web("#a86900"));
                     break;
-                case FileInfoModel.ObjectType.ENUM:
+                case ENUM:
                     icon = iconCache.get(ICON_ENUM);
                     text.setFill(Color.web("#13522d"));
                     break;
-                case FileInfoModel.ObjectType.STRUCT:
+                case STRUCT:
                     icon = iconCache.get(ICON_STRUCT);
                     text.setFill(Color.web("#5e1c12"));
                     break;
-                case FileInfoModel.ObjectType.FUNCTION:
+                case FUNCTION:
                     icon = iconCache.get(ICON_FUNCTION);
                     text.setFill(Color.web("#541f80"));
                     break;
