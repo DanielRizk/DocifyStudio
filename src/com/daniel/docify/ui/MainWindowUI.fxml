@@ -51,6 +51,7 @@
                 <Menu fx:id="helpSubMenu" mnemonicParsing="false" text="Help">
                   <items>
                     <MenuItem fx:id="about_menuItem" mnemonicParsing="false" onAction="#displayMetadata" text="About" />
+                        <MenuItem fx:id="help_menuItem" mnemonicParsing="false" onAction="#displayHelpMenu" text="Help" />
                   </items>
                 </Menu>
               </menus>

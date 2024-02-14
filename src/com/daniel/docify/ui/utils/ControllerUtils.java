@@ -5,6 +5,7 @@ import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.ui.Controller;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.application.Platform;
 import javafx.collections.ObservableList;
 import javafx.concurrent.Worker;
 import javafx.scene.Node;
@@ -17,10 +18,7 @@ import javafx.util.Duration;
 import netscape.javascript.JSException;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -75,11 +73,13 @@ public class ControllerUtils {
     }
 
     public String readFileToString(String path) throws IOException {
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(path)) {
-            if (is == null) {
-                throw new FileNotFoundException("Resource not found: " + path);
-            }
+        try (InputStream is = new FileInputStream(path)) {
             return new String(is.readAllBytes(), StandardCharsets.UTF_8);
+        }catch (FileNotFoundException e){
+            Platform.runLater(()->{
+                popUpAlert(Alert.AlertType.ERROR,"Resource missing", "Failed to locate resource: " + path);
+            });
+            throw new FileNotFoundException();
         }
     }
 

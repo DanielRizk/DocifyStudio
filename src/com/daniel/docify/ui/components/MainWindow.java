@@ -367,9 +367,9 @@ public class MainWindow extends ControllerUtils {
     public void loadWebViewStyling() {
         try {
             documentationView.getEngine().setJavaScriptEnabled(true);
-            String cssContent = readFileToString("com/daniel/docify/ui/styling/stylesheet.css");
-            String jsContent = readFileToString("com/daniel/docify/ui/styling/script.js");
-            String htmlTemplate = readFileToString("com/daniel/docify/ui/styling/index.html");
+            String cssContent = readFileToString("resources/style/stylesheet.css");
+            String jsContent = readFileToString("resources/style/script.js");
+            String htmlTemplate = readFileToString("resources/style/index.html");
 
             String finalHtmlContent = htmlTemplate
                     .replace("<link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\">", "<style>" + cssContent + "</style>")

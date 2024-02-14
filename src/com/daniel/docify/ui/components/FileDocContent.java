@@ -67,13 +67,13 @@ public class FileDocContent extends ControllerUtils {
         private final HBox cellBox = new HBox(imageView, text); // Pre-create HBox
         private static final Map<String, Image> iconCache = new HashMap<>();
 
-        private static final String ICON_EXTERN = "assets/icons/clang_extern.png";
-        private static final String ICON_MACRO = "assets/icons/clang_macro.png";
-        private static final String ICON_STATIC_VAR = "assets/icons/clang_staticVar.png";
-        private static final String ICON_ENUM = "assets/icons/clang_enum.png";
-        private static final String ICON_STRUCT = "assets/icons/clang_struct.png";
-        private static final String ICON_FUNCTION = "assets/icons/clang_function.png";
-        private static final String ICON_DEFAULT = "assets/icons/cprog.png";
+        private static final String ICON_EXTERN     = "resources/assets/icons/clang_extern.png";
+        private static final String ICON_MACRO      = "resources/assets/icons/clang_macro.png";
+        private static final String ICON_STATIC_VAR = "resources/assets/icons/clang_staticVar.png";
+        private static final String ICON_ENUM       = "resources/assets/icons/clang_enum.png";
+        private static final String ICON_STRUCT     = "resources/assets/icons/clang_struct.png";
+        private static final String ICON_FUNCTION   = "resources/assets/icons/clang_function.png";
+        private static final String ICON_DEFAULT    = "resources/assets/icons/cprog.png";
 
         static {
             // Load specific icons if they are not loaded already in the cache

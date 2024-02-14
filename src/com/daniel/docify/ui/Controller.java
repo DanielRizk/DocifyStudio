@@ -110,6 +110,8 @@ public class Controller implements Initializable {
     @FXML
     private MenuItem about_menuItem;
     @FXML
+    private MenuItem help_menuItem;
+    @FXML
     private Tab fileContentTab;
     @FXML
     private Tab fileDocumentationTab;
@@ -208,6 +210,10 @@ public class Controller implements Initializable {
     void displayMetadata(ActionEvent event) {
         menuActions.displayMetaData();
     }
+    @FXML
+    void displayHelpMenu(ActionEvent event) {
+        HelpMenu help = new HelpMenu();
+    }
 
     @FXML
     void treeViewFileSelection(MouseEvent event) {
@@ -300,17 +306,19 @@ public class Controller implements Initializable {
  */
     private void loadSystemIcons(){
         try {
-            utils.setIcon(file_newSubMenu, "assets/icons/new.png");
-            utils.setIcon(file_saveAsSubMenu, "assets/icons/save.png");
-            utils.setIcon(file_save, "assets/icons/save.png");
-            utils.setIcon(file_openMenuItem, "assets/icons/open.png");
-            utils.setIcon(file_closeMenuItem, "assets/icons/close.png");
-            utils.setIcon(file_refresh, "assets/icons/refresh.png");
-            utils.setIcon(file_new_cProjectMenuItem, "assets/icons/cprog.png");
-            utils.setIcon(file_new_javaProjectMenuItem, "assets/icons/javaprog.png");
-            utils.setIcon(file_new_pythonProjectMenuItem, "assets/icons/pyprog.png");
-            utils.setIcon(file_save_docifyMenuItem, "assets/icons/doci.png");
-            utils.setIcon(file_save_pdfMenuItem, "assets/icons/pdf.png");
+            utils.setIcon(file_newSubMenu, "resources/assets/icons/new.png");
+            utils.setIcon(file_saveAsSubMenu, "resources/assets/icons/save.png");
+            utils.setIcon(file_save, "resources/assets/icons/save.png");
+            utils.setIcon(file_openMenuItem, "resources/assets/icons/open.png");
+            utils.setIcon(file_closeMenuItem, "resources/assets/icons/close.png");
+            utils.setIcon(file_refresh, "resources/assets/icons/refresh.png");
+            utils.setIcon(file_new_cProjectMenuItem, "resources/assets/icons/cprog.png");
+            utils.setIcon(file_new_javaProjectMenuItem, "resources/assets/icons/javaprog.png");
+            utils.setIcon(file_new_pythonProjectMenuItem, "resources/assets/icons/pyprog.png");
+            utils.setIcon(file_save_docifyMenuItem, "resources/assets/icons/doci.png");
+            utils.setIcon(file_save_pdfMenuItem, "resources/assets/icons/pdf.png");
+            utils.setIcon(about_menuItem, "resources/assets/icons/about.png");
+            utils.setIcon(help_menuItem, "resources/assets/icons/help.png");
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }

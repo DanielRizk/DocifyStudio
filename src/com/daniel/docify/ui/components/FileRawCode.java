@@ -2,6 +2,8 @@ package com.daniel.docify.ui.components;
 
 import com.daniel.docify.ui.Controller;
 import com.daniel.docify.ui.utils.ControllerUtils;
+import javafx.application.Platform;
+import javafx.scene.control.Alert;
 import org.fxmisc.flowless.VirtualizedScrollPane;
 import org.fxmisc.richtext.CodeArea;
 import org.fxmisc.richtext.LineNumberFactory;
@@ -111,9 +113,12 @@ public class FileRawCode extends ControllerUtils {
     }
 
     private void loadCodeAreaStylesheet() throws IOException {
-        File file = new File("src/com/daniel/docify/ui/styling/syntax.css");
+        String path = "resources/style/syntax.css";
+        File file = new File(path);
         if (!file.exists()) {
-            throw new FileNotFoundException("File not found: " + "src/com/daniel/docify/ui/syntax.css");
+            Platform.runLater(()->{
+                popUpAlert(Alert.AlertType.ERROR,"Resource missing", "Failed to locate resource: " + path);
+            });
         }
         String stylesheet = file.toURI().toURL().toExternalForm();
         codeView.getStylesheets().add(stylesheet);
