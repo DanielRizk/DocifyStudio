@@ -325,11 +325,11 @@ public class MenuBarActions extends ControllerUtils {
                     (fileFormatModel.getAuthorName() == null ? "" : "author: " + fileFormatModel.getAuthorName()) +
                             (fileFormatModel.getFileFormatVersion() == null ? "" : "\nFile version: " + fileFormatModel.getFileFormatVersion()) +
                             (fileFormatModel.getCreationDate() == null ? "" : "\nDate and time: " + fileFormatModel.getCreationDate()) +
-                            "\nSoftware version: " + Main.SOFTWARE_VERSION
+                            "\nSoftware version: Docify Studio v" + Main.SOFTWARE_VERSION
             );
         }else{
             ControllerUtils.popUpAlert(Alert.AlertType.INFORMATION, "About",
-                            "Software version: " + Main.SOFTWARE_VERSION
+                            "Software version: Docify Studio v" + Main.SOFTWARE_VERSION
             );
         }
     }

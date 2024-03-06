@@ -1,0 +1,101 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.10'
+    //id 'com.github.johnrengelman.shadow' version '7.1.2' // Ensure you have the correct version here
+}
+
+//tasks.distZip.enabled = false
+//tasks.distTar.enabled = false
+//tasks.startScripts.enabled = false
+//tasks.startShadowScripts.enabled = false
+//
+//tasks.named('startShadowScripts') {
+//    dependsOn 'jar'
+//}
+//
+//
+//tasks.named('startShadowScripts').configure {
+//    mustRunAfter 'jar'
+//}
+
+compileJava {
+    options.compilerArgs += ['--add-opens', 'javafx.web/com.sun.javafx.webkit=ALL-UNNAMED']
+}
+run {
+    jvmArgs += ['--add-opens=javafx.web/com.sun.javafx.webkit=ALL-UNNAMED']
+}
+
+
+
+group 'com.daniel.docify'
+version '1.0'
+
+sourceCompatibility = '17'
+targetCompatibility = '17'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'com.google.code.gson:gson:2.10.1'
+    implementation 'org.fxmisc.richtext:richtextfx:0.11.2'
+    implementation 'org.jetbrains:annotations:20.1.0'
+    
+    javafx {
+        version = "21.0.1"
+        modules = [ 'javafx.controls', 'javafx.fxml', 'javafx.web' ]
+    }
+    
+    // Add other dependencies here
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'src' // Adjust if your Java source files are in a different directory
+        }
+        resources {
+            srcDirs 'resources' // Adjust if your resource files are in a different directory
+        }
+    }
+}
+
+application {
+    mainClassName = 'com.daniel.docify.core.Main'
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'com.daniel.docify.core.Main'
+        )
+    }
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE // Add this line
+}
+
+// Uncomment for dist exe version
+//jar {
+//    manifest {
+//        attributes 'Main-Class': 'com.daniel.docify.core.Main'
+//    }
+//    from(sourceSets.main.output) {
+//        exclude "module-info.class"
+//    }
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+//}
+
+//shadowJar {
+//    archiveClassifier.set('')  // Set to empty to replace the default JAR
+//    manifest {
+//        attributes 'Main-Class': 'com.daniel.docify.core.Main'
+//    }
+//    mergeServiceFiles {
+//        include 'META-INF/services/*'
+//    }
+//    duplicatesStrategy = DuplicatesStrategy.EXCLUDE // Add this line
+//}

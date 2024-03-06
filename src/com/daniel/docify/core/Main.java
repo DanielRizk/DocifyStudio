@@ -12,10 +12,13 @@ import javafx.stage.Stage;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class Main extends Application {
 
-    public static final String SOFTWARE_VERSION = "Docify Studio v1.0";
+    public static final String SOFTWARE_VERSION = "1.0";
     public static final boolean LOAD_ICONS = true;
     public static void main(String[] args){
         launch(args);
@@ -23,7 +26,12 @@ public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) throws Exception {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/daniel/docify/ui/MainWindowUI.fxml"));
+        //URL url = getClass().getResource("../resources/ui/MainWindowUI.fxml");
+        String relativePath = "resources/ui/MainWindowUI.fxml";
+        Path path = Paths.get(relativePath).toAbsolutePath();
+        URL url = path.toUri().toURL();
+        System.out.println("FXML file located at: "+ url);
+        FXMLLoader loader = new FXMLLoader(url);
         Parent root = loader.load();
         Controller controller = loader.getController();
         primaryStage.setTitle("Docify Studio");

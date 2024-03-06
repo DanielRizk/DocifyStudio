@@ -151,6 +151,19 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                     if (!(chunk.toString().contains("enum") && chunk.toString().contains(";"))) {
                         do {
                             line = nextLine(reader);
+
+                            if(line.trim().contains("//") || (line.trim().contains("/*") && line.trim().contains("*/"))) {
+                                if (line.trim().startsWith("//") || line.trim().startsWith("/*")){
+                                    line = "";
+                                }else {
+                                    if (line.trim().contains("//")) {
+                                        line = line.substring(0, line.indexOf("//"));
+                                    }else if (line.trim().contains("/*")){
+                                        line = line.substring(0, line.indexOf("/*"));
+                                    }
+                                }
+                            }
+
                             chunk.append(line);
                             if (line.contains("/**")) {
                                 commentScope = true;
@@ -177,7 +190,21 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                     if (!(chunk.toString().contains("struct") && chunk.toString().contains(";"))) {
                         do {
                             line = nextLine(reader);
+
+                            if(line.trim().contains("//") || (line.trim().contains("/*") && line.trim().contains("*/"))) {
+                                if (line.trim().startsWith("//") || line.trim().startsWith("/*")){
+                                    line = "";
+                                }else {
+                                    if (line.trim().contains("//")) {
+                                        line = line.substring(0, line.indexOf("//"));
+                                    }else if (line.trim().contains("/*")){
+                                        line = line.substring(0, line.indexOf("/*"));
+                                    }
+                                }
+                            }
+
                             chunk.append(line);
+
                             if (line.contains("/**")) {
                                 commentScope = true;
                                 break;

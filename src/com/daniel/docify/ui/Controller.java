@@ -287,7 +287,7 @@ public class Controller implements Initializable {
         progressBar.setStyle("-fx-accent: green;");
 
         infoLabel.setText("");
-        versionLabel.setText(SOFTWARE_VERSION);
+        versionLabel.setText("Docify Studio v"+SOFTWARE_VERSION);
         utils.updateInfoLabel("Initialization complete!");
     }
 

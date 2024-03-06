@@ -70,7 +70,7 @@ public class FileSerializer {
                 Platform.runLater(() -> {
                     ControllerUtils.popUpAlert(Alert.AlertType.ERROR,
                             "Loading file", "The file you are trying to open is not " +
-                                    "compatible with this version of "+ Main.SOFTWARE_VERSION);
+                                    "compatible with this version of Docify Studio v"+ Main.SOFTWARE_VERSION);
                 });
                 return null;
             }

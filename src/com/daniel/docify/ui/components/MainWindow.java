@@ -8,7 +8,7 @@ import com.daniel.docify.model.fileInfo.JavaFileInfo;
 import com.daniel.docify.model.fileInfo.PythonFileInfo;
 import com.daniel.docify.ui.Controller;
 import com.daniel.docify.ui.utils.ControllerUtils;
-import com.sun.javafx.webkit.WebConsoleListener;
+//import com.sun.javafx.webkit.WebConsoleListener;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.image.Image;
@@ -384,14 +384,14 @@ public class MainWindow extends ControllerUtils {
      * This method initializes the Web console to work with the
      * IDE providing log messages from the WebView engine.
      */
+    /*
     public void initializeWebViewEngine() {
         WebConsoleListener.setDefaultListener(new WebConsoleListener() {
-            @Override
             public void messageAdded(WebView webView, String message, int lineNumber, String sourceId) {
                 System.out.println("Console: [" + sourceId + ":" + lineNumber + "] " + message);
             }
         });
-    }
+    }*/
 
     /**
      * This method initializes the searchResultListView and assigns cell factory
