@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set gradleDir=C:\gradlez
+set gradleDir=C:\Gradle
 set gradleVersion=gradle-8.6
 
 :: Check if Gradle is installed by attempting to get its version
