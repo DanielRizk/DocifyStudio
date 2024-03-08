@@ -1,9 +1,33 @@
 @echo off
 setlocal enabledelayedexpansion
 
-set gradleDir=C:\Gradle
-set gradleVersion=gradle-8.6
+set "javaMinVersion=17"
+set "gradleDir=C:\Gradle"
+set "gradleVersion=gradle-8.6"
 
+
+:: Use the correct delimiters and handle the output of 'java -version' to capture the major version directly
+for /f tokens^=2-5^ delims^=.-_^" %%a in ('java -version 2^>^&1') do (
+    set "full_version=%%a"
+    goto versionFound
+)
+
+:versionFound
+::echo Detected Java version: !full_version!
+
+:: Extract the major version number from the full version string
+for /f "tokens=1 delims=." %%i in ("!full_version!") do set /a "major_version=%%i"
+
+:: Check if Java version is 17 or higher
+if !major_version! LSS %javaMinVersion% (
+    echo Java %javaMinVersion% or higher is not installed.
+    exit /b 1
+) else (
+    echo Java version !major_version! found!.
+	goto checkGradle
+)
+
+:checkGradle
 :: Check if Gradle is installed by attempting to get its version
 cmd /c gradle -v >nul 2>&1
 set gradleCheckErrorLevel=%errorlevel%
