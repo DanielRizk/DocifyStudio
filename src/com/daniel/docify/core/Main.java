@@ -15,6 +15,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class Main extends Application {
 
@@ -55,6 +56,18 @@ public class Main extends Application {
             Platform.exit();
             System.exit(0);
         });
+
+        Parameters params = getParameters();
+        List<String> unnamedParams = params.getRaw();
+
+        // Check if any command-line argument ends with .doci
+        for (String arg : unnamedParams) {
+            if (arg.endsWith(".doci")) {
+                System.out.println("Doci file found: " + arg);
+                controller.menuActions.directOpenDociFile(new File(arg));
+            }
+        }
+
         primaryStage.show();
     }
 }

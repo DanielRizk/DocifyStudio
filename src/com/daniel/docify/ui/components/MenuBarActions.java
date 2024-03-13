@@ -279,6 +279,41 @@ public class MenuBarActions extends ControllerUtils {
         }
     }
 
+    public void directOpenDociFile(File selectedDir) throws MalformedURLException {
+
+        if (selectedDir != null) {
+            closeRoutine();
+            System.out.println("Selected Directory " + selectedDir.getParent());
+            UserConfiguration.saveUserLastSaveConfig(selectedDir.getParent());
+
+            if (selectedDir.getAbsolutePath().endsWith(".doci")) {
+                // Java native deserialization
+                //fileFormatModel = fileFormatModel.load(selectedDir.getAbsolutePath());
+
+                try (ExtendedFileInputStream in = new ExtendedFileInputStream(selectedDir.getAbsolutePath())){
+                    fileFormatModel = FileFormatModel.deserialize(in);
+                }catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (fileFormatModel == null) {
+                    fileFormatModel = new FileFormatModel(new FileNodeModel(null, null,false, null));
+                    closeRoutine();
+                    return;
+                }
+                controller.explorer.updateTreeView(fileFormatModel.getRootNode());
+                controller.utils.updateInfoLabel("File - " + fileFormatModel.getRootNode().getName() + " - opened successfully");
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR);
+                alert.setTitle("Error");
+                alert.setContentText("Error opening file");
+                alert.showAndWait();
+            }
+            controller.getPrimaryStage().setTitle("Docify Studio - " + fileFormatModel.getRootNode().getName());
+            controller.utils.updateInfoLabel("Project Documentation - " + fileFormatModel.getRootNode().getName() + " - loaded successfully");
+        }
+    }
+
     /**
      * This method closes the currently open project and performs
      * the exiting routine of all involved UI components.

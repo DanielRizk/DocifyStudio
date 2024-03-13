@@ -2,24 +2,16 @@ package com.daniel.docify.parser.clang;
 
 import com.daniel.docify.component.Clang.*;
 import com.daniel.docify.fileProcessor.FileSerializer;
-import com.daniel.docify.model.FileInfoModel;
 import com.daniel.docify.model.FileNodeModel;
 import com.daniel.docify.model.fileInfo.CFileInfo;
 import com.daniel.docify.parser.IParser;
 import com.daniel.docify.parser.ParserUtils;
-import javafx.scene.control.Alert;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -171,9 +163,8 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                             }
                         } while (!(line.contains("}") && line.contains(";")));
                         if (!commentScope) {
-                            CEnum cEnum = extractEnum(chunk.toString());
+                            CEnum cEnum = extractEnum(chunk.toString(), commentBuffer);
                             cEnum.setFileName(node.getName());
-                            cEnum.setDocumentation(commentBuffer);
                             commentBuffer = null;
                             enums.add(cEnum);
                         }
@@ -211,9 +202,8 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                             }
                         } while (!(line.contains("}") && line.contains(";")));
                         if (!commentScope) {
-                            CStruct struct = extractStruct(chunk.toString());
+                            CStruct struct = extractStruct(chunk.toString(), commentBuffer);
                             struct.setFileName(node.getName());
-                            struct.setDocumentation(commentBuffer);
                             commentBuffer = null;
                             structs.add(struct);
                         }
@@ -232,9 +222,8 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
                         }
                     } while (!(line.contains(";") || line.contains("{")));
                     if (!commentScope) {
-                        CFunction function = extractFunction(chunk.toString());
+                        CFunction function = extractFunction(chunk.toString(), commentBuffer);
                         function.setFileName(node.getName());
-                        function.setDocumentation(commentBuffer);
                         commentBuffer = null;
                         functions.add(function);
                     }
@@ -370,7 +359,7 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
         return staticVar;
     }
 
-    private CEnum extractEnum(String chunk) {
+    private CEnum extractEnum(String chunk, String commentBuffer) {
         CEnum cEnum = new CEnum();
 
         int start, end;
@@ -395,22 +384,58 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
         cEnum.setEnumType(enumType);
 
         /* extract struct members */
+        if (commentBuffer == null) {
+            commentBuffer = ""; // Or handle this case as appropriate for your context.
+        }
+
         start = chunk.indexOf("{");
         end = chunk.indexOf("}");
-        String rawMembers = chunk.substring(start + 1,  end).trim();
-        String[] membersArray = rawMembers.split(",");
+        String rawMembers = chunk.substring(start + 1, end).trim();
+        String[] membersArray = rawMembers.split(";");
+
+        // Convert commentBuffer into a List for easier manipulation.
+        List<String> commentLines = new ArrayList<>(Arrays.asList(commentBuffer.split("\n")));
+
         List<String> members = Arrays.stream(membersArray)
                 .map(String::trim)
+                .map(member -> {
+                    // Extract the member name; assuming format is "type name".
+                    // Adjust this logic as needed if your member declarations are more complex.
+                    String[] parts = member.split("\\s+");
+                    if (parts.length < 2) return member; // Skip if the member format is unexpected.
+                    String memberName = parts[1];
+                    Iterator<String> iterator = commentLines.iterator();
+                    while (iterator.hasNext()) {
+                        String line = iterator.next();
+                        if (line.startsWith(memberName + ":")) {
+                            // Extract the comment and remove the line from commentLines.
+                            String comment = line.substring(line.indexOf(':') + 1).trim();
+                            iterator.remove(); // Remove the used comment line.
+                            return member + " -> " + comment;
+                        }
+                    }
+                    // Return the member declaration unchanged if no comment is found.
+                    return member;
+                })
                 .collect(Collectors.toList());
+
         cEnum.setMembers(members);
+
+        // Reassemble commentBuffer without the used lines, if needed.
+        commentBuffer = String.join("\n", commentLines);
 
         /* set line number */
         cEnum.setLineNumber(currentLineNumber);
 
+        /* set documentation */
+        if (!commentBuffer.isEmpty()) {
+            cEnum.setDocumentation(commentBuffer);
+        }
+
         return cEnum;
     }
 
-    private CStruct extractStruct(String chunk) {
+    private CStruct extractStruct(String chunk, String commentBuffer) {
         CStruct struct = new CStruct();
 
         int start, end;
@@ -435,35 +460,102 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
         struct.setStructType(structType);
 
         /* extract struct members */
+        if (commentBuffer == null) {
+            commentBuffer = ""; // Or handle this case as appropriate for your context.
+        }
+
         start = chunk.indexOf("{");
         end = chunk.indexOf("}");
-        String rawMembers = chunk.substring(start + 1,  end).trim();
+        String rawMembers = chunk.substring(start + 1, end).trim();
         String[] membersArray = rawMembers.split(";");
+
+        // Convert commentBuffer into a List for easier manipulation.
+        List<String> commentLines = new ArrayList<>(Arrays.asList(commentBuffer.split("\n")));
+
         List<String> members = Arrays.stream(membersArray)
                 .map(String::trim)
+                .map(member -> {
+                    // Extract the member name; assuming format is "type name".
+                    // Adjust this logic as needed if your member declarations are more complex.
+                    String[] parts = member.split("\\s+");
+                    if (parts.length < 2) return member; // Skip if the member format is unexpected.
+                    String memberName = parts[1];
+                    Iterator<String> iterator = commentLines.iterator();
+                    while (iterator.hasNext()) {
+                        String line = iterator.next();
+                        if (line.startsWith(memberName + ":")) {
+                            // Extract the comment and remove the line from commentLines.
+                            String comment = line.substring(line.indexOf(':') + 1).trim();
+                            iterator.remove(); // Remove the used comment line.
+                            return member + " -> " + comment;
+                        }
+                    }
+                    // Return the member declaration unchanged if no comment is found.
+                    return member;
+                })
                 .collect(Collectors.toList());
+
         struct.setMembers(members);
+
+        // Reassemble commentBuffer without the used lines, if needed.
+        commentBuffer = String.join("\n", commentLines);
 
         /* set line number */
         struct.setLineNumber(currentLineNumber);
 
+        /* set documentation */
+        if (!commentBuffer.isEmpty()) {
+            struct.setDocumentation(commentBuffer);
+        }
+
         return struct;
     }
 
-    private CFunction extractFunction(String chunk) {
+    private CFunction extractFunction(String chunk, String commentBuffer) {
         CFunction function = new CFunction();
 
         int start, end;
 
         /* extract params */
+        if (commentBuffer == null) {
+            commentBuffer = ""; // Or handle this case as appropriate for your context.
+        }
+
         start = chunk.indexOf("(");
         end = chunk.indexOf(")");
-        String rawParams = chunk.substring(start + 1, end);
-        String[] paramsArray = rawParams.split(",");
-        List<String> params = Arrays.stream(paramsArray)
+        String rawMembers = chunk.substring(start + 1, end).trim();
+        String[] membersArray = rawMembers.split(",");
+
+        // Convert commentBuffer into a List for easier manipulation.
+        List<String> commentLines = new ArrayList<>(Arrays.asList(commentBuffer.split("\n")));
+
+        List<String> params = Arrays.stream(membersArray)
                 .map(String::trim)
+                .map(member -> {
+                    // Extract the member name; assuming format is "type name".
+                    // Adjust this logic as needed if your member declarations are more complex.
+                    String[] parts = member.split("\\s+");
+                    if (parts.length < 2) return member; // Skip if the member format is unexpected.
+                    String memberName = parts[1];
+                    Iterator<String> iterator = commentLines.iterator();
+                    while (iterator.hasNext()) {
+                        String line = iterator.next();
+                        if (line.startsWith(memberName + ":")) {
+                            // Extract the comment and remove the line from commentLines.
+                            String comment = line.substring(line.indexOf(':') + 1).trim();
+                            iterator.remove(); // Remove the used comment line.
+                            return member + " -> " + comment;
+                        }
+                    }
+                    // Return the member declaration unchanged if no comment is found.
+                    return member;
+                })
                 .collect(Collectors.toList());
+
         function.setParams(params);
+
+        // Reassemble commentBuffer without the used lines, if needed.
+        commentBuffer = String.join("\n", commentLines);
 
         /* extract function name */
         start = 0;
@@ -481,6 +573,11 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
 
         /* set line number */
         function.setLineNumber(currentLineNumber);
+
+        /* set documentation */
+        if (!commentBuffer.isEmpty()) {
+            function.setDocumentation(commentBuffer);
+        }
 
         return function;
     }
@@ -510,6 +607,7 @@ public class ClangParser extends ParserUtils implements IParser<CFileInfo> {
             chunk = chunk.substring(0,endBriefContent);
             chunk = chunk.replaceAll("\\*", "\n").lines().map(
                     String::trim).reduce("", (s1, s2) -> s1 + s2 + "\n").trim();
+            chunk = chunk.replaceAll("\\. ", ".\n");
             return chunk;
         }
         return null;

@@ -246,7 +246,7 @@ public class MainWindow extends ControllerUtils {
                         .append(en.getName()).append("</b>").append("</div>");
             enumContent.append("<div class='content enums' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
             if (en.getDocumentation() != null) {
-                enumContent.append("<div class='attr'><b>Enum Brief:</b> ").append(en.getDocumentation()).append("</div>");
+                enumContent.append("<div class='attr'><b>Enum Brief:</b> ").append(en.getDocumentation().replace("\n", "<br>")).append("</div>");
             } else {
                 enumContent.append("<div class='attr'><b>No documentation available!</b></div> ");
             }
@@ -284,7 +284,7 @@ public class MainWindow extends ControllerUtils {
                         .append(st.getName()).append("</b>").append("</div>");
             structContent.append("<div class='content struct' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
             if (st.getDocumentation() != null) {
-                structContent.append("<div class='attr'><b>Struct Brief:</b> ").append(st.getDocumentation()).append("</div>");
+                structContent.append("<div class='attr'><b>Struct Brief:</b> ").append(st.getDocumentation().replace("\n", "<br>")).append("</div>");
             } else {
                 structContent.append("<div class='attr'><b>No documentation available!</b></div> ");
             }
@@ -322,7 +322,7 @@ public class MainWindow extends ControllerUtils {
                         .append(fun.getName()).append("</b>").append("</div>");
             functionsContent.append("<div class='content function' id='").append(contentID).append("' style='display: none;'>");/* set display to block/flex to expand all*/
             if (fun.getDocumentation() != null) {
-                functionsContent.append("<div class='attr'><b>Function Brief:</b> ").append(fun.getDocumentation()).append("</div>");
+                functionsContent.append("<div class='attr'><b>Function Brief:</b> ").append(fun.getDocumentation().replace("\n", "<br>")).append("</div>");
             } else {
                 functionsContent.append("<div class='attr'><b>No documentation available!</b></div> ");
             }
